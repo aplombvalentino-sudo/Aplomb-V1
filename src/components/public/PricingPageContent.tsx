@@ -22,10 +22,11 @@ export function PricingPageContent() {
           </span>
           <h1 className="mt-5 font-serif text-[clamp(2.4rem,4vw,3.5rem)] font-semibold
                          leading-[1.08] tracking-[-0.03em] text-[#111010]">
-            Simple, transparent pricing
+            Plans for brands and shoppers.
           </h1>
           <p className="mt-4 text-[17px] leading-[1.65] text-[#6B6965]">
-            Start for free. Upgrade when your brand needs more.
+            Brands integrate Aplomb to reduce returns.
+            Shoppers find their perfect fit across the catalogue.
           </p>
         </motion.div>
 
@@ -38,7 +39,7 @@ export function PricingPageContent() {
           transition={{ duration: 0.6, delay: 0.6, ease }}
           className="mt-12 text-center text-sm text-[#9C9894]"
         >
-          All plans include a 14-day free trial. No credit card required.
+          No credit card required to start. Cancel anytime.
         </motion.p>
       </div>
     </div>

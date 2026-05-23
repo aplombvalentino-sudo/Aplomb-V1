@@ -10,6 +10,7 @@ const ease = [0.32, 0.72, 0, 1] as const;
 const navLinks = [
   { label: "Features", href: "/#features" },
   { label: "Pricing", href: "/pricing" },
+  { label: "Shop", href: "/app" },
 ];
 
 export function PublicHeader() {

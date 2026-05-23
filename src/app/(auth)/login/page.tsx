@@ -13,7 +13,7 @@ const ease = [0.16, 1, 0.3, 1] as const;
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard";
+  const callbackUrl = searchParams.get("callbackUrl") ?? "/pro/dashboard";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -148,7 +148,7 @@ export default function LoginPage() {
           Welcome back
         </h1>
         <p className="mt-2 text-sm text-[#6B6965]">
-          Sign in to your Aplomb merchant account.
+          Sign in to your Aplomb brand account.
         </p>
       </motion.div>
 
@@ -156,17 +156,27 @@ export default function LoginPage() {
         <LoginForm />
       </Suspense>
 
-      <motion.p
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4, delay: 0.55 }}
-        className="mt-7 text-sm text-[#6B6965]"
+        className="mt-7 space-y-3 text-sm text-[#6B6965]"
       >
-        Don&apos;t have an account?{" "}
-        <Link href="/signup" className="font-medium text-[#111010] hover:underline underline-offset-2">
-          Sign up free
-        </Link>
-      </motion.p>
+        <p>
+          Don&apos;t have an account?{" "}
+          <Link href="/signup" className="font-medium text-[#111010] hover:underline underline-offset-2">
+            Sign up free
+          </Link>
+        </p>
+        <div className="border-t border-black/[0.06] pt-3">
+          <p className="text-[12px] text-[#9C9894]">
+            Shopping with Aplomb?{" "}
+            <Link href="/app" className="font-medium text-[#C9A882] hover:underline underline-offset-2">
+              Browse brands →
+            </Link>
+          </p>
+        </div>
+      </motion.div>
     </motion.div>
   );
 }
