@@ -35,9 +35,18 @@ export default async function BrandClientPage({ params }: Props) {
   const rawPlan = cookieStore.get(CLIENT_PLAN_COOKIE)?.value;
   const clientPlan = isValidClientPlan(rawPlan) ? rawPlan : "essential";
 
+  // Serialize products — convert Prisma Decimal to string for client component
+  const serializedProducts = brand.products.map((p) => ({
+    ...p,
+    variants: p.variants.map((v) => ({
+      ...v,
+      price: v.price != null ? v.price.toString() : null,
+    })),
+  }));
+
   // Group products by category
-  const byCategory: Record<string, typeof brand.products> = {};
-  for (const p of brand.products) {
+  const byCategory: Record<string, typeof serializedProducts> = {};
+  for (const p of serializedProducts) {
     const cat = p.category ?? "Other";
     if (!byCategory[cat]) byCategory[cat] = [];
     byCategory[cat].push(p);
