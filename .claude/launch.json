@@ -1,0 +1,21 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "aplomb-dev",
+      "runtimeExecutable": "/c/Program Files/nodejs/npm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "C:\\Users\\Utilisateur\\aplomb",
+      "port": 3000,
+      "env": {
+        "DATABASE_URL": "postgresql://postgres.lpzinsfbftxcbngokgmc:Aplomb_971971@aws-0-eu-west-1.pooler.supabase.com:6543/postgres?pgbouncer=true",
+        "DIRECT_URL": "postgresql://postgres.lpzinsfbftxcbngokgmc:Aplomb_971971@aws-0-eu-west-1.pooler.supabase.com:5432/postgres",
+        "SUPABASE_URL": "https://lpzinsfbftxcbngokgmc.supabase.co",
+        "SUPABASE_ANON_KEY": "sb_publishable_dxRe43EgJ3CHZIlIxQYB3w_TEN5zuCJ",
+        "NEXTAUTH_SECRET": "3xK9mPqR7vWzYbNsLcJeHfDtUoAiGkMn",
+        "NEXTAUTH_URL": "http://localhost:3000",
+        "MEASUREMENT_PROVIDER": "stub"
+      }
+    }
+  ]
+}

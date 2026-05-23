@@ -1,0 +1,160 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { motion } from "motion/react";
+import { cn } from "@/lib/cn";
+import {
+  LayoutDashboard,
+  Package,
+  Ruler,
+  Settings,
+  History,
+  LogOut,
+  ChevronRight,
+  CreditCard,
+} from "lucide-react";
+import { signOut } from "next-auth/react";
+
+const navItems = [
+  { href: "/pro/dashboard",    label: "Overview",     icon: LayoutDashboard, exact: true },
+  { href: "/pro/catalogue",    label: "Catalogue",    icon: Package },
+  { href: "/pro/size-charts",  label: "Size Charts",  icon: Ruler },
+  { href: "/pro/sessions",     label: "Fit Sessions", icon: History },
+  { href: "/pro/pricing",      label: "Plans",        icon: CreditCard },
+  { href: "/pro/settings",     label: "Settings",     icon: Settings },
+];
+
+const ease = [0.16, 1, 0.3, 1] as const;
+
+export function ProSideNav({
+  brandName,
+  brandLogoUrl,
+  plan,
+}: {
+  brandName: string;
+  brandLogoUrl?: string | null;
+  plan?: string;
+}) {
+  const pathname = usePathname();
+
+  return (
+    <motion.aside
+      initial={{ opacity: 0, x: -16 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.5, ease }}
+      className="flex h-full w-[220px] flex-col border-r border-black/[0.07] bg-[#F9F8F6] shrink-0"
+    >
+      {/* Wordmark */}
+      <div className="flex h-14 items-center border-b border-black/[0.07] px-5">
+        <Link
+          href="/"
+          className="text-[15px] font-semibold tracking-tight text-[#111010]
+                     hover:opacity-60 transition-opacity duration-200"
+        >
+          Aplomb
+        </Link>
+        <ChevronRight strokeWidth={1.5} className="ml-1 h-3 w-3 text-[#C9C5C0]" />
+        <span className="ml-1 text-[13px] text-[#9C9894] font-medium">Pro</span>
+      </div>
+
+      {/* Brand identity */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.1, duration: 0.4 }}
+        className="flex items-center gap-2.5 border-b border-black/[0.07] px-5 py-3.5"
+      >
+        {/* Logo or initial */}
+        <div
+          className="h-8 w-8 rounded-lg bg-[#111010] flex items-center justify-center shrink-0
+                     overflow-hidden ring-1 ring-black/10"
+        >
+          {brandLogoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={brandLogoUrl} alt={brandName} className="h-full w-full object-cover" />
+          ) : (
+            <span className="text-[11px] font-semibold text-white">
+              {brandName.slice(0, 2).toUpperCase()}
+            </span>
+          )}
+        </div>
+        <div className="min-w-0">
+          <p className="truncate text-[13px] font-medium text-[#111010] leading-tight">
+            {brandName}
+          </p>
+          {plan && (
+            <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-[#9C9894]">
+              {plan}
+            </p>
+          )}
+        </div>
+      </motion.div>
+
+      {/* Nav items */}
+      <nav className="flex-1 px-3 py-3">
+        <ul className="space-y-0.5">
+          {navItems.map((item, i) => {
+            const active = item.exact
+              ? pathname === item.href
+              : pathname.startsWith(item.href);
+            return (
+              <motion.li
+                key={item.href}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.07 + i * 0.05, duration: 0.35, ease }}
+              >
+                <Link
+                  href={item.href}
+                  className={cn(
+                    "relative flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[13px] font-medium transition-colors duration-200",
+                    active
+                      ? "text-white"
+                      : "text-[#6B6965] hover:text-[#111010] hover:bg-black/[0.04]"
+                  )}
+                >
+                  {active && (
+                    <motion.span
+                      layoutId="pro-nav-pill"
+                      className="absolute inset-0 rounded-xl bg-[#111010]"
+                      transition={{ type: "spring", stiffness: 420, damping: 40 }}
+                    />
+                  )}
+                  <item.icon strokeWidth={1.5} className="relative z-10 h-4 w-4 shrink-0" />
+                  <span className="relative z-10">{item.label}</span>
+                </Link>
+              </motion.li>
+            );
+          })}
+        </ul>
+      </nav>
+
+      {/* Footer */}
+      <div className="border-t border-black/[0.07] px-3 py-3 space-y-0.5">
+        <Link
+          href="/app"
+          className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-[12px]
+                     font-medium text-[#9C9894] hover:text-[#111010] hover:bg-black/[0.04]
+                     transition-colors duration-200"
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="shrink-0">
+            <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.5"/>
+            <path d="M7 4.5v3l1.5 1.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+          Client view
+        </Link>
+
+        <button
+          onClick={() => signOut({ callbackUrl: "/" })}
+          className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-[12px]
+                     font-medium text-[#9C9894] hover:text-[#111010] hover:bg-black/[0.04]
+                     transition-colors duration-200"
+        >
+          <LogOut strokeWidth={1.5} className="h-3.5 w-3.5 shrink-0" />
+          Sign out
+        </button>
+      </div>
+    </motion.aside>
+  );
+}
