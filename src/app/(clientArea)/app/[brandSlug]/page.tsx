@@ -35,12 +35,18 @@ export default async function BrandClientPage({ params }: Props) {
   const rawPlan = cookieStore.get(CLIENT_PLAN_COOKIE)?.value;
   const clientPlan = isValidClientPlan(rawPlan) ? rawPlan : "essential";
 
-  // Serialize products — convert Prisma Decimal to string for client component
+  // Explicitly pick only the fields BrandScanWizard needs — avoids Prisma type leakage
   const serializedProducts = brand.products.map((p) => ({
-    ...p,
+    id: p.id,
+    name: p.name,
+    category: p.category,
+    imageUrl: p.imageUrl,
     variants: p.variants.map((v) => ({
-      ...v,
+      id: v.id,
+      sizeLabel: v.sizeLabel,
+      color: v.color,
       price: v.price != null ? v.price.toString() : null,
+      stockStatus: v.stockStatus as string,
     })),
   }));
 
