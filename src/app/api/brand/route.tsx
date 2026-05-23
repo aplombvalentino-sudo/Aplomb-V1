@@ -34,6 +34,7 @@ function slugify(str: string) {
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) return unauthorized();
+  const userId = session.user.id;
 
   const body = await req.json().catch(() => null);
   if (!body) return err("INVALID_JSON", "Invalid request body");
@@ -55,7 +56,7 @@ export async function POST(req: NextRequest) {
   const brand = await db.$transaction(async (tx) => {
     const b = await tx.brand.create({ data: { name, slug } });
     await tx.brandUser.create({
-      data: { userId: session.user.id!, brandId: b.id, role: "owner" },
+      data: { userId, brandId: b.id, role: "owner" },
     });
     return b;
   });
