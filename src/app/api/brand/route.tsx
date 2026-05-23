@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { ok, err, unauthorized, forbidden } from "@/lib/api";
@@ -112,7 +113,7 @@ export async function PATCH(req: NextRequest) {
         configuration: {
           ...(membership.brand.configuration as Record<string, unknown>),
           ...configuration,
-        },
+        } as Prisma.InputJsonValue,
       }),
     },
   });
