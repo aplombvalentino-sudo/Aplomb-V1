@@ -70,7 +70,7 @@ const updateSchema = z.object({
   slug: z.string().min(1).max(100).optional(),
   logoUrl: z.string().url().nullable().optional(),
   primaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
-  configuration: z.record(z.unknown()).optional(),
+  configuration: z.record(z.string(), z.unknown()).optional(),
 });
 
 export async function PATCH(req: NextRequest) {
