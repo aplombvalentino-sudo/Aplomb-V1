@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import { cn } from "@/lib/cn";
 import type { ClientPlan } from "@/lib/planLimits";
@@ -89,25 +88,14 @@ export function ClientPricingCards({
   currentPlan?: ClientPlan;
   redirectAfter?: string;
 }) {
-  const router = useRouter();
   const [loadingPlan, setLoadingPlan] = useState<ClientPlan | null>(null);
-  const [activePlan, setActivePlan] = useState<ClientPlan>(currentPlan);
+  const activePlan = currentPlan;
+  void redirectAfter; // legacy prop; payment now handled by checkout route
 
-  async function choosePlan(id: ClientPlan) {
+  function choosePlan(id: ClientPlan) {
+    // Route through checkout — plan switch will be applied by Shopify webhook.
     setLoadingPlan(id);
-    try {
-      await fetch("/api/user/plan", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: id }),
-      });
-      setActivePlan(id);
-      if (redirectAfter) {
-        setTimeout(() => router.push(redirectAfter), 400);
-      }
-    } finally {
-      setLoadingPlan(null);
-    }
+    window.location.href = `/checkout?audience=client&plan=${id}`;
   }
 
   return (

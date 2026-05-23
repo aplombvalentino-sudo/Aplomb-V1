@@ -201,17 +201,11 @@ export function ProPricingCards({
 
   async function choosePlan(id: "free" | "pro" | "enterprise") {
     if (id === "enterprise") { setEnterpriseOpen(true); return; }
+    // Go to checkout — actual plan switch happens after Shopify payment webhook.
+    // Map DB enum to display slug used in /checkout (`free` → `starter`).
+    const planSlug = id === "free" ? "starter" : id;
     setLoadingPlan(id);
-    try {
-      await fetch("/api/brand/plan", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: id }),
-      });
-      setActivePlan(id);
-    } finally {
-      setLoadingPlan(null);
-    }
+    window.location.href = `/checkout?audience=brand&plan=${planSlug}`;
   }
 
   return (

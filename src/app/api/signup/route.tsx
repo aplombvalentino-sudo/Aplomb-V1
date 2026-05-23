@@ -6,7 +6,8 @@ import { ok, err } from "@/lib/api";
 
 const signupSchema = z.object({
   name: z.string().min(1).max(100),
-  brandName: z.string().min(1).max(100),
+  // brandName is optional — when absent, we create a client account (no Brand record)
+  brandName: z.string().min(1).max(100).optional(),
   email: z.string().email(),
   password: z.string().min(8).max(100),
 });
@@ -58,16 +59,8 @@ export async function POST(req: NextRequest) {
 
   const supabaseUserId = authData.user.id;
 
-  // 2. Mirror the user into Prisma (for FK relationships with Brand, etc.)
-  //    and create their first Brand — all in a single transaction.
+  // 2. Mirror the user into Prisma. If brandName provided, also create Brand+BrandUser.
   try {
-    const baseSlug = slugify(brandName);
-    let slug = baseSlug;
-    let i = 1;
-    while (await db.brand.findUnique({ where: { slug } })) {
-      slug = `${baseSlug}-${i++}`;
-    }
-
     const result = await db.$transaction(async (tx) => {
       // Upsert so replayed requests are idempotent
       const user = await tx.user.upsert({
@@ -76,15 +69,24 @@ export async function POST(req: NextRequest) {
         update: { name, email },
       });
 
-      const brand = await tx.brand.create({
-        data: { name: brandName, slug },
-      });
+      if (brandName) {
+        const baseSlug = slugify(brandName);
+        let slug = baseSlug;
+        let i = 1;
+        while (await tx.brand.findUnique({ where: { slug } })) {
+          slug = `${baseSlug}-${i++}`;
+        }
+        const brand = await tx.brand.create({
+          data: { name: brandName, slug },
+        });
+        await tx.brandUser.create({
+          data: { userId: user.id, brandId: brand.id, role: "owner" },
+        });
+        return { user: { id: user.id, email: user.email, name: user.name }, brand };
+      }
 
-      await tx.brandUser.create({
-        data: { userId: user.id, brandId: brand.id, role: "owner" },
-      });
-
-      return { user: { id: user.id, email: user.email, name: user.name }, brand };
+      // Client signup — no Brand created
+      return { user: { id: user.id, email: user.email, name: user.name }, brand: null };
     });
 
     return ok(result, 201);

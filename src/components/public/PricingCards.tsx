@@ -30,8 +30,8 @@ const brandPlans: Plan[] = [
       "Basic size charts",
       "Email support",
     ],
-    cta: "Start free",
-    href: "/signup",
+    cta: "Get Starter",
+    href: "/signup?audience=brand&plan=starter",
   },
   {
     name: "Pro",
@@ -46,8 +46,8 @@ const brandPlans: Plan[] = [
       "Analytics dashboard",
       "Priority support",
     ],
-    cta: "Choose Pro",
-    href: "/signup?plan=pro",
+    cta: "Get Pro",
+    href: "/signup?audience=brand&plan=pro",
     highlight: true,
   },
   {
@@ -79,8 +79,8 @@ const clientPlans: Plan[] = [
       "Preset occasions",
       "Per-brand sizing",
     ],
-    cta: "Start free",
-    href: "/app",
+    cta: "Get Essential",
+    href: "/signup?audience=client&plan=essential",
   },
   {
     name: "Fashion",
@@ -93,8 +93,8 @@ const clientPlans: Plan[] = [
       "Custom occasions",
       "Extended preset library",
     ],
-    cta: "Browse brands",
-    href: "/app",
+    cta: "Get Fashion",
+    href: "/signup?audience=client&plan=fashion",
   },
   {
     name: "Model",
@@ -109,7 +109,7 @@ const clientPlans: Plan[] = [
       "Custom colour picker",
     ],
     cta: "Get Model",
-    href: "/app",
+    href: "/signup?audience=client&plan=model",
     highlight: true,
   },
 ];
