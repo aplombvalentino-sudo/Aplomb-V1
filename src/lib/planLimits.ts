@@ -69,66 +69,20 @@ export function getClientPlanLimits(plan: ClientPlan): ClientPlanLimits {
   }
 }
 
-// ─── Pro / Brand plans ────────────────────────────────────────────────────────
+// ─── Pro / Brand plans — re-exported from lib/plans/proPlans ──────────────────
+//
+// Pro plans semantics have moved to `@/lib/plans/proPlans` (Listed / Featured /
+// Premier). The shim below keeps the old call sites working while we migrate.
 
-export type ProPlan = "free" | "pro" | "enterprise";
-
-export type ProPlanLimits = {
-  /** Max simultaneously active collections (products). Infinity = unlimited. */
-  maxActiveCollections: number;
-  /** Max scans per month across all clients. Infinity = unlimited. */
-  maxScansPerMonth: number;
-  /** Custom widget branding allowed. */
-  customWidgetBranding: boolean;
-  /** Outgoing webhooks available. */
-  webhooks: boolean;
-  /** Analytics dashboard access. */
-  analytics: boolean;
-  /** Priority support. */
-  prioritySupport: boolean;
-  /** Dedicated account manager & custom integrations. */
-  dedicated: boolean;
-  /** Display label shown to users. */
-  displayName: string;
-};
-
-export function getProPlanLimits(plan: ProPlan): ProPlanLimits {
-  switch (plan) {
-    case "free": // Starter
-      return {
-        maxActiveCollections: 2,
-        maxScansPerMonth: 50,
-        customWidgetBranding: false,
-        webhooks: false,
-        analytics: false,
-        prioritySupport: false,
-        dedicated: false,
-        displayName: "Starter",
-      };
-    case "pro": // Pro
-      return {
-        maxActiveCollections: Infinity,
-        maxScansPerMonth: Infinity,
-        customWidgetBranding: true,
-        webhooks: true,
-        analytics: true,
-        prioritySupport: true,
-        dedicated: false,
-        displayName: "Pro",
-      };
-    case "enterprise": // Enterprise
-      return {
-        maxActiveCollections: Infinity,
-        maxScansPerMonth: Infinity,
-        customWidgetBranding: true,
-        webhooks: true,
-        analytics: true,
-        prioritySupport: true,
-        dedicated: true,
-        displayName: "Enterprise",
-      };
-  }
-}
+export {
+  getProfessionalPlanLimits as getProPlanLimits,
+  getProfessionalPlanDisplay,
+  isValidProPlan,
+  ALL_PRO_PLANS,
+  type ProPlan,
+  type ProPlanLimits,
+  type ProPlanDisplay,
+} from "@/lib/plans/proPlans";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

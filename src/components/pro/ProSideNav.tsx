@@ -9,7 +9,8 @@ import {
   Package,
   Ruler,
   Settings,
-  History,
+  Sparkles,
+  BarChart3,
   LogOut,
   ChevronRight,
   CreditCard,
@@ -17,12 +18,13 @@ import {
 import { signOut } from "next-auth/react";
 
 const navItems = [
-  { href: "/pro/dashboard",    label: "Overview",     icon: LayoutDashboard, exact: true },
-  { href: "/pro/catalogue",    label: "Catalogue",    icon: Package },
-  { href: "/pro/size-charts",  label: "Size Charts",  icon: Ruler },
-  { href: "/pro/sessions",     label: "Fit Sessions", icon: History },
-  { href: "/pro/pricing",      label: "Plans",        icon: CreditCard },
-  { href: "/pro/settings",     label: "Settings",     icon: Settings },
+  { href: "/pro/dashboard",   label: "Overview",    icon: LayoutDashboard, exact: true },
+  { href: "/pro/catalogue",   label: "Catalog",     icon: Package },
+  { href: "/pro/size-charts", label: "Size Charts", icon: Ruler },
+  { href: "/pro/discovery",   label: "Discovery",   icon: Sparkles },
+  { href: "/pro/analytics",   label: "Analytics",   icon: BarChart3 },
+  { href: "/pro/pricing",     label: "Billing",     icon: CreditCard },
+  { href: "/pro/settings",    label: "Settings",    icon: Settings },
 ];
 
 const ease = [0.16, 1, 0.3, 1] as const;

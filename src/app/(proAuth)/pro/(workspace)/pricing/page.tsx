@@ -2,12 +2,13 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { ProPricingCards } from "@/components/pricing/ProPricingCards";
-import { getProPlanLimits } from "@/lib/planLimits";
+import { getProfessionalPlanLimits, type ProPlan } from "@/lib/plans/proPlans";
+import { getBrandMonthlyExposure } from "@/lib/analytics/brandMetrics";
 import { Metadata } from "next";
 
-export const metadata: Metadata = { title: "Pricing" };
+export const metadata: Metadata = { title: "Billing" };
 
-export default async function ProPricingPage() {
+export default async function ProBillingPage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 
@@ -18,71 +19,82 @@ export default async function ProPricingPage() {
   if (!membership) redirect("/pro/onboarding");
 
   const { brand } = membership;
-  const limits = getProPlanLimits(brand.plan);
+  const plan = getProfessionalPlanLimits(brand.plan as ProPlan);
+  const exposure = await getBrandMonthlyExposure(brand.id, plan.monthlyExposureQuota);
 
   return (
     <div>
       {/* Header */}
       <div className="mb-10">
         <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#9C9894]">
-          Pricing
+          Billing
         </p>
         <h1 className="mt-1 font-serif text-[1.8rem] font-semibold leading-tight
                        tracking-[-0.025em] text-[#111010]">
-          Your plan
+          Plan & marketplace presence
         </h1>
         <p className="mt-1 text-sm text-[#6B6965]">
           You are currently on the{" "}
-          <span className="font-medium text-[#111010]">{limits.displayName}</span> plan.
-          {" "}Changes take effect immediately.
+          <span className="font-medium text-[#111010]">{plan.displayName}</span> plan.
         </p>
       </div>
 
-      {/* Current plan callout */}
+      {/* Current usage summary */}
       <div className="mb-8 rounded-2xl bg-[#F7F6F3] border border-black/[0.06] p-5
-                       flex flex-wrap items-center gap-6">
-        <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#9C9894]">
-            Active collections limit
-          </p>
-          <p className="mt-0.5 font-serif text-[1.6rem] font-semibold text-[#111010] tabular-nums">
-            {limits.maxActiveCollections === Infinity ? "∞" : limits.maxActiveCollections}
-          </p>
-        </div>
-        <div className="h-8 w-px bg-black/[0.07]" />
-        <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#9C9894]">
-            Scans per month
-          </p>
-          <p className="mt-0.5 font-serif text-[1.6rem] font-semibold text-[#111010] tabular-nums">
-            {limits.maxScansPerMonth === Infinity ? "∞" : limits.maxScansPerMonth}
-          </p>
-        </div>
-        <div className="h-8 w-px bg-black/[0.07]" />
-        <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#9C9894]">
-            Custom widget branding
-          </p>
-          <p className="mt-0.5 text-[13px] font-medium text-[#111010]">
-            {limits.customWidgetBranding ? "Included" : "Not included"}
-          </p>
-        </div>
-        <div className="h-8 w-px bg-black/[0.07]" />
-        <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#9C9894]">
-            Webhooks
-          </p>
-          <p className="mt-0.5 text-[13px] font-medium text-[#111010]">
-            {limits.webhooks ? "Included" : "Not included"}
-          </p>
-        </div>
+                       grid grid-cols-2 md:grid-cols-4 gap-5">
+        <UsageStat
+          label="Monthly scan quota"
+          value={
+            plan.monthlyExposureQuota === Infinity
+              ? "Unlimited"
+              : plan.monthlyExposureQuota.toLocaleString()
+          }
+        />
+        <UsageStat
+          label="Used this month"
+          value={exposure.used.toLocaleString()}
+          subtle={plan.monthlyExposureQuota !== Infinity ? `${exposure.pctUsed}% of quota` : undefined}
+        />
+        <UsageStat
+          label="Active collections"
+          value={plan.maxActiveCollections === Infinity ? "Unlimited" : String(plan.maxActiveCollections)}
+        />
+        <UsageStat
+          label="Featured eligibility"
+          value={plan.featuredEligibility ? "Eligible" : "Standard only"}
+        />
       </div>
 
-      <ProPricingCards currentPlan={brand.plan} />
+      <ProPricingCards currentPlan={brand.plan as ProPlan} />
+
+      <div className="mt-8 rounded-2xl bg-white border border-black/[0.06] px-6 py-5">
+        <p className="text-[13px] font-semibold text-[#111010]">How professional plans work</p>
+        <p className="mt-2 text-[13px] text-[#6B6965] leading-relaxed">
+          Aplomb plans are about your brand&apos;s marketplace presence — catalog capacity,
+          monthly shopper-scan exposure, featured eligibility, and analytics depth. Scans
+          are performed by your customers, not by your team. When your monthly quota is
+          reached, your brand stays fully live and searchable — only the featured boost is paused
+          until the next cycle.
+        </p>
+      </div>
 
       <p className="mt-6 text-center text-[12px] text-[#9C9894]">
-        No Stripe yet — plan selection is instant. Billing will be enabled in a future release.
+        Payments handled by Shopify (wiring in progress) — your selected plan is reserved.
       </p>
+    </div>
+  );
+}
+
+function UsageStat({ label, value, subtle }: { label: string; value: string; subtle?: string }) {
+  return (
+    <div>
+      <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#9C9894]">
+        {label}
+      </p>
+      <p className="mt-0.5 font-serif text-[1.4rem] font-semibold text-[#111010] tabular-nums">
+        {value}
+      </p>
+      {subtle && <p className="mt-0.5 text-[11px] text-[#9C9894]">{subtle}</p>}
     </div>
   );
 }

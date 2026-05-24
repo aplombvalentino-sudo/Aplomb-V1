@@ -33,15 +33,24 @@ const SHOPIFY_PRODUCT_URLS: Record<string, string> = {
 };
 
 const PLAN_LABELS: Record<string, string> = {
-  starter: "Starter",
-  pro: "Pro",
-  enterprise: "Enterprise",
+  // Brand plans (new naming)
+  listed: "Listed",
+  featured: "Featured",
+  premier: "Premier",
+  // Legacy/internal brand slugs (kept for backwards compat)
+  starter: "Listed",
+  pro: "Featured",
+  enterprise: "Premier",
+  // Shopper plans
   essential: "Essential",
   fashion: "Fashion",
   model: "Model",
 };
 
 const PLAN_PRICES: Record<string, string> = {
+  listed: "€45 / mo",
+  featured: "€200 / mo",
+  premier: "Custom",
   starter: "€45 / mo",
   pro: "€200 / mo",
   enterprise: "Custom",

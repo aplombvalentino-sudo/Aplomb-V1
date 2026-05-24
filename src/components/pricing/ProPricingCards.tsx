@@ -143,50 +143,53 @@ type ProTier = {
 const TIERS: ProTier[] = [
   {
     id: "free",
-    name: "Starter",
+    name: "Listed",
     price: "45",
     period: "/month",
-    tagline: "For brands just getting started.",
+    tagline: "Be present on the platform with a basic listing.",
     features: [
       "Up to 2 active collections",
-      "50 scans per month",
-      "Standard widget embed",
-      "Basic size chart editor",
-      "Email support",
+      "1,000 shopper scans / month",
+      "Brand profile page",
+      "Catalog & size chart upload",
+      "Standard search visibility",
+      "Basic analytics",
     ],
-    cta: "Choose Starter",
+    cta: "Choose Listed",
   },
   {
     id: "pro",
-    name: "Pro",
+    name: "Featured",
     price: "200",
     period: "/month",
-    tagline: "Full power for growing brands.",
+    tagline: "Strong visibility and marketplace growth.",
     features: [
       "Unlimited collections",
-      "Unlimited scans",
-      "Custom widget branding",
-      "Webhooks & API access",
-      "Analytics dashboard",
+      "10,000 shopper scans / month",
+      "Eligible for Top Brands placement",
+      "Enhanced analytics dashboard",
+      "Product & outfit insights",
+      "Featured badge & priority ranking",
       "Priority support",
     ],
-    cta: "Choose Pro",
+    cta: "Choose Featured",
     recommended: true,
     dark: true,
   },
   {
     id: "enterprise",
-    name: "Enterprise",
+    name: "Premier",
     price: null,
-    tagline: "Everything in Pro, plus dedicated support.",
+    tagline: "Custom exposure and dedicated growth support.",
     features: [
-      "Everything in Pro",
-      "Dedicated account manager",
+      "Everything in Featured",
+      "Custom monthly exposure quota",
+      "Custom placement opportunities",
+      "Dedicated onboarding & support",
       "Custom integrations",
-      "SLA guarantee",
-      "Onboarding & migration",
+      "Optional merchandising support",
     ],
-    cta: "Contact our team",
+    cta: "Contact team",
   },
 ];
 
@@ -202,8 +205,8 @@ export function ProPricingCards({
   async function choosePlan(id: "free" | "pro" | "enterprise") {
     if (id === "enterprise") { setEnterpriseOpen(true); return; }
     // Go to checkout — actual plan switch happens after Shopify payment webhook.
-    // Map DB enum to display slug used in /checkout (`free` → `starter`).
-    const planSlug = id === "free" ? "starter" : id;
+    // Map DB enum to display slug used in /checkout
+    const planSlug = id === "free" ? "listed" : id === "pro" ? "featured" : "premier";
     setLoadingPlan(id);
     window.location.href = `/checkout?audience=brand&plan=${planSlug}`;
   }
