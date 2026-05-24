@@ -78,9 +78,14 @@ export async function getBrandEngagement30d(brandId: string): Promise<BrandEngag
   const since = daysAgo(30);
   const [scans30d, outfits30d] = await Promise.all([
     db.recommendationSession.count({ where: { brandId, createdAt: { gte: since } } }),
-    db.outfit.count({
-      where: { brandId, createdAt: { gte: since } },
-    }).catch(() => 0),
+    db.outfit
+      .count({
+        where: {
+          createdAt: { gte: since },
+          recommendationSession: { brandId },
+        },
+      })
+      .catch(() => 0),
   ]);
 
   return { scans30d, outfits30d, saves30d: 0, productClicks30d: 0 };
