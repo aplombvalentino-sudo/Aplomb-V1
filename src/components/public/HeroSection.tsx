@@ -212,11 +212,14 @@ export function HeroSection() {
                     </div>
                   </div>
 
-                  {/* CTA */}
-                  <button className="w-full rounded-xl bg-[#111010] py-3 text-[13px] font-medium
-                                     text-white transition-opacity hover:opacity-80">
+                  {/* CTA — sends visitors into the shopper signup flow */}
+                  <Link
+                    href="/signup?audience=client"
+                    className="block text-center w-full rounded-xl bg-[#111010] py-3 text-[13px] font-medium
+                               text-white transition-opacity hover:opacity-80"
+                  >
                     Shop this look
-                  </button>
+                  </Link>
                 </div>
 
                 {/* Mock bottom bar */}
