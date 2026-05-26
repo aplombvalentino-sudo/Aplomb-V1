@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Checkout — Aplomb" };
@@ -67,6 +68,11 @@ export default async function CheckoutPage({ searchParams }: Props) {
   const params = await searchParams;
   const audience = params.audience === "brand" ? "brand" : "client";
   const plan = params.plan ?? null;
+
+  // Essential is free — never reaches Stripe. Send the user straight to the app.
+  if (audience === "client" && (!plan || plan === "essential")) {
+    redirect("/app");
+  }
 
   const planLabel = plan && PLAN_LABELS[plan] ? PLAN_LABELS[plan] : "your plan";
   const planPrice = plan && PLAN_PRICES[plan] ? PLAN_PRICES[plan] : "";

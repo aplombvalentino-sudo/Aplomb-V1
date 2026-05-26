@@ -34,17 +34,18 @@ const TIERS: ClientTier[] = [
   {
     id: "essential",
     name: "Essential",
-    price: "9.99",
+    price: "0",
     period: "/month",
-    tagline: "Start finding your perfect fit.",
+    tagline: "Free during launch — start finding your perfect fit.",
     features: [
       "5 scans per month",
       "3 preset occasion styles",
       "Save up to 4 looks",
       "Single-brand outfits",
       "Standard color palettes",
+      "No payment required",
     ],
-    cta: "Choose Essential",
+    cta: "Get Essential — free",
   },
   {
     id: "fashion",
@@ -92,9 +93,21 @@ export function ClientPricingCards({
   const activePlan = currentPlan;
   void redirectAfter; // legacy prop; payment now handled by checkout route
 
-  function choosePlan(id: ClientPlan) {
-    // Route through checkout — plan switch will be applied by Shopify webhook.
+  async function choosePlan(id: ClientPlan) {
     setLoadingPlan(id);
+    // Essential is free — apply instantly, no checkout.
+    if (id === "essential") {
+      try {
+        await fetch("/api/user/plan", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ plan: "essential" }),
+        });
+      } catch {}
+      window.location.href = "/app";
+      return;
+    }
+    // Paid plans go through Stripe-backed checkout.
     window.location.href = `/checkout?audience=client&plan=${id}`;
   }
 

@@ -72,16 +72,17 @@ const brandPlans: Plan[] = [
 const clientPlans: Plan[] = [
   {
     name: "Essential",
-    price: "9.99",
+    price: "0",
     period: "/mo",
-    description: "Try Aplomb across your favourite brands.",
+    description: "Free during launch — try Aplomb across your favourite brands.",
     features: [
       "5 body scans / month",
       "Save up to 4 looks",
       "Preset occasions",
       "Per-brand sizing",
+      "No payment required",
     ],
-    cta: "Get Essential",
+    cta: "Get Essential — free",
     href: "/signup?audience=client&plan=essential",
   },
   {

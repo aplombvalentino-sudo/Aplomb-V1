@@ -10,10 +10,17 @@ import { Button } from "@/components/ui/Button";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
-// Post-signup destination — if a plan was selected, go to checkout, else dashboard/app.
+// Post-signup destination — if a paid plan was selected, go to checkout.
+// Essential is free (no payment) so it skips checkout entirely.
 function buildDestination(audience: "brand" | "client", plan: string | null): string {
-  if (plan) return `/checkout?audience=${audience}&plan=${plan}`;
-  return audience === "brand" ? "/pro/dashboard" : "/app";
+  if (audience === "client") {
+    // Free Essential path — no checkout, just the app.
+    if (!plan || plan === "essential") return "/app";
+    return `/checkout?audience=client&plan=${plan}`;
+  }
+  // Brand: any specific plan goes to checkout, otherwise dashboard.
+  if (plan) return `/checkout?audience=brand&plan=${plan}`;
+  return "/pro/dashboard";
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -241,6 +248,16 @@ function SignupForm({
         setError("Account created but sign-in failed. Please log in manually.");
         router.push("/login");
       } else {
+        // For free Essential shoppers, lock in the plan cookie before redirect.
+        if (kind === "client" && (!plan || plan === "essential")) {
+          try {
+            await fetch("/api/user/plan", {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ plan: "essential" }),
+            });
+          } catch {}
+        }
         router.push(buildDestination(kind, plan));
       }
     } catch {
