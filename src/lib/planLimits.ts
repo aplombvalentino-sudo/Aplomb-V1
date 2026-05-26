@@ -12,6 +12,8 @@ export type ClientPlanLimits = {
   maxScansPerMonth: number;
   /** Max outfits/items saved to digital wardrobe. */
   maxWardrobeSaves: number;
+  /** Max try-on image generations per month. */
+  maxTryOnsPerMonth: number;
   /** Whether free-text custom occasion is allowed. */
   customOccasion: boolean;
   /** Preset occasions shown in scan form. */
@@ -37,6 +39,7 @@ export function getClientPlanLimits(plan: ClientPlan): ClientPlanLimits {
       return {
         maxScansPerMonth: 5,
         maxWardrobeSaves: 4,
+        maxTryOnsPerMonth: 3,
         customOccasion: false,
         occasionPresets: OCCASION_PRESETS_BASIC,
         customColorPicker: false,
@@ -48,6 +51,7 @@ export function getClientPlanLimits(plan: ClientPlan): ClientPlanLimits {
       return {
         maxScansPerMonth: 15,
         maxWardrobeSaves: 10,
+        maxTryOnsPerMonth: 25,
         customOccasion: true,
         occasionPresets: OCCASION_PRESETS_EXTENDED,
         customColorPicker: false,
@@ -59,6 +63,7 @@ export function getClientPlanLimits(plan: ClientPlan): ClientPlanLimits {
       return {
         maxScansPerMonth: Infinity,
         maxWardrobeSaves: Infinity,
+        maxTryOnsPerMonth: Infinity,
         customOccasion: true,
         occasionPresets: OCCASION_PRESETS_EXTENDED,
         customColorPicker: true,

@@ -1,105 +1,157 @@
+/**
+ * POST /api/outfits
+ *
+ * Generates 1–3 complete outfits for a given recommendation session using
+ * Gemini. The model is constrained to the brand's active catalog and returns
+ * strict JSON. Generated outfits are persisted to the DB.
+ */
+
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { generateOutfits } from "@/lib/outfitGenerator";
 import { rateLimit } from "@/lib/rateLimit";
 import { ok, err, notFound, serverError } from "@/lib/api";
+import {
+  generateOutfitsWithGemini,
+  type CatalogProductInput,
+} from "@/lib/ai/gemini/outfits";
+import type { NormalizedMeasurements } from "@/lib/ai/measurementProvider";
 
 const schema = z.object({
-  brandSlug: z.string(),
-  recommendationSessionId: z.string(),
-  context: z
-    .object({
-      occasion: z.string().optional(),
-      stylePreferences: z.array(z.string()).optional(),
-      maxItems: z.number().int().min(1).max(8).optional(),
-    })
-    .optional(),
+  brandSlug: z.string().min(1),
+  recommendationSessionId: z.string().min(1),
+  occasion: z.string().max(120).optional(),
+  stylePreference: z.string().max(120).optional(),
+  colorPalette: z.string().max(120).optional(),
+  maxOutfits: z.number().int().min(1).max(3).optional(),
 });
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for") ?? "anonymous";
-  const { allowed } = rateLimit(`outfits:${ip}`, 20, 60_000);
+  const { allowed } = rateLimit(`outfits:${ip}`, 12, 60_000);
   if (!allowed) {
-    return err("RATE_LIMITED", "Too many requests. Please try again in a minute.", 429);
+    return err("RATE_LIMITED", "Too many requests. Try again in a minute.", 429);
   }
 
   const body = await req.json().catch(() => null);
   if (!body) return err("INVALID_JSON", "Invalid request body");
-
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
     return err("VALIDATION_ERROR", parsed.error.issues[0]?.message ?? "Invalid input");
   }
+  const {
+    brandSlug,
+    recommendationSessionId,
+    occasion,
+    stylePreference,
+    colorPalette,
+    maxOutfits,
+  } = parsed.data;
 
-  const { brandSlug, recommendationSessionId, context } = parsed.data;
-
-  const brand = await db.brand.findUnique({ where: { slug: brandSlug } });
-  if (!brand) return notFound("Brand");
-
+  // Load the session + brand + catalog
   const session = await db.recommendationSession.findUnique({
     where: { id: recommendationSessionId },
-    include: { bodyProfile: true },
+    include: {
+      bodyProfile: true,
+      brand: {
+        include: {
+          products: {
+            where: { isActive: true },
+            include: { variants: true },
+          },
+        },
+      },
+    },
   });
-
-  if (!session || session.brandId !== brand.id) return notFound("Session");
-  if (!session.bodyProfile) {
-    return err("NO_BODY_PROFILE", "No body measurements found for this session");
+  if (!session || session.brand.slug !== brandSlug) {
+    return notFound("Recommendation session");
+  }
+  if (session.brand.products.length === 0) {
+    return err("EMPTY_CATALOG", "Brand has no active products.", 400);
   }
 
-  const rawMeasurements = session.bodyProfile.rawMeasurementsJson as Record<string, number>;
+  // Shape catalog input for the model
+  const catalog: CatalogProductInput[] = session.brand.products.map((p) => ({
+    id: p.id,
+    name: p.name,
+    category: p.category,
+    subcategory: p.subcategory,
+    description: p.description,
+    tags: p.tags,
+    variants: p.variants.map((v) => ({
+      id: v.id,
+      sizeLabel: v.sizeLabel,
+      color: v.color,
+    })),
+  }));
+
+  const measurements = (session.bodyProfile?.rawMeasurementsJson ?? null) as
+    | NormalizedMeasurements
+    | null;
+  if (!measurements) {
+    return err(
+      "MISSING_BODY_PROFILE",
+      "This session has no measurements yet — run /api/measurements first.",
+      400,
+    );
+  }
 
   try {
-    const result = await generateOutfits({
-      brandId: brand.id,
-      bodyProfile: {
-        measurements: rawMeasurements,
-        providerName: session.bodyProfile.provider,
-        bodyShapeSummary: session.bodyProfile.bodyShapeSummary ?? undefined,
+    const generated = await generateOutfitsWithGemini({
+      brandName: session.brand.name,
+      catalog,
+      measurements,
+      bodyShapeSummary: session.bodyProfile?.bodyShapeSummary ?? null,
+      occasion,
+      stylePreference,
+      colorPalette,
+      maxOutfits,
+    });
+
+    // Persist outfits + items in one transaction
+    await db.$transaction(async (tx) => {
+      for (const outfit of generated.outfits) {
+        await tx.outfit.create({
+          data: {
+            recommendationSessionId: session.id,
+            title: outfit.title.slice(0, 120),
+            description: outfit.description?.slice(0, 280),
+            rationale: outfit.rationale?.slice(0, 600),
+            items: {
+              create: outfit.items.map((it) => ({
+                productId: it.productId,
+                productVariantId: it.productVariantId,
+                position: it.position,
+                isRequired: it.isRequired ?? true,
+              })),
+            },
+          },
+        });
+      }
+    });
+
+    // Re-fetch the newly-created outfits with nested product data
+    const fullOutfits = await db.outfit.findMany({
+      where: { recommendationSessionId: session.id },
+      orderBy: { createdAt: "desc" },
+      take: generated.outfits.length,
+      include: {
+        items: {
+          include: {
+            product: {
+              select: { id: true, name: true, imageUrl: true, category: true },
+            },
+            productVariant: {
+              select: { id: true, sizeLabel: true, color: true },
+            },
+          },
+        },
       },
-      context,
     });
 
-    const savedOutfits = await db.$transaction(async (tx) => {
-      return Promise.all(
-        result.outfits.map(async (o) => {
-          const outfit = await tx.outfit.create({
-            data: {
-              recommendationSessionId,
-              title: o.title,
-              description: o.description,
-              rationale: o.rationale,
-            },
-          });
-
-          await tx.outfitItem.createMany({
-            data: o.items.map((item) => ({
-              outfitId: outfit.id,
-              productId: item.productId,
-              productVariantId: item.productVariantId ?? null,
-              position: item.position,
-              isRequired: true,
-            })),
-          });
-
-          return tx.outfit.findUnique({
-            where: { id: outfit.id },
-            include: {
-              items: {
-                include: { product: true, productVariant: true },
-              },
-            },
-          });
-        })
-      );
-    });
-
-    return ok({
-      outfits: savedOutfits.filter(Boolean),
-      sessionId: recommendationSessionId,
-    });
+    return ok({ outfits: fullOutfits });
   } catch (e) {
     console.error("[/api/outfits]", e);
-    return serverError("Failed to generate outfits");
+    return serverError(e instanceof Error ? e.message : "Outfit generation failed");
   }
 }

@@ -1,7 +1,26 @@
 "use client";
 
-import { useState, useEffect } from "react";
+/**
+ * Brand-side AI fitting room wizard.
+ *
+ * Steps:
+ *   0  Consent + privacy
+ *   1  Mode select (Easy / Advanced)
+ *   2  Measurement form + photo capture
+ *   3  Processing (skeleton)
+ *   4  Size recommendations
+ *   5  Outfit suggestions + Try-on
+ *
+ * Design notes (anti-AI-slop):
+ *   - No gradients, no glow blobs, no purple/cyan.
+ *   - Honest confidence levels surfaced on every size suggestion.
+ *   - Compact left-aligned forms; no centered-everywhere layouts.
+ *   - Photos held only in private storage; never displayed back to the user.
+ */
+
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
 import { UpgradePrompt } from "@/components/client/UpgradePrompt";
 import {
@@ -12,23 +31,17 @@ import {
 import type { WardrobeOutfit } from "@/components/client/WardrobeClient";
 
 const WARDROBE_KEY = "aplomb_wardrobe";
-
-function loadWardrobe(): WardrobeOutfit[] {
-  try {
-    const raw = localStorage.getItem(WARDROBE_KEY);
-    return raw ? (JSON.parse(raw) as WardrobeOutfit[]) : [];
-  } catch {
-    return [];
-  }
-}
-
-function persistWardrobe(items: WardrobeOutfit[]) {
-  localStorage.setItem(WARDROBE_KEY, JSON.stringify(items));
-}
-
 const ease = [0.16, 1, 0.3, 1] as const;
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── Types ──────────────────────────────────────────────────────────────────
+
+type Brand = {
+  id: string;
+  name: string;
+  slug: string;
+  logoUrl: string | null;
+  primaryColor: string;
+};
 
 type Variant = {
   id: string;
@@ -46,37 +59,49 @@ type Product = {
   variants: Variant[];
 };
 
-type Brand = {
-  id: string;
-  name: string;
-  slug: string;
-  logoUrl: string | null;
-  primaryColor: string;
+type SizeRec = {
+  category: string;
+  recommendedSize: string;
+  confidence: "low" | "medium" | "high";
+  explanation: string;
 };
 
-type ScanResult = {
-  measurements: Record<string, number>;
-  sizeRecommendations: Record<string, string>;
-  sessionId: string;
+type MeasurementResponse = {
   bodyProfileId: string;
-  products: Product[];
-  stylePreference: string | null;
-  occasion: string | null;
+  recommendationSessionId: string;
+  measurements: {
+    heightCm: number;
+    weightKg?: number;
+    chestCm?: number;
+    waistCm?: number;
+    hipsCm?: number;
+    shouldersCm?: number;
+    inseamCm?: number;
+    measurementMode: "easy" | "advanced";
+    sourceConfidence: Record<string, "manual" | "ai" | "none">;
+  };
+  bodyShapeSummary: string;
+  sizeRecommendations: SizeRec[];
 };
 
-type Outfit = {
+type OutfitItemDTO = {
+  id: string;
+  position: string;
+  product: { id: string; name: string; imageUrl: string | null; category: string | null };
+  productVariant: { id: string; sizeLabel: string | null; color: string | null } | null;
+};
+
+type OutfitDTO = {
   id: string;
   title: string;
-  description: string;
-  rationale: string;
-  items: Array<{
-    id: string;
-    position: string;
-    product: { name: string; imageUrl: string | null };
-  }>;
+  description: string | null;
+  rationale: string | null;
+  items: OutfitItemDTO[];
 };
 
-// ─── Step indicator ───────────────────────────────────────────────────────────
+type MeasurementMode = "easy" | "advanced";
+
+// ─── Utility ────────────────────────────────────────────────────────────────
 
 function StepDots({ total, current }: { total: number; current: number }) {
   return (
@@ -97,7 +122,17 @@ function StepDots({ total, current }: { total: number; current: number }) {
   );
 }
 
-// ─── Main wizard ──────────────────────────────────────────────────────────────
+function confidenceDot(c: SizeRec["confidence"]) {
+  if (c === "high") return "#346538";
+  if (c === "medium") return "#C9A882";
+  return "#C97A6A";
+}
+
+function confidenceLabel(c: SizeRec["confidence"]) {
+  return c === "high" ? "High confidence" : c === "medium" ? "Medium confidence" : "Approximate";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 export function BrandScanWizard({
   brand,
@@ -109,18 +144,41 @@ export function BrandScanWizard({
   clientPlan?: ClientPlan;
 }) {
   const planLimits = getClientPlanLimits(clientPlan);
-  const occasionPresets = planLimits.occasionPresets;
 
-  const [step, setStep] = useState<0 | 1 | 2 | 3 | 4>(0);
+  const [step, setStep] = useState<0 | 1 | 2 | 3 | 4 | 5>(0);
+  const [mode, setMode] = useState<MeasurementMode>("easy");
   const [scanCount, setScanCount] = useState(0);
   const [showUpgrade, setShowUpgrade] = useState(false);
-  const [formValues, setFormValues] = useState({
-    heightCm: 170,
-    stylePreference: "" as "" | "casual" | "formal" | "sport",
-    occasion: "",
-  });
 
-  // Read scan count from localStorage on mount
+  // Form state
+  const [consentAccepted, setConsentAccepted] = useState(false);
+  const [heightCm, setHeightCm] = useState(170);
+  const [weightKg, setWeightKg] = useState(65);
+  const [chestCm, setChestCm] = useState<number | "">("");
+  const [waistCm, setWaistCm] = useState<number | "">("");
+  const [hipsCm, setHipsCm] = useState<number | "">("");
+  const [gender, setGender] = useState<"male" | "female" | "other" | "">("");
+  const [frontPhoto, setFrontPhoto] = useState<File | null>(null);
+  const [sidePhoto, setSidePhoto] = useState<File | null>(null);
+
+  const [occasion, setOccasion] = useState("");
+  const [stylePreference, setStylePreference] = useState<"" | "casual" | "formal" | "sport">("");
+
+  const [result, setResult] = useState<MeasurementResponse | null>(null);
+  const [outfits, setOutfits] = useState<OutfitDTO[]>([]);
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+  const [tryOnByItem, setTryOnByItem] = useState<Record<string, { url?: string; loading?: boolean; error?: string }>>({});
+  const [activeTryOn, setActiveTryOn] = useState<string | null>(null);
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [processingStage, setProcessingStage] = useState(0); // 0..2
+
+  const totalProducts = useMemo(
+    () => Object.values(productsByCategory).flat().length,
+    [productsByCategory],
+  );
+
   useEffect(() => {
     try {
       const stored = localStorage.getItem(SCAN_COUNT_KEY);
@@ -129,92 +187,76 @@ export function BrandScanWizard({
   }, []);
 
   const scanLimitReached =
-    planLimits.maxScansPerMonth !== Infinity &&
-    scanCount >= planLimits.maxScansPerMonth;
-  const [scanResult, setScanResult] = useState<ScanResult | null>(null);
-  const [outfits, setOutfits] = useState<Outfit[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+    planLimits.maxScansPerMonth !== Infinity && scanCount >= planLimits.maxScansPerMonth;
 
-  function saveOutfitToWardrobe(outfit: Outfit) {
-    const existing = loadWardrobe();
-    // Check plan wardrobe limit
-    if (
-      planLimits.maxWardrobeSaves !== Infinity &&
-      existing.length >= planLimits.maxWardrobeSaves
-    ) {
-      setShowUpgrade(true);
+  // ── Submit measurements ──────────────────────────────────────────────────
+  async function submitMeasurements() {
+    if (!frontPhoto || !sidePhoto) {
+      setError("Please add both your front and side photos.");
       return;
     }
-    // Don't double-save
-    if (existing.some((o) => o.id === outfit.id)) {
-      setSavedIds((s) => new Set([...s, outfit.id]));
-      return;
-    }
-    const entry: WardrobeOutfit = {
-      id: outfit.id,
-      brandName: brand.name,
-      brandSlug: brand.slug,
-      savedAt: new Date().toISOString(),
-      items: outfit.items.map((item) => ({
-        name: item.product.name,
-        size: (scanResult?.sizeRecommendations?.[item.position] ??
-               scanResult?.sizeRecommendations?.["top"] ??
-               "—"),
-        category: item.position,
-      })),
-    };
-    persistWardrobe([entry, ...existing]);
-    setSavedIds((s) => new Set([...s, outfit.id]));
-  }
-
-  const categories = Object.keys(productsByCategory);
-  const totalProducts = Object.values(productsByCategory).flat().length;
-
-  // Step 2 → 3: POST scan
-  async function runScan() {
-    // Enforce client plan scan limit
     if (scanLimitReached) {
       setShowUpgrade(true);
       return;
     }
-    setLoading(true);
+    if (mode === "advanced" && (!chestCm || !waistCm || !hipsCm)) {
+      setError("Advanced mode needs your chest, waist, and hips measurements.");
+      return;
+    }
+
     setError("");
+    setStep(3);
+    setLoading(true);
+    setProcessingStage(0);
+
+    const stages = setInterval(() => setProcessingStage((s) => Math.min(s + 1, 2)), 1200);
+
     try {
-      const res = await fetch("/api/client/scan", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          brandSlug: brand.slug,
-          heightCm: formValues.heightCm,
-          stylePreference: formValues.stylePreference || undefined,
-          occasion: formValues.occasion || undefined,
-        }),
-      });
+      const form = new FormData();
+      form.set("brandSlug", brand.slug);
+      form.set("measurementMode", mode);
+      form.set("heightCm", String(heightCm));
+      form.set("weightKg", String(weightKg));
+      if (mode === "advanced") {
+        form.set("chestCm", String(chestCm));
+        form.set("waistCm", String(waistCm));
+        form.set("hipsCm", String(hipsCm));
+      }
+      if (gender) form.set("gender", gender);
+      form.set("frontImage", frontPhoto);
+      form.set("sideImage", sidePhoto);
+
+      const res = await fetch("/api/measurements", { method: "POST", body: form });
       const json = await res.json();
+
       if (!json.success) {
-        setError(json.error?.message ?? "Scan failed.");
+        setError(json.error?.message ?? "Measurement failed.");
         setLoading(false);
+        setStep(2);
+        clearInterval(stages);
         return;
       }
-      setScanResult(json.data);
-      // Increment monthly scan counter in localStorage
+
+      setResult(json.data);
       try {
         const next = scanCount + 1;
         localStorage.setItem(SCAN_COUNT_KEY, String(next));
         setScanCount(next);
       } catch {}
-      setStep(3);
+      clearInterval(stages);
+      setStep(4);
     } catch {
       setError("Unexpected error. Please try again.");
+      setStep(2);
+      clearInterval(stages);
     }
+
     setLoading(false);
   }
 
-  // Step 3 → 4: POST outfits
+  // ── Generate outfits ─────────────────────────────────────────────────────
   async function generateOutfits() {
-    if (!scanResult) return;
+    if (!result) return;
     setLoading(true);
     setError("");
     try {
@@ -223,14 +265,10 @@ export function BrandScanWizard({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           brandSlug: brand.slug,
-          recommendationSessionId: scanResult.sessionId,
-          context: {
-            occasion: scanResult.occasion ?? undefined,
-            stylePreferences: scanResult.stylePreference
-              ? [scanResult.stylePreference]
-              : undefined,
-            maxItems: 4,
-          },
+          recommendationSessionId: result.recommendationSessionId,
+          occasion: occasion || undefined,
+          stylePreference: stylePreference || undefined,
+          maxOutfits: 3,
         }),
       });
       const json = await res.json();
@@ -240,32 +278,87 @@ export function BrandScanWizard({
         return;
       }
       setOutfits(json.data?.outfits ?? []);
-      setStep(4);
+      setStep(5);
     } catch {
       setError("Unexpected error. Please try again.");
     }
     setLoading(false);
   }
 
+  // ── Try-on ────────────────────────────────────────────────────────────────
+  async function runTryOn(itemId: string) {
+    if (!result) return;
+    setTryOnByItem((s) => ({ ...s, [itemId]: { loading: true } }));
+    try {
+      const res = await fetch("/api/tryon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          outfitItemId: itemId,
+          bodyProfileId: result.bodyProfileId,
+        }),
+      });
+      const json = await res.json();
+      if (!json.success) {
+        setTryOnByItem((s) => ({ ...s, [itemId]: { error: json.error?.message ?? "Try-on failed." } }));
+        return;
+      }
+      setTryOnByItem((s) => ({ ...s, [itemId]: { url: json.data.imageUrl } }));
+      setActiveTryOn(json.data.imageUrl);
+    } catch {
+      setTryOnByItem((s) => ({ ...s, [itemId]: { error: "Try-on failed." } }));
+    }
+  }
+
+  // ── Save outfit to wardrobe ──────────────────────────────────────────────
+  function saveToWardrobe(outfit: OutfitDTO) {
+    if (!result) return;
+    try {
+      const raw = localStorage.getItem(WARDROBE_KEY);
+      const existing: WardrobeOutfit[] = raw ? JSON.parse(raw) : [];
+      if (
+        planLimits.maxWardrobeSaves !== Infinity &&
+        existing.length >= planLimits.maxWardrobeSaves
+      ) {
+        setShowUpgrade(true);
+        return;
+      }
+      if (existing.some((o) => o.id === outfit.id)) {
+        setSavedIds((s) => new Set([...s, outfit.id]));
+        return;
+      }
+      const sizeFor = (cat: string | null) =>
+        result.sizeRecommendations.find(
+          (r) => cat && r.category.toLowerCase().includes(cat.toLowerCase()),
+        )?.recommendedSize ??
+        result.sizeRecommendations[0]?.recommendedSize ??
+        "—";
+      const entry: WardrobeOutfit = {
+        id: outfit.id,
+        brandName: brand.name,
+        brandSlug: brand.slug,
+        savedAt: new Date().toISOString(),
+        items: outfit.items.map((it) => ({
+          name: it.product.name,
+          size: it.productVariant?.sizeLabel ?? sizeFor(it.product.category),
+          category: it.position,
+        })),
+      };
+      localStorage.setItem(WARDROBE_KEY, JSON.stringify([entry, ...existing]));
+      setSavedIds((s) => new Set([...s, outfit.id]));
+    } catch {}
+  }
+
+  // ─── Render ────────────────────────────────────────────────────────────────
+
   return (
     <div className="min-h-[100dvh] bg-[#F7F6F3]">
-      {/* Ambient glow */}
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 -z-10"
-        style={{
-          background: `radial-gradient(ellipse 60% 50% at 50% 30%, ${brand.primaryColor}18 0%, transparent 70%)`,
-        }}
-      />
-
       {/* Header */}
       <header className="sticky top-0 z-10 border-b border-black/[0.07] bg-[#F7F6F3]/90
                           backdrop-blur-md px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          {/* Brand logo */}
           <div
-            className="h-8 w-8 rounded-lg flex items-center justify-center overflow-hidden
-                         ring-1 ring-black/10"
+            className="h-8 w-8 rounded-lg flex items-center justify-center overflow-hidden ring-1 ring-black/10"
             style={{ background: brand.primaryColor + "22" }}
           >
             {brand.logoUrl ? (
@@ -279,11 +372,12 @@ export function BrandScanWizard({
           </div>
           <span className="text-[14px] font-semibold text-[#111010]">{brand.name}</span>
         </div>
-
         <div className="flex items-center gap-4">
-          <StepDots total={5} current={step} />
-          <Link href="/app" className="text-[12px] text-[#9C9894] hover:text-[#111010]
-                                        transition-colors duration-200">
+          <StepDots total={6} current={step} />
+          <Link
+            href="/app"
+            className="text-[12px] text-[#9C9894] hover:text-[#111010] transition-colors duration-200"
+          >
             ← All brands
           </Link>
         </div>
@@ -291,150 +385,214 @@ export function BrandScanWizard({
 
       <main className="mx-auto max-w-2xl px-6 py-12">
         <AnimatePresence mode="wait">
-
-          {/* ── Step 0: Product overview ── */}
+          {/* ── 0  Consent ─────────────────────────────────────────────── */}
           {step === 0 && (
-            <motion.div
-              key="step0"
-              initial={{ opacity: 0, y: 20 }}
+            <motion.section
+              key="s0"
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -16 }}
-              transition={{ duration: 0.5, ease }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.45, ease }}
             >
-              <span className="inline-flex items-center rounded-full border border-black/10
-                               bg-white/60 px-3 py-1 text-[10px] font-medium uppercase
-                               tracking-[0.18em] text-[#6B6965]">
-                Step 1 of 5
-              </span>
-              <h1 className="mt-4 font-serif text-[1.9rem] font-semibold leading-[1.1]
-                             tracking-[-0.025em] text-[#111010]">
-                {totalProducts > 0
-                  ? `${totalProducts} product${totalProducts !== 1 ? "s" : ""} to fit.`
-                  : "Browse the catalogue."}
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[#9C9894]">
+                Step 1 of 6
+              </p>
+              <h1 className="mt-3 font-serif text-[2rem] font-semibold leading-[1.1] tracking-[-0.025em] text-[#111010]">
+                Before we start.
               </h1>
-              <p className="mt-2 text-sm text-[#6B6965]">
-                Here&apos;s what we&apos;ll find your size for.
+              <p className="mt-3 text-[14px] leading-[1.6] text-[#6B6965] max-w-[52ch]">
+                We&apos;ll take two photos to estimate your body measurements. Photos are
+                stored privately, used once for measurement and try-on, and never shared
+                with third parties or shown publicly. You can delete your scan at any time.
               </p>
 
-              <div className="mt-8 space-y-6">
-                {categories.length === 0 ? (
-                  <p className="text-[#9C9894]">No active products for this brand yet.</p>
-                ) : (
-                  categories.map((cat) => (
-                    <div key={cat}>
-                      <p className="mb-3 text-[11px] font-medium uppercase tracking-[0.15em]
-                                     text-[#9C9894]">
-                        {cat}
-                      </p>
-                      <div className="grid grid-cols-2 gap-3">
-                        {productsByCategory[cat].map((p) => (
-                          <div
-                            key={p.id}
-                            className="rounded-xl bg-white border border-black/[0.06]
-                                        shadow-[0_2px_8px_rgba(0,0,0,0.04)] p-4"
-                          >
-                            {/* Colour swatch placeholder */}
-                            <div
-                              className="mb-3 h-20 rounded-lg"
-                              style={{ background: brand.primaryColor + "18" }}
-                            />
-                            <p className="text-[13px] font-medium text-[#111010] leading-tight">
-                              {p.name}
-                            </p>
-                            <p className="mt-0.5 text-[11px] text-[#9C9894]">
-                              {p.variants.length} variant{p.variants.length !== 1 ? "s" : ""}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
+              <ul className="mt-6 space-y-2 text-[13px] text-[#3a3632]">
+                <li className="flex gap-2.5">
+                  <Dot />
+                  Photos go to a private storage bucket — never indexed or public.
+                </li>
+                <li className="flex gap-2.5">
+                  <Dot />
+                  We only keep derived measurements after the scan completes.
+                </li>
+                <li className="flex gap-2.5">
+                  <Dot />
+                  You control retention — delete from your wardrobe at any time.
+                </li>
+              </ul>
 
-              <div className="mt-10">
+              <label className="mt-7 flex items-start gap-2.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={consentAccepted}
+                  onChange={(e) => setConsentAccepted(e.target.checked)}
+                  className="mt-1 h-4 w-4 accent-[#111010]"
+                />
+                <span className="text-[13px] text-[#3a3632] leading-[1.5]">
+                  I agree to the body-scan privacy terms above.
+                </span>
+              </label>
+
+              <div className="mt-8">
                 <button
                   onClick={() => setStep(1)}
-                  disabled={totalProducts === 0}
+                  disabled={!consentAccepted || totalProducts === 0}
                   className="inline-flex items-center gap-2.5 rounded-full bg-[#111010]
                              pl-6 pr-2.5 py-3 text-sm font-medium text-white
                              hover:bg-[#2a2a2a] transition-all duration-300
                              disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  Start fit session
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full
-                                   bg-white/[0.12]">
-                    <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-                      <path d="M2.5 8.5L8.5 2.5M8.5 2.5H3.5M8.5 2.5V7.5"
-                            stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </span>
+                  Start
+                  <Arrow />
                 </button>
               </div>
-            </motion.div>
+            </motion.section>
           )}
 
-          {/* ── Step 1: Measurement form ── */}
+          {/* ── 1  Mode select ─────────────────────────────────────────── */}
           {step === 1 && (
-            <motion.div
-              key="step1"
-              initial={{ opacity: 0, y: 20 }}
+            <motion.section
+              key="s1"
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -16 }}
-              transition={{ duration: 0.5, ease }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.45, ease }}
             >
-              <span className="inline-flex items-center rounded-full border border-black/10
-                               bg-white/60 px-3 py-1 text-[10px] font-medium uppercase
-                               tracking-[0.18em] text-[#6B6965]">
-                Step 2 of 5
-              </span>
-              <h2 className="mt-4 font-serif text-[1.9rem] font-semibold leading-[1.1]
-                             tracking-[-0.025em] text-[#111010]">
-                Tell us about yourself.
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[#9C9894]">
+                Step 2 of 6
+              </p>
+              <h2 className="mt-3 font-serif text-[2rem] font-semibold leading-[1.1] tracking-[-0.025em] text-[#111010]">
+                Choose your measurement mode.
               </h2>
-              <p className="mt-2 text-sm text-[#6B6965]">
-                We only need your height to get started. Everything else is optional.
+              <p className="mt-3 text-[14px] text-[#6B6965]">
+                You can switch later in your wardrobe.
               </p>
 
-              <div className="mt-8 space-y-5">
-                {/* Height */}
-                <div>
-                  <label className="block text-[12px] font-medium text-[#6B6965] mb-1.5">
-                    Height (cm) *
-                  </label>
-                  <input
-                    type="number"
-                    min={100}
-                    max={250}
-                    value={formValues.heightCm}
-                    onChange={(e) =>
-                      setFormValues((f) => ({ ...f, heightCm: Number(e.target.value) }))
-                    }
-                    className="w-full rounded-xl border border-black/[0.1] bg-white px-4 py-3
-                               text-sm text-[#111010] placeholder:text-[#C9C5C0]
-                               focus:outline-none focus:ring-2 focus:ring-[#111010]/10"
-                  />
-                </div>
+              <div className="mt-7 grid gap-3">
+                <ModeCard
+                  active={mode === "easy"}
+                  onClick={() => setMode("easy")}
+                  title="Easy"
+                  body="Fast estimate using your height, weight, and 2 photos."
+                  tags={["Faster", "Recommended for most users"]}
+                />
+                <ModeCard
+                  active={mode === "advanced"}
+                  onClick={() => setMode("advanced")}
+                  title="Advanced"
+                  body="More precise result using your height, weight, 2 photos, plus chest/waist/hips."
+                  tags={["More precise", "Best fit accuracy"]}
+                />
+              </div>
 
-                {/* Style preference */}
+              <div className="mt-8 flex items-center gap-3">
+                <button
+                  onClick={() => setStep(0)}
+                  className="rounded-full border border-black/[0.12] bg-white px-5 py-2.5
+                             text-sm font-medium text-[#6B6965] hover:bg-white/80 transition-all duration-200"
+                >
+                  Back
+                </button>
+                <button
+                  onClick={() => setStep(2)}
+                  className="inline-flex items-center gap-2.5 rounded-full bg-[#111010] pl-6 pr-2.5 py-3
+                             text-sm font-medium text-white hover:bg-[#2a2a2a] transition-all duration-300"
+                >
+                  Continue with {mode === "easy" ? "Easy" : "Advanced"}
+                  <Arrow />
+                </button>
+              </div>
+            </motion.section>
+          )}
+
+          {/* ── 2  Form + photos ───────────────────────────────────────── */}
+          {step === 2 && (
+            <motion.section
+              key="s2"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.45, ease }}
+            >
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[#9C9894]">
+                Step 3 of 6 · {mode === "easy" ? "Easy" : "Advanced"} mode
+              </p>
+              <h2 className="mt-3 font-serif text-[2rem] font-semibold leading-[1.1] tracking-[-0.025em] text-[#111010]">
+                Your measurements.
+              </h2>
+              <p className="mt-3 text-[14px] text-[#6B6965]">
+                We&apos;ll combine your inputs with the photos to estimate your size.
+              </p>
+
+              {/* Basic fields */}
+              <div className="mt-7 grid grid-cols-2 gap-3">
+                <NumField label="Height (cm)" value={heightCm} onChange={setHeightCm} min={120} max={230} />
+                <NumField label="Weight (kg)" value={weightKg} onChange={setWeightKg} min={30} max={250} />
+              </div>
+
+              {/* Gender (optional, improves heuristic) */}
+              <div className="mt-3">
+                <label className="block text-[11px] font-medium text-[#6B6965] mb-1.5">
+                  Gender (optional, improves accuracy)
+                </label>
+                <div className="flex gap-2">
+                  {(["female", "male", "other"] as const).map((g) => (
+                    <button
+                      key={g}
+                      type="button"
+                      onClick={() => setGender(gender === g ? "" : g)}
+                      className={`rounded-full px-4 py-2 text-[13px] font-medium capitalize border transition-all duration-200 ${
+                        gender === g
+                          ? "bg-[#111010] text-white border-[#111010]"
+                          : "bg-white text-[#6B6965] border-black/[0.1] hover:border-black/20"
+                      }`}
+                    >
+                      {g}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Advanced fields */}
+              {mode === "advanced" && (
+                <div className="mt-5 grid grid-cols-3 gap-3">
+                  <NumField label="Chest (cm)" value={chestCm} onChange={setChestCm} min={60} max={180}
+                    help="Around the fullest part of your chest." />
+                  <NumField label="Waist (cm)" value={waistCm} onChange={setWaistCm} min={45} max={180}
+                    help="Around the narrowest part." />
+                  <NumField label="Hips (cm)" value={hipsCm} onChange={setHipsCm} min={70} max={200}
+                    help="Around the fullest part of your hips." />
+                </div>
+              )}
+
+              {/* Photos */}
+              <div className="mt-7 grid grid-cols-2 gap-3">
+                <PhotoField
+                  label="Front photo"
+                  file={frontPhoto}
+                  onChange={setFrontPhoto}
+                  guidance="Stand straight, arms slightly out, facing the camera."
+                />
+                <PhotoField
+                  label="Side photo"
+                  file={sidePhoto}
+                  onChange={setSidePhoto}
+                  guidance="Turn 90°. Same pose, side profile to camera."
+                />
+              </div>
+
+              {/* Style / occasion (drives outfit step downstream) */}
+              <div className="mt-7 space-y-4">
                 <div>
-                  <label className="block text-[12px] font-medium text-[#6B6965] mb-1.5">
-                    Style preference
-                  </label>
+                  <label className="block text-[11px] font-medium text-[#6B6965] mb-1.5">Style</label>
                   <div className="flex gap-2">
                     {(["casual", "formal", "sport"] as const).map((s) => (
                       <button
                         key={s}
                         type="button"
-                        onClick={() =>
-                          setFormValues((f) => ({
-                            ...f,
-                            stylePreference: f.stylePreference === s ? "" : s,
-                          }))
-                        }
-                        className={`rounded-full px-4 py-2 text-[13px] font-medium capitalize
-                                    border transition-all duration-200 ${
-                          formValues.stylePreference === s
+                        onClick={() => setStylePreference(stylePreference === s ? "" : s)}
+                        className={`rounded-full px-4 py-2 text-[13px] font-medium capitalize border transition-all duration-200 ${
+                          stylePreference === s
                             ? "bg-[#111010] text-white border-[#111010]"
                             : "bg-white text-[#6B6965] border-black/[0.1] hover:border-black/20"
                         }`}
@@ -445,26 +603,18 @@ export function BrandScanWizard({
                   </div>
                 </div>
 
-                {/* Occasion */}
                 <div>
-                  <label className="block text-[12px] font-medium text-[#6B6965] mb-1.5">
+                  <label className="block text-[11px] font-medium text-[#6B6965] mb-1.5">
                     Occasion (optional)
                   </label>
-                  {/* Preset chips */}
                   <div className="flex flex-wrap gap-2 mb-2">
-                    {occasionPresets.map((o) => (
+                    {planLimits.occasionPresets.map((o) => (
                       <button
                         key={o}
                         type="button"
-                        onClick={() =>
-                          setFormValues((f) => ({
-                            ...f,
-                            occasion: f.occasion === o ? "" : o,
-                          }))
-                        }
-                        className={`rounded-full px-3 py-1.5 text-[12px] font-medium
-                                    border transition-all duration-200 ${
-                          formValues.occasion === o
+                        onClick={() => setOccasion(occasion === o ? "" : o)}
+                        className={`rounded-full px-3 py-1.5 text-[12px] font-medium border transition-all duration-200 ${
+                          occasion === o
                             ? "bg-[#111010] text-white border-[#111010]"
                             : "bg-white text-[#6B6965] border-black/[0.1] hover:border-black/20"
                         }`}
@@ -473,47 +623,34 @@ export function BrandScanWizard({
                       </button>
                     ))}
                   </div>
-                  {/* Free-text input only for fashion+ */}
-                  {planLimits.customOccasion ? (
+                  {planLimits.customOccasion && (
                     <input
                       type="text"
-                      value={formValues.occasion}
-                      onChange={(e) =>
-                        setFormValues((f) => ({ ...f, occasion: e.target.value }))
-                      }
+                      value={occasion}
+                      onChange={(e) => setOccasion(e.target.value)}
                       placeholder="Or type a custom occasion…"
-                      className="w-full rounded-xl border border-black/[0.1] bg-white px-4 py-3
-                                 text-sm text-[#111010] placeholder:text-[#C9C5C0]
+                      className="w-full rounded-xl border border-black/[0.1] bg-white px-4 py-3 text-sm
+                                 text-[#111010] placeholder:text-[#C9C5C0]
                                  focus:outline-none focus:ring-2 focus:ring-[#111010]/10"
                     />
-                  ) : (
-                    <div className="flex items-center gap-2 text-[12px] text-[#C9C5C0] mt-1">
-                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                        <path d="M6 1l1.5 4H11l-3 2 1 4L6 9 3 11l1-4-3-2h3.5L6 1z"
-                              stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
-                      </svg>
-                      Custom occasions available on Fashion plan.{" "}
-                      <Link href="/app/pricing" className="text-[#C9A882] hover:underline">Upgrade</Link>
-                    </div>
                   )}
                 </div>
-
-                {/* Scan counter */}
-                {planLimits.maxScansPerMonth !== Infinity && (
-                  <div className="rounded-xl bg-[#F7F6F3] border border-black/[0.06] px-4 py-3
-                                   flex items-center justify-between">
-                    <span className="text-[12px] text-[#6B6965]">Scans used this month</span>
-                    <span className="text-[13px] font-semibold text-[#111010] tabular-nums">
-                      {scanCount} / {planLimits.maxScansPerMonth}
-                    </span>
-                  </div>
-                )}
               </div>
 
+              {/* Quota counter */}
+              {planLimits.maxScansPerMonth !== Infinity && (
+                <div className="mt-6 rounded-xl bg-white border border-black/[0.06] px-4 py-3
+                                 flex items-center justify-between">
+                  <span className="text-[12px] text-[#6B6965]">Scans used this month</span>
+                  <span className="text-[13px] font-semibold text-[#111010] tabular-nums">
+                    {scanCount} / {planLimits.maxScansPerMonth}
+                  </span>
+                </div>
+              )}
               {scanLimitReached && (
-                <div className="mt-4">
+                <div className="mt-3">
                   <UpgradePrompt
-                    reason={`You've used all ${planLimits.maxScansPerMonth} scans for this month.`}
+                    reason={`You've used all ${planLimits.maxScansPerMonth} scans this month.`}
                     targetPlan={planLimits.nextPlan ?? "model"}
                     variant="inline"
                   />
@@ -521,249 +658,305 @@ export function BrandScanWizard({
               )}
 
               {error && (
-                <div className="mt-4 rounded-xl bg-red-50 border border-red-100 px-4 py-3
-                                text-sm text-red-700">
+                <div className="mt-4 rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">
                   {error}
                 </div>
               )}
 
               <div className="mt-8 flex items-center gap-3">
                 <button
-                  onClick={() => setStep(0)}
-                  className="rounded-full border border-black/[0.12] bg-white px-5 py-2.5
-                             text-sm font-medium text-[#6B6965] hover:bg-white/80
-                             transition-all duration-200"
+                  onClick={() => setStep(1)}
+                  className="rounded-full border border-black/[0.12] bg-white px-5 py-2.5 text-sm
+                             font-medium text-[#6B6965] hover:bg-white/80 transition-all duration-200"
                 >
                   Back
                 </button>
                 <button
-                  onClick={runScan}
-                  disabled={loading || formValues.heightCm < 100 || scanLimitReached}
-                  className="inline-flex items-center gap-2.5 rounded-full bg-[#111010]
-                             pl-6 pr-2.5 py-3 text-sm font-medium text-white
-                             hover:bg-[#2a2a2a] transition-all duration-300
+                  onClick={submitMeasurements}
+                  disabled={loading || scanLimitReached}
+                  className="inline-flex items-center gap-2.5 rounded-full bg-[#111010] pl-6 pr-2.5 py-3
+                             text-sm font-medium text-white hover:bg-[#2a2a2a] transition-all duration-300
                              disabled:opacity-50 disabled:cursor-wait"
                 >
-                  {loading ? "Scanning…" : scanLimitReached ? "Limit reached" : "Get my size"}
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full
-                                   bg-white/[0.12]">
-                    <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-                      <path d="M2.5 8.5L8.5 2.5M8.5 2.5H3.5M8.5 2.5V7.5"
-                            stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </span>
+                  {loading ? "Sending…" : scanLimitReached ? "Limit reached" : "Get my fit"}
+                  <Arrow />
                 </button>
               </div>
-            </motion.div>
+            </motion.section>
           )}
 
-          {/* ── Step 3: Size recommendations ── */}
-          {step === 3 && scanResult && (
-            <motion.div
-              key="step3"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -16 }}
+          {/* ── 3  Processing ──────────────────────────────────────────── */}
+          {step === 3 && (
+            <motion.section
+              key="s3"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               transition={{ duration: 0.5, ease }}
             >
-              <span className="inline-flex items-center rounded-full border border-black/10
-                               bg-white/60 px-3 py-1 text-[10px] font-medium uppercase
-                               tracking-[0.18em] text-[#6B6965]">
-                Step 3 of 5 — Your measurements
-              </span>
-              <h2 className="mt-4 font-serif text-[1.9rem] font-semibold leading-[1.1]
-                             tracking-[-0.025em] text-[#111010]">
-                Here&apos;s your fit profile.
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[#9C9894]">
+                Step 4 of 6
+              </p>
+              <h2 className="mt-3 font-serif text-[2rem] font-semibold leading-[1.1] tracking-[-0.025em] text-[#111010]">
+                Reading your shape.
               </h2>
-              <p className="mt-2 text-sm text-[#6B6965]">
-                Based on your height of {formValues.heightCm} cm.
+
+              <ul className="mt-7 space-y-3.5">
+                {[
+                  "Analysing your photos",
+                  "Matching the size charts",
+                  "Building outfit ideas",
+                ].map((label, i) => (
+                  <li key={label} className="flex items-center gap-3">
+                    <span
+                      className={`h-2 w-2 rounded-full transition-colors duration-300 ${
+                        i < processingStage
+                          ? "bg-[#346538]"
+                          : i === processingStage
+                          ? "bg-[#C9A882] animate-pulse"
+                          : "bg-black/10"
+                      }`}
+                    />
+                    <span
+                      className={`text-[14px] ${
+                        i <= processingStage ? "text-[#111010]" : "text-[#9C9894]"
+                      }`}
+                    >
+                      {label}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+
+              {/* Subtle skeleton */}
+              <div className="mt-10 space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="h-[60px] rounded-2xl bg-black/[0.04] animate-pulse"
+                    style={{ animationDelay: `${i * 80}ms` }}
+                  />
+                ))}
+              </div>
+            </motion.section>
+          )}
+
+          {/* ── 4  Size results ────────────────────────────────────────── */}
+          {step === 4 && result && (
+            <motion.section
+              key="s4"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.5, ease }}
+            >
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[#9C9894]">
+                Step 5 of 6
+              </p>
+              <h2 className="mt-3 font-serif text-[2rem] font-semibold leading-[1.1] tracking-[-0.025em] text-[#111010]">
+                Here&apos;s your fit.
+              </h2>
+              <p className="mt-2 text-[13px] text-[#9C9894]">
+                Estimated with{" "}
+                <span className="font-medium text-[#6B6965]">
+                  {result.measurements.measurementMode === "advanced" ? "Advanced" : "Easy"}
+                </span>{" "}
+                mode.
               </p>
 
-              {/* Measurements grid */}
-              <div className="mt-6 grid grid-cols-2 gap-3">
-                {Object.entries(scanResult.measurements)
+              {/* Body measurements */}
+              <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {[
+                  ["height", result.measurements.heightCm],
+                  ["chest", result.measurements.chestCm],
+                  ["waist", result.measurements.waistCm],
+                  ["hips", result.measurements.hipsCm],
+                  ["shoulders", result.measurements.shouldersCm],
+                  ["inseam", result.measurements.inseamCm],
+                ]
                   .filter(([, v]) => typeof v === "number")
-                  .map(([k, v]) => (
-                    <div
-                      key={k}
-                      className="rounded-xl bg-white border border-black/[0.06]
-                                  shadow-[0_2px_8px_rgba(0,0,0,0.03)] px-4 py-3.5"
-                    >
-                      <p className="text-[10px] text-[#9C9894] uppercase tracking-[0.1em]
-                                     capitalize mb-0.5">
-                        {k}
-                      </p>
-                      <p className="font-serif text-[1.4rem] font-semibold text-[#111010]
-                                     leading-none tabular-nums">
-                        {Math.round(v as number)}
-                        <span className="text-[12px] font-normal text-[#9C9894] ml-1">cm</span>
-                      </p>
-                    </div>
-                  ))}
+                  .map(([k, v]) => {
+                    const source = result.measurements.sourceConfidence[k as string] ?? "ai";
+                    return (
+                      <div
+                        key={k as string}
+                        className="rounded-xl bg-white border border-black/[0.06] px-4 py-3.5"
+                      >
+                        <p className="text-[10px] uppercase tracking-[0.1em] text-[#9C9894] capitalize mb-0.5">
+                          {k as string}
+                        </p>
+                        <p className="font-serif text-[1.4rem] font-semibold text-[#111010] leading-none tabular-nums">
+                          {Math.round(v as number)}
+                          <span className="text-[12px] font-normal text-[#9C9894] ml-1">cm</span>
+                        </p>
+                        <p className="mt-1 text-[10px] text-[#C9C5C0]">
+                          {source === "manual" ? "you provided" : "estimated"}
+                        </p>
+                      </div>
+                    );
+                  })}
               </div>
 
-              {/* Size recommendations */}
-              {Object.keys(scanResult.sizeRecommendations).length > 0 && (
+              {/* Sizes per category */}
+              {result.sizeRecommendations.length > 0 && (
                 <div className="mt-6 rounded-2xl bg-[#111010] px-6 py-5">
-                  <p className="text-[11px] font-medium uppercase tracking-[0.16em]
-                                 text-white/40 mb-3">
+                  <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-white/40 mb-4">
                     Recommended sizes
                   </p>
-                  <div className="space-y-2">
-                    {Object.entries(scanResult.sizeRecommendations).map(([cat, size]) => (
-                      <div key={cat} className="flex items-center justify-between">
-                        <span className="text-[13px] text-white/60 capitalize">{cat}</span>
-                        <span className="font-serif text-[1.3rem] font-semibold text-white
-                                         leading-none tabular-nums">
-                          {size}
+                  <ul className="divide-y divide-white/[0.08]">
+                    {result.sizeRecommendations.map((r) => (
+                      <li key={r.category} className="flex items-start justify-between gap-3 py-3 first:pt-0 last:pb-0">
+                        <div className="min-w-0">
+                          <p className="text-[13px] text-white/80 capitalize">{r.category}</p>
+                          <div className="mt-1 flex items-center gap-1.5">
+                            <span
+                              className="h-1.5 w-1.5 rounded-full"
+                              style={{ background: confidenceDot(r.confidence) }}
+                            />
+                            <span className="text-[10px] uppercase tracking-[0.12em] text-white/40">
+                              {confidenceLabel(r.confidence)}
+                            </span>
+                          </div>
+                          <p className="mt-2 text-[12px] text-white/50 leading-[1.5]">{r.explanation}</p>
+                        </div>
+                        <span className="shrink-0 font-serif text-[1.6rem] font-semibold text-white leading-none tabular-nums">
+                          {r.recommendedSize}
                         </span>
-                      </div>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 </div>
               )}
 
               {error && (
-                <div className="mt-4 rounded-xl bg-red-50 border border-red-100 px-4 py-3
-                                text-sm text-red-700">
+                <div className="mt-4 rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">
                   {error}
                 </div>
               )}
 
-              <div className="mt-8">
+              <div className="mt-8 flex items-center gap-3">
                 <button
                   onClick={generateOutfits}
                   disabled={loading}
-                  className="inline-flex items-center gap-2.5 rounded-full bg-[#111010]
-                             pl-6 pr-2.5 py-3 text-sm font-medium text-white
-                             hover:bg-[#2a2a2a] transition-all duration-300
+                  className="inline-flex items-center gap-2.5 rounded-full bg-[#111010] pl-6 pr-2.5 py-3
+                             text-sm font-medium text-white hover:bg-[#2a2a2a] transition-all duration-300
                              disabled:opacity-50 disabled:cursor-wait"
                 >
-                  {loading ? "Building outfits…" : "See outfit suggestions"}
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full
-                                   bg-white/[0.12]">
-                    <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-                      <path d="M2.5 8.5L8.5 2.5M8.5 2.5H3.5M8.5 2.5V7.5"
-                            stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </span>
+                  {loading ? "Building outfits…" : "See outfit ideas"}
+                  <Arrow />
                 </button>
               </div>
-            </motion.div>
+            </motion.section>
           )}
 
-          {/* ── Step 4: Outfit suggestions ── */}
-          {step === 4 && (
-            <motion.div
-              key="step4"
-              initial={{ opacity: 0, y: 20 }}
+          {/* ── 5  Outfits + try-on ────────────────────────────────────── */}
+          {step === 5 && (
+            <motion.section
+              key="s5"
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -16 }}
+              exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.5, ease }}
             >
-              <span className="inline-flex items-center rounded-full border border-black/10
-                               bg-white/60 px-3 py-1 text-[10px] font-medium uppercase
-                               tracking-[0.18em] text-[#6B6965]">
-                Step 4 of 5 — Your looks
-              </span>
-              <h2 className="mt-4 font-serif text-[1.9rem] font-semibold leading-[1.1]
-                             tracking-[-0.025em] text-[#111010]">
-                {outfits.length > 0
-                  ? `${outfits.length} outfit${outfits.length !== 1 ? "s" : ""} picked for you.`
-                  : "No outfits available."}
-              </h2>
-              <p className="mt-2 text-sm text-[#6B6965]">
-                Each look is matched to your measurements and style.
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[#9C9894]">
+                Step 6 of 6
               </p>
+              <h2 className="mt-3 font-serif text-[2rem] font-semibold leading-[1.1] tracking-[-0.025em] text-[#111010]">
+                {outfits.length > 0
+                  ? `${outfits.length} look${outfits.length === 1 ? "" : "s"} picked for you.`
+                  : "No outfits available yet."}
+              </h2>
 
               {outfits.length === 0 ? (
-                <div className="mt-8 rounded-2xl border border-black/[0.06] bg-white py-12
-                                text-center">
-                  <p className="text-[#6B6965]">
-                    Not enough products to build an outfit yet.
-                  </p>
+                <div className="mt-8 rounded-2xl border border-black/[0.06] bg-white py-12 text-center">
+                  <p className="text-[#6B6965]">Not enough products to build an outfit yet.</p>
                 </div>
               ) : (
                 <div className="mt-6 space-y-4">
                   {outfits.map((outfit, i) => (
-                    <div
+                    <article
                       key={outfit.id}
-                      className="rounded-2xl bg-white border border-black/[0.06]
-                                  shadow-[0_2px_16px_rgba(0,0,0,0.04)] p-5"
+                      className="rounded-2xl bg-white border border-black/[0.06] shadow-[0_2px_16px_rgba(0,0,0,0.04)] p-5"
                     >
                       <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <p className="text-[11px] text-[#9C9894] uppercase tracking-[0.12em]
-                                         font-medium mb-0.5">
+                        <div className="min-w-0">
+                          <p className="text-[11px] text-[#9C9894] uppercase tracking-[0.12em] font-medium mb-0.5">
                             Look {i + 1}
                           </p>
-                          <p className="text-[15px] font-semibold text-[#111010]">
-                            {outfit.title}
-                          </p>
-                        </div>
-                        {/* Swatch row */}
-                        <div className="flex -space-x-1">
-                          {outfit.items.slice(0, 3).map((item, j) => (
-                            <div
-                              key={item.id}
-                              className="h-8 w-8 rounded-lg ring-2 ring-white"
-                              style={{
-                                background: brand.primaryColor + String(22 + j * 20).padStart(2, "0"),
-                              }}
-                            />
-                          ))}
+                          <p className="text-[15px] font-semibold text-[#111010]">{outfit.title}</p>
+                          {outfit.description && (
+                            <p className="mt-0.5 text-[12px] text-[#9C9894]">{outfit.description}</p>
+                          )}
                         </div>
                       </div>
 
-                      {/* Items */}
-                      <div className="space-y-1.5 mb-4">
-                        {outfit.items.map((item) => (
-                          <div
-                            key={item.id}
-                            className="flex items-center gap-2 text-[13px] text-[#6B6965]"
-                          >
-                            <span className="w-16 text-[10px] uppercase tracking-[0.1em]
-                                             text-[#C9C5C0] shrink-0">
-                              {item.position}
-                            </span>
-                            {item.product.name}
-                          </div>
-                        ))}
-                      </div>
+                      <ul className="divide-y divide-black/[0.05]">
+                        {outfit.items.map((item) => {
+                          const t = tryOnByItem[item.id];
+                          return (
+                            <li key={item.id} className="flex items-center gap-3 py-3 first:pt-0">
+                              {/* Product thumbnail */}
+                              <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-[#F7F6F3]">
+                                {item.product.imageUrl ? (
+                                  <Image
+                                    src={item.product.imageUrl}
+                                    alt={item.product.name}
+                                    fill
+                                    sizes="56px"
+                                    className="object-cover"
+                                    unoptimized
+                                  />
+                                ) : (
+                                  <div className="h-full w-full" style={{ background: brand.primaryColor + "22" }} />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="truncate text-[13px] font-medium text-[#111010]">
+                                  {item.product.name}
+                                </p>
+                                <p className="text-[10px] uppercase tracking-[0.1em] text-[#C9C5C0]">
+                                  {item.position}
+                                </p>
+                              </div>
+                              <button
+                                onClick={() => runTryOn(item.id)}
+                                disabled={t?.loading}
+                                className="shrink-0 rounded-full border border-black/[0.12] bg-white px-3.5 py-1.5 text-[12px] font-medium
+                                           text-[#3a3632] hover:border-black/30 transition-all duration-200
+                                           disabled:opacity-50 disabled:cursor-wait"
+                              >
+                                {t?.loading
+                                  ? "Generating…"
+                                  : t?.url
+                                  ? "View try-on"
+                                  : "Try on"}
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </ul>
 
                       {outfit.rationale && (
-                        <p className="text-[12px] text-[#9C9894] leading-relaxed border-t
-                                       border-black/[0.05] pt-3 mb-3">
+                        <p className="mt-3 text-[12px] text-[#9C9894] leading-[1.6] border-t border-black/[0.05] pt-3">
                           {outfit.rationale}
                         </p>
                       )}
 
-                      {/* Save to wardrobe */}
-                      <div className={`flex items-center justify-end ${outfit.rationale ? "" : "border-t border-black/[0.05] pt-3 mt-3"}`}>
+                      <div className="mt-3 flex items-center justify-end">
                         {savedIds.has(outfit.id) ? (
-                          <span className="inline-flex items-center gap-1.5 text-[12px]
-                                           font-medium text-[#6B9F6B]">
-                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
-                              <path d="M2 6l3 3 5-5"
-                                    stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
+                          <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-[#346538]">
                             Saved to wardrobe
                           </span>
                         ) : (
                           <button
-                            onClick={() => saveOutfitToWardrobe(outfit)}
-                            className="inline-flex items-center gap-1.5 text-[12px] font-medium
-                                       text-[#C9A882] hover:text-[#b8956e] transition-colors duration-200"
+                            onClick={() => saveToWardrobe(outfit)}
+                            className="text-[12px] font-medium text-[#C9A882] hover:text-[#b8956e] transition-colors duration-200"
                           >
-                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
-                              <path d="M6 1l1.3 3.9H11L7.9 7.1l1.3 3.9L6 9 2.8 11l1.3-3.9L1 4.9h3.7L6 1z"
-                                    stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
-                            </svg>
                             Save to wardrobe
                           </button>
                         )}
                       </div>
-                    </div>
+                    </article>
                   ))}
                 </div>
               )}
@@ -771,42 +964,36 @@ export function BrandScanWizard({
               <div className="mt-8 flex flex-wrap items-center gap-3">
                 <button
                   onClick={() => {
-                    setScanResult(null);
+                    setStep(0);
+                    setResult(null);
                     setOutfits([]);
                     setSavedIds(new Set());
-                    setStep(0);
+                    setFrontPhoto(null);
+                    setSidePhoto(null);
                   }}
-                  className="rounded-full border border-black/[0.12] bg-white px-5 py-2.5
-                             text-sm font-medium text-[#6B6965] hover:bg-white/80
-                             transition-all duration-200"
+                  className="rounded-full border border-black/[0.12] bg-white px-5 py-2.5 text-sm font-medium
+                             text-[#6B6965] hover:bg-white/80 transition-all duration-200"
                 >
                   Start over
                 </button>
                 <Link
                   href="/app"
-                  className="rounded-full border border-black/[0.12] bg-white px-5 py-2.5
-                             text-sm font-medium text-[#6B6965] hover:bg-white/80
-                             transition-all duration-200"
+                  className="rounded-full border border-black/[0.12] bg-white px-5 py-2.5 text-sm font-medium
+                             text-[#6B6965] hover:bg-white/80 transition-all duration-200"
                 >
                   Browse more brands
                 </Link>
                 {savedIds.size > 0 && (
                   <Link
                     href="/app/wardrobe"
-                    className="inline-flex items-center gap-1.5 text-[13px] font-medium
-                               text-[#C9A882] hover:text-[#b8956e] transition-colors duration-200"
+                    className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#C9A882] hover:text-[#b8956e] transition-colors duration-200"
                   >
-                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden>
-                      <path d="M6.5 1.5l1.5 4.5H12L8.5 8.5l1.5 4L6.5 10 3 12.5l1.5-4L1 6h4L6.5 1.5z"
-                            stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/>
-                    </svg>
                     View wardrobe ({savedIds.size})
                   </Link>
                 )}
               </div>
-            </motion.div>
+            </motion.section>
           )}
-
         </AnimatePresence>
       </main>
 
@@ -814,13 +1001,232 @@ export function BrandScanWizard({
       <AnimatePresence>
         {showUpgrade && (
           <UpgradePrompt
-            reason={`You've reached your ${planLimits.maxScansPerMonth}-scan monthly limit. Upgrade to keep scanning.`}
+            reason={`You've reached a limit on the ${clientPlan} plan.`}
             targetPlan={planLimits.nextPlan ?? "model"}
             variant="modal"
             onDismiss={() => setShowUpgrade(false)}
           />
         )}
       </AnimatePresence>
+
+      {/* Try-on viewer */}
+      <AnimatePresence>
+        {activeTryOn && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setActiveTryOn(null)}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.96 }}
+              transition={{ duration: 0.3, ease }}
+              className="relative max-h-[90vh] max-w-[640px] w-full overflow-hidden rounded-2xl bg-white"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={activeTryOn}
+                alt="Try-on preview"
+                className="w-full h-auto max-h-[88vh] object-contain bg-[#F7F6F3]"
+              />
+              <button
+                onClick={() => setActiveTryOn(null)}
+                aria-label="Close"
+                className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full
+                           bg-white/95 ring-1 ring-black/10 hover:bg-white transition-colors"
+              >
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M3 3l6 6M9 3l-6 6" stroke="#111010" strokeWidth="1.6" strokeLinecap="round" />
+                </svg>
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
+  );
+}
+
+// ─── Sub-components ─────────────────────────────────────────────────────────
+
+function ModeCard({
+  active,
+  onClick,
+  title,
+  body,
+  tags,
+}: {
+  active: boolean;
+  onClick: () => void;
+  title: string;
+  body: string;
+  tags: string[];
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`group text-left rounded-2xl border p-5 transition-all duration-200 ${
+        active
+          ? "border-[#111010] bg-white shadow-[0_2px_24px_rgba(0,0,0,0.06)]"
+          : "border-black/[0.08] bg-white hover:border-black/20"
+      }`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <h3 className="font-serif text-[1.4rem] font-semibold tracking-[-0.02em] text-[#111010] leading-tight">
+          {title}
+        </h3>
+        <span
+          aria-hidden
+          className={`h-4 w-4 rounded-full border-2 transition-colors duration-200 ${
+            active ? "border-[#111010] bg-[#111010]" : "border-black/20 bg-white"
+          }`}
+        />
+      </div>
+      <p className="mt-1.5 text-[13px] text-[#6B6965] leading-[1.55]">{body}</p>
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        {tags.map((t) => (
+          <span
+            key={t}
+            className="inline-flex items-center rounded-full bg-[#F7F6F3] px-2.5 py-0.5
+                       text-[10px] font-medium uppercase tracking-[0.12em] text-[#6B6965]"
+          >
+            {t}
+          </span>
+        ))}
+      </div>
+    </button>
+  );
+}
+
+function NumField({
+  label,
+  value,
+  onChange,
+  min,
+  max,
+  help,
+}: {
+  label: string;
+  value: number | "";
+  onChange: (v: number) => void;
+  min: number;
+  max: number;
+  help?: string;
+}) {
+  return (
+    <div>
+      <label className="block text-[11px] font-medium text-[#6B6965] mb-1.5">{label}</label>
+      <input
+        type="number"
+        min={min}
+        max={max}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="w-full rounded-xl border border-black/[0.1] bg-white px-4 py-3 text-sm
+                   text-[#111010] focus:outline-none focus:ring-2 focus:ring-[#111010]/10"
+      />
+      {help && <p className="mt-1 text-[11px] text-[#9C9894] leading-[1.4]">{help}</p>}
+    </div>
+  );
+}
+
+function PhotoField({
+  label,
+  file,
+  onChange,
+  guidance,
+}: {
+  label: string;
+  file: File | null;
+  onChange: (f: File | null) => void;
+  guidance: string;
+}) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!file) {
+      setPreviewUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  return (
+    <div>
+      <label className="block text-[11px] font-medium text-[#6B6965] mb-1.5">{label}</label>
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        className={`relative w-full overflow-hidden rounded-xl border bg-white transition-all duration-200 ${
+          file ? "border-[#111010]" : "border-dashed border-black/20 hover:border-black/40"
+        }`}
+        style={{ aspectRatio: "3 / 4" }}
+      >
+        {previewUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={previewUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        ) : (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-3">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden>
+              <rect x="3" y="6" width="16" height="12" rx="2" stroke="#6B6965" strokeWidth="1.5" />
+              <circle cx="11" cy="12" r="3" stroke="#6B6965" strokeWidth="1.5" />
+              <path d="M7 6l1.5-2h5L15 6" stroke="#6B6965" strokeWidth="1.5" strokeLinejoin="round" />
+            </svg>
+            <p className="mt-2 text-[12px] font-medium text-[#3a3632]">Add photo</p>
+            <p className="mt-0.5 text-[10px] text-[#9C9894] leading-[1.4] max-w-[20ch]">{guidance}</p>
+          </div>
+        )}
+      </button>
+      {file && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onChange(null);
+            if (inputRef.current) inputRef.current.value = "";
+          }}
+          className="mt-1.5 text-[11px] text-[#9C9894] hover:text-[#111010] transition-colors"
+        >
+          Replace
+        </button>
+      )}
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        capture="environment"
+        className="hidden"
+        onChange={(e) => onChange(e.target.files?.[0] ?? null)}
+      />
+    </div>
+  );
+}
+
+function Dot() {
+  return (
+    <span aria-hidden className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-[#C9A882]" />
+  );
+}
+
+function Arrow() {
+  return (
+    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/[0.12]">
+      <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden>
+        <path
+          d="M2.5 8.5L8.5 2.5M8.5 2.5H3.5M8.5 2.5V7.5"
+          stroke="white"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </span>
   );
 }

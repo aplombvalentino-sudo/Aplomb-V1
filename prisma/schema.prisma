@@ -173,6 +173,11 @@ enum MeasurementProvider {
   custom
 }
 
+enum MeasurementMode {
+  easy
+  advanced
+}
+
 model BodyProfile {
   id                  String              @id @default(cuid())
   userId              String?
@@ -180,12 +185,18 @@ model BodyProfile {
   rawMeasurementsJson Json
   bodyShapeSummary    String?
   provider            MeasurementProvider @default(stub)
+  measurementMode     MeasurementMode     @default(easy)
+  /// Front photo path inside the private body-scans Supabase bucket. Never returned to clients.
+  frontImagePath      String?
+  /// Side photo path inside the private body-scans Supabase bucket. Never returned to clients.
+  sideImagePath       String?
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
 
   user  User?  @relation(fields: [userId], references: [id])
   brand Brand  @relation(fields: [brandId], references: [id], onDelete: Cascade)
   recommendationSessions RecommendationSession[]
+  tryOnResults TryOnResult[]
 
   @@index([brandId])
 }
@@ -252,4 +263,32 @@ model OutfitItem {
   outfit          Outfit          @relation(fields: [outfitId], references: [id], onDelete: Cascade)
   product         Product         @relation(fields: [productId], references: [id])
   productVariant  ProductVariant? @relation(fields: [productVariantId], references: [id])
+  tryOnResults   TryOnResult[]
+}
+
+enum TryOnProvider {
+  fal_fashn
+  stub
+}
+
+enum TryOnQualityMode {
+  fast
+  balanced
+  quality
+}
+
+model TryOnResult {
+  id            String           @id @default(cuid())
+  outfitItemId  String
+  bodyProfileId String
+  imageUrl      String
+  provider      TryOnProvider    @default(fal_fashn)
+  qualityMode   TryOnQualityMode @default(balanced)
+  createdAt     DateTime         @default(now())
+
+  outfitItem  OutfitItem  @relation(fields: [outfitItemId], references: [id], onDelete: Cascade)
+  bodyProfile BodyProfile @relation(fields: [bodyProfileId], references: [id], onDelete: Cascade)
+
+  @@index([outfitItemId])
+  @@index([bodyProfileId])
 }
