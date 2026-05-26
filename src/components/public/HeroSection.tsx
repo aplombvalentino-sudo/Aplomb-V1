@@ -225,20 +225,6 @@ export function HeroSection() {
                 </div>
               </div>
 
-              {/* Floating accent card — tucked at bottom-left of widget */}
-              <motion.div
-                initial={{ opacity: 0, x: 16, y: 8 }}
-                animate={{ opacity: 1, x: 0, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.65, ease }}
-                className="absolute -bottom-4 -left-4 lg:-left-8 z-10 rounded-2xl bg-white
-                           px-4 py-3 shadow-[0_8px_32px_rgba(0,0,0,0.1)] ring-1 ring-black/[0.05]"
-              >
-                <p className="text-[11px] font-medium text-[#111010]">Return rate</p>
-                <p className="text-[22px] font-semibold text-[#111010] leading-tight">
-                  −38%
-                </p>
-                <p className="text-[10px] text-[#9C9894]">avg. across brands</p>
-              </motion.div>
             </div>
           </motion.div>
 
