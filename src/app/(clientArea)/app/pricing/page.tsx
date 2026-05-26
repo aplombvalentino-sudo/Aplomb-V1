@@ -3,6 +3,7 @@ import { ClientPricingCards } from "@/components/pricing/ClientPricingCards";
 import { isValidClientPlan, CLIENT_PLAN_COOKIE, getClientPlanLimits } from "@/lib/planLimits";
 import Link from "next/link";
 import { Metadata } from "next";
+import { ClientSignOutLink } from "@/components/client/ClientSignOutLink";
 
 export const metadata: Metadata = { title: "Fit plans — Aplomb" };
 
@@ -32,10 +33,14 @@ export default async function ClientPricingPage() {
                      hover:opacity-60 transition-opacity duration-200">
           Aplomb
         </Link>
-        <Link href="/app" className="text-[12px] text-[#9C9894] hover:text-[#111010]
-                                      transition-colors duration-200">
-          ← Browse brands
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link href="/app" className="text-[12px] text-[#9C9894] hover:text-[#111010]
+                                        transition-colors duration-200">
+            ← Browse brands
+          </Link>
+          <span aria-hidden className="h-3 w-px bg-black/10" />
+          <ClientSignOutLink />
+        </div>
       </header>
 
       <main className="mx-auto max-w-4xl px-6 py-14">

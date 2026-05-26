@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { isValidClientPlan, CLIENT_PLAN_COOKIE } from "@/lib/planLimits";
 import { WardrobeClient } from "@/components/client/WardrobeClient";
+import { ClientSignOutLink } from "@/components/client/ClientSignOutLink";
 import Link from "next/link";
 import { Metadata } from "next";
 
@@ -43,6 +44,8 @@ export default async function WardrobePage() {
                                                 transition-colors">
             Plans
           </Link>
+          <span aria-hidden className="h-3 w-px bg-black/10" />
+          <ClientSignOutLink />
         </div>
       </header>
 

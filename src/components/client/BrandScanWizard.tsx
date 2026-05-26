@@ -23,6 +23,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
 import { UpgradePrompt } from "@/components/client/UpgradePrompt";
+import { ClientSignOutLink } from "@/components/client/ClientSignOutLink";
 import {
   type ClientPlan,
   getClientPlanLimits,
@@ -380,6 +381,8 @@ export function BrandScanWizard({
           >
             ← All brands
           </Link>
+          <span aria-hidden className="h-3 w-px bg-black/10" />
+          <ClientSignOutLink />
         </div>
       </header>
 

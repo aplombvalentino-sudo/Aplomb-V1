@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Metadata } from "next";
+import { ClientSignOutLink } from "@/components/client/ClientSignOutLink";
 
 export const metadata: Metadata = { title: "Find your fit — Aplomb" };
 
@@ -68,6 +69,8 @@ export default async function ClientDiscoveryPage() {
           >
             Plans
           </Link>
+          <span aria-hidden className="h-3 w-px bg-black/10" />
+          <ClientSignOutLink />
         </div>
       </header>
 
