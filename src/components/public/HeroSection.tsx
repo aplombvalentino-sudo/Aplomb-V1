@@ -231,7 +231,7 @@ export function HeroSection() {
               initial={{ opacity: 0, x: 16, y: 8 }}
               animate={{ opacity: 1, x: 0, y: 0 }}
               transition={{ duration: 0.8, delay: 0.65, ease }}
-              className="absolute -bottom-4 -left-6 lg:-left-10 rounded-2xl bg-white
+              className="absolute -bottom-4 left-2 sm:left-0 lg:-left-10 rounded-2xl bg-white
                          px-4 py-3 shadow-[0_8px_32px_rgba(0,0,0,0.1)] ring-1 ring-black/[0.05]"
             >
               <p className="text-[11px] font-medium text-[#111010]">Return rate</p>
