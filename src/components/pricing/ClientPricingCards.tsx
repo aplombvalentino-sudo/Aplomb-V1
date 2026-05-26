@@ -22,6 +22,10 @@ type ClientTier = {
   id: ClientPlan;
   name: string;
   price: string;
+  /** Optional strikethrough price (promotional display) */
+  originalPrice?: string;
+  /** Optional small label shown next to the price, e.g. "FREE" */
+  priceBadge?: string;
   period: string;
   tagline: string;
   features: string[];
@@ -35,6 +39,8 @@ const TIERS: ClientTier[] = [
     id: "essential",
     name: "Essential",
     price: "0",
+    originalPrice: "9.99",
+    priceBadge: "FREE",
     period: "/month",
     tagline: "Free during launch — start finding your perfect fit.",
     features: [
@@ -158,23 +164,46 @@ export function ClientPricingCards({
                 {tier.name}
               </p>
 
-              <div className="mt-2 flex items-baseline gap-0.5">
-                <span className={cn(
-                  "text-[0.9rem] font-medium",
-                  tier.dark ? "text-white/50" : "text-[#9C9894]"
-                )}>€</span>
-                <span className={cn(
-                  "font-serif text-[2.8rem] font-semibold leading-none tracking-tight tabular-nums",
-                  tier.dark ? "text-white" : "text-[#111010]"
-                )}>
-                  {tier.price}
-                </span>
-                <span className={cn(
-                  "ml-1 self-end text-sm",
-                  tier.dark ? "text-white/40" : "text-[#9C9894]"
-                )}>
-                  {tier.period}
-                </span>
+              <div className="mt-2 flex items-baseline gap-1.5 flex-wrap">
+                {tier.priceBadge ? (
+                  <>
+                    {/* Crossed-out original price */}
+                    {tier.originalPrice && (
+                      <span className={cn(
+                        "font-serif text-[1.6rem] font-medium tracking-tight tabular-nums line-through decoration-[1.5px]",
+                        tier.dark ? "text-white/30 decoration-white/40" : "text-[#C9C5C0] decoration-[#C9C5C0]"
+                      )}>
+                        €{tier.originalPrice}
+                      </span>
+                    )}
+                    {/* Promo "FREE" badge */}
+                    <span className={cn(
+                      "font-serif text-[2.6rem] font-semibold leading-none tracking-tight",
+                      tier.dark ? "text-white" : "text-[#346538]"
+                    )}>
+                      {tier.priceBadge}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className={cn(
+                      "text-[0.9rem] font-medium",
+                      tier.dark ? "text-white/50" : "text-[#9C9894]"
+                    )}>€</span>
+                    <span className={cn(
+                      "font-serif text-[2.8rem] font-semibold leading-none tracking-tight tabular-nums",
+                      tier.dark ? "text-white" : "text-[#111010]"
+                    )}>
+                      {tier.price}
+                    </span>
+                    <span className={cn(
+                      "ml-1 self-end text-sm",
+                      tier.dark ? "text-white/40" : "text-[#9C9894]"
+                    )}>
+                      {tier.period}
+                    </span>
+                  </>
+                )}
               </div>
 
               <p className={cn(

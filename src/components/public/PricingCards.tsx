@@ -9,6 +9,10 @@ import { motion, AnimatePresence } from "motion/react";
 type Plan = {
   name: string;
   price: string;
+  /** Optional strikethrough price (promotional display) */
+  originalPrice?: string;
+  /** Optional label that replaces the numeric price, e.g. "FREE" */
+  priceBadge?: string;
   period: string;
   description: string;
   features: string[];
@@ -73,6 +77,8 @@ const clientPlans: Plan[] = [
   {
     name: "Essential",
     price: "0",
+    originalPrice: "9.99",
+    priceBadge: "FREE",
     period: "/mo",
     description: "Free during launch — try Aplomb across your favourite brands.",
     features: [
@@ -158,7 +164,7 @@ function PlanCard({ plan, i }: { plan: Plan; i: number }) {
             )}
           </div>
 
-          <div className="mt-5 flex items-baseline gap-1">
+          <div className="mt-5 flex items-baseline gap-2 flex-wrap">
             {plan.price === "Custom" ? (
               <span
                 className={`font-serif text-4xl font-semibold tracking-[-0.03em]
@@ -166,6 +172,26 @@ function PlanCard({ plan, i }: { plan: Plan; i: number }) {
               >
                 Custom
               </span>
+            ) : plan.priceBadge ? (
+              <>
+                {plan.originalPrice && (
+                  <span
+                    className={`font-serif text-[1.8rem] font-medium tracking-tight tabular-nums
+                                line-through decoration-[1.5px]
+                                ${plan.highlight
+                                  ? "text-white/30 decoration-white/40"
+                                  : "text-[#C9C5C0] decoration-[#C9C5C0]"}`}
+                  >
+                    €{plan.originalPrice}
+                  </span>
+                )}
+                <span
+                  className={`font-serif text-[3.2rem] font-semibold leading-none tracking-[-0.04em]
+                              ${plan.highlight ? "text-white" : "text-[#346538]"}`}
+                >
+                  {plan.priceBadge}
+                </span>
+              </>
             ) : (
               <>
                 <span
