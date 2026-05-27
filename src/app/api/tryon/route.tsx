@@ -18,11 +18,13 @@ import { ok, err, notFound, serverError } from "@/lib/api";
 import { generateTryOnImage, type TryOnCategory } from "@/lib/ai/fal/tryon";
 import { getSignedBodyScanUrl } from "@/lib/ai/storage";
 
-const schema = z.object({
-  outfitItemId: z.string().min(1),
-  bodyProfileId: z.string().min(1),
-  qualityMode: z.enum(["fast", "balanced", "quality"]).optional(),
-});
+const schema = z
+  .object({
+    outfitItemId: z.string().min(20).max(40).regex(/^c[a-z0-9]+$/, "Invalid id"),
+    bodyProfileId: z.string().min(20).max(40).regex(/^c[a-z0-9]+$/, "Invalid id"),
+    qualityMode: z.enum(["fast", "balanced", "quality"]).optional(),
+  })
+  .strict();
 
 // Map our internal positions to FASHN's category vocabulary
 function positionToCategory(position: string): TryOnCategory {
@@ -39,10 +41,13 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json().catch(() => null);
-  if (!body) return err("INVALID_JSON", "Invalid request body");
+  if (body === null || typeof body !== "object" || Array.isArray(body)) {
+    return err("INVALID_JSON", "Request body must be a JSON object.");
+  }
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
-    return err("VALIDATION_ERROR", parsed.error.issues[0]?.message ?? "Invalid input");
+    const first = parsed.error.issues[0];
+    return err("VALIDATION_ERROR", `${first?.path?.join(".") ?? "input"}: ${first?.message ?? "Invalid input"}`);
   }
   const { outfitItemId, bodyProfileId, qualityMode } = parsed.data;
 

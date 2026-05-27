@@ -2,11 +2,14 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { ok, err, unauthorized, forbidden } from "@/lib/api";
+import { ok, unauthorized, forbidden } from "@/lib/api";
+import { parseJsonBody } from "@/lib/validate";
 
-const schema = z.object({
-  plan: z.enum(["free", "pro", "enterprise"]),
-});
+const schema = z
+  .object({
+    plan: z.enum(["free", "pro", "enterprise"]),
+  })
+  .strict();
 
 /**
  * PATCH /api/brand/plan
@@ -24,13 +27,8 @@ export async function PATCH(req: NextRequest) {
   });
   if (!membership) return forbidden();
 
-  const body = await req.json().catch(() => null);
-  if (!body) return err("INVALID_JSON", "Invalid request body");
-
-  const parsed = schema.safeParse(body);
-  if (!parsed.success) {
-    return err("INVALID_PLAN", "Plan must be free, pro, or enterprise");
-  }
+  const parsed = await parseJsonBody(req, schema);
+  if (!parsed.ok) return parsed.response;
 
   const updated = await db.brand.update({
     where: { id: membership.brand.id },

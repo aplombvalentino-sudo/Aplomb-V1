@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { ok, err, unauthorized, forbidden } from "@/lib/api";
+import { parseJsonBody } from "@/lib/validate";
 
 // ─── GET /api/brand — list caller's brands ────────────────────────────────────
 export async function GET(_req: NextRequest) {
@@ -24,9 +25,11 @@ export async function GET(_req: NextRequest) {
 }
 
 // ─── POST /api/brand — create brand for the current user (onboarding) ─────────
-const createSchema = z.object({
-  name: z.string().min(1).max(100),
-});
+const createSchema = z
+  .object({
+    name: z.string().min(1).max(100),
+  })
+  .strict();
 
 function slugify(str: string) {
   return str.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -37,14 +40,8 @@ export async function POST(req: NextRequest) {
   if (!session?.user?.id) return unauthorized();
   const userId = session.user.id;
 
-  const body = await req.json().catch(() => null);
-  if (!body) return err("INVALID_JSON", "Invalid request body");
-
-  const parsed = createSchema.safeParse(body);
-  if (!parsed.success) {
-    return err("VALIDATION_ERROR", parsed.error.issues[0]?.message ?? "Invalid input");
-  }
-
+  const parsed = await parseJsonBody(req, createSchema);
+  if (!parsed.ok) return parsed.response;
   const { name } = parsed.data;
 
   const baseSlug = slugify(name);
@@ -66,13 +63,20 @@ export async function POST(req: NextRequest) {
 }
 
 // ─── PATCH /api/brand — update current user's primary brand ───────────────────
-const updateSchema = z.object({
-  name: z.string().min(1).max(100).optional(),
-  slug: z.string().min(1).max(100).optional(),
-  logoUrl: z.string().url().nullable().optional(),
-  primaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
-  configuration: z.record(z.string(), z.unknown()).optional(),
-});
+const updateSchema = z
+  .object({
+    name: z.string().min(1).max(100).optional(),
+    slug: z
+      .string()
+      .min(1)
+      .max(100)
+      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug must be lowercase letters, digits, and hyphens")
+      .optional(),
+    logoUrl: z.string().url().max(2048).nullable().optional(),
+    primaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Must be a 6-digit hex colour").optional(),
+    configuration: z.record(z.string(), z.unknown()).optional(),
+  })
+  .strict();
 
 export async function PATCH(req: NextRequest) {
   const session = await auth();
@@ -86,14 +90,8 @@ export async function PATCH(req: NextRequest) {
 
   if (!membership) return forbidden();
 
-  const body = await req.json().catch(() => null);
-  if (!body) return err("INVALID_JSON", "Invalid request body");
-
-  const parsed = updateSchema.safeParse(body);
-  if (!parsed.success) {
-    return err("VALIDATION_ERROR", parsed.error.issues[0]?.message ?? "Invalid input");
-  }
-
+  const parsed = await parseJsonBody(req, updateSchema);
+  if (!parsed.ok) return parsed.response;
   const { name, slug, logoUrl, primaryColor, configuration } = parsed.data;
 
   // Check slug uniqueness if changing it

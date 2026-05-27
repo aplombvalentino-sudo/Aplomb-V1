@@ -25,16 +25,22 @@ import {
 
 // ─── Schema (parsed AFTER multipart extraction) ─────────────────────────────
 
-const fieldsSchema = z.object({
-  brandSlug: z.string().min(1),
-  measurementMode: z.enum(["easy", "advanced"]),
-  heightCm: z.coerce.number().min(120).max(230),
-  weightKg: z.coerce.number().min(30).max(250),
-  chestCm: z.coerce.number().min(60).max(180).optional(),
-  waistCm: z.coerce.number().min(45).max(180).optional(),
-  hipsCm: z.coerce.number().min(70).max(200).optional(),
-  gender: z.enum(["male", "female", "other"]).optional(),
-});
+const fieldsSchema = z
+  .object({
+    brandSlug: z
+      .string()
+      .min(1)
+      .max(120)
+      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Invalid brand slug"),
+    measurementMode: z.enum(["easy", "advanced"]),
+    heightCm: z.coerce.number().finite().min(120).max(230),
+    weightKg: z.coerce.number().finite().min(30).max(250),
+    chestCm: z.coerce.number().finite().min(60).max(180).optional(),
+    waistCm: z.coerce.number().finite().min(45).max(180).optional(),
+    hipsCm: z.coerce.number().finite().min(70).max(200).optional(),
+    gender: z.enum(["male", "female", "other"]).optional(),
+  })
+  .strict();
 
 const MAX_PHOTO_BYTES = 8 * 1024 * 1024; // 8 MB
 const ACCEPTED_MIME = ["image/jpeg", "image/png", "image/webp"];

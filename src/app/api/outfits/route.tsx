@@ -17,14 +17,20 @@ import {
 } from "@/lib/ai/gemini/outfits";
 import type { NormalizedMeasurements } from "@/lib/ai/measurementProvider";
 
-const schema = z.object({
-  brandSlug: z.string().min(1),
-  recommendationSessionId: z.string().min(1),
-  occasion: z.string().max(120).optional(),
-  stylePreference: z.string().max(120).optional(),
-  colorPalette: z.string().max(120).optional(),
-  maxOutfits: z.number().int().min(1).max(3).optional(),
-});
+const schema = z
+  .object({
+    brandSlug: z
+      .string()
+      .min(1)
+      .max(120)
+      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Invalid brand slug"),
+    recommendationSessionId: z.string().min(20).max(40).regex(/^c[a-z0-9]+$/, "Invalid id"),
+    occasion: z.string().max(120).optional(),
+    stylePreference: z.string().max(120).optional(),
+    colorPalette: z.string().max(120).optional(),
+    maxOutfits: z.number().int().min(1).max(3).optional(),
+  })
+  .strict();
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for") ?? "anonymous";
@@ -34,10 +40,13 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json().catch(() => null);
-  if (!body) return err("INVALID_JSON", "Invalid request body");
+  if (body === null || typeof body !== "object" || Array.isArray(body)) {
+    return err("INVALID_JSON", "Request body must be a JSON object.");
+  }
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
-    return err("VALIDATION_ERROR", parsed.error.issues[0]?.message ?? "Invalid input");
+    const first = parsed.error.issues[0];
+    return err("VALIDATION_ERROR", `${first?.path?.join(".") ?? "input"}: ${first?.message ?? "Invalid input"}`);
   }
   const {
     brandSlug,

@@ -4,13 +4,15 @@ import { db } from "@/lib/db";
 import { supabase } from "@/lib/supabase";
 import { ok, err } from "@/lib/api";
 
-const signupSchema = z.object({
-  name: z.string().min(1).max(100),
-  // brandName is optional — when absent, we create a client account (no Brand record)
-  brandName: z.string().min(1).max(100).optional(),
-  email: z.string().email(),
-  password: z.string().min(8).max(100),
-});
+const signupSchema = z
+  .object({
+    name: z.string().min(1).max(100),
+    // brandName is optional — when absent, we create a client account (no Brand record)
+    brandName: z.string().min(1).max(100).optional(),
+    email: z.string().email().max(200),
+    password: z.string().min(8).max(100),
+  })
+  .strict();
 
 function slugify(str: string): string {
   return str

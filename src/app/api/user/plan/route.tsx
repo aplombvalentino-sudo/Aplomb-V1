@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { isValidClientPlan, CLIENT_PLAN_COOKIE } from "@/lib/planLimits";
-import { ok, err } from "@/lib/api";
+import { ok } from "@/lib/api";
+import { parseJsonBody } from "@/lib/validate";
 
-const schema = z.object({
-  plan: z.enum(["essential", "fashion", "model"]),
-});
+const schema = z
+  .object({
+    plan: z.enum(["essential", "fashion", "model"]),
+  })
+  .strict();
 
 /**
  * PATCH /api/user/plan
@@ -13,13 +16,8 @@ const schema = z.object({
  * No Stripe yet — this is a free plan selector; billing will be wired later.
  */
 export async function PATCH(req: NextRequest) {
-  const body = await req.json().catch(() => null);
-  if (!body) return err("INVALID_JSON", "Invalid request body");
-
-  const parsed = schema.safeParse(body);
-  if (!parsed.success || !isValidClientPlan(parsed.data.plan)) {
-    return err("INVALID_PLAN", "Plan must be essential, fashion, or model");
-  }
+  const parsed = await parseJsonBody(req, schema);
+  if (!parsed.ok) return parsed.response;
 
   const { plan } = parsed.data;
 

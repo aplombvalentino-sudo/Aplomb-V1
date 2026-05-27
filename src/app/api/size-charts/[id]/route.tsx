@@ -1,14 +1,18 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { ok, err, unauthorized, forbidden, notFound } from "@/lib/api";
+import { ok, unauthorized, forbidden, notFound } from "@/lib/api";
+import { parseJsonBody, parseParam, zCuid } from "@/lib/validate";
 
-const updateSchema = z.object({
-  category: z.string().min(1).max(100).optional(),
-  gender: z.string().optional().nullable(),
-  chartJson: z.unknown().optional(),
-});
+const updateSchema = z
+  .object({
+    category: z.string().min(1).max(100).optional(),
+    gender: z.enum(["male", "female", "unisex"]).optional().nullable(),
+    chartJson: z.record(z.string(), z.unknown()).optional(),
+  })
+  .strict();
 
 async function getChartAndCheckAccess(chartId: string, userId: string) {
   const chart = await db.sizeChart.findUnique({ where: { id: chartId } });
@@ -27,7 +31,10 @@ export async function GET(
   const session = await auth();
   if (!session?.user?.id) return unauthorized();
 
-  const { id } = await params;
+  const { id: rawId } = await params;
+  const idParsed = parseParam(rawId, zCuid);
+  if (!idParsed.ok) return idParsed.response;
+  const id = idParsed.data;
   const { chart, authorised } = await getChartAndCheckAccess(id, session.user.id);
   if (!chart) return notFound("SizeChart");
   if (!authorised) return forbidden();
@@ -42,18 +49,16 @@ export async function PUT(
   const session = await auth();
   if (!session?.user?.id) return unauthorized();
 
-  const { id } = await params;
+  const { id: rawId } = await params;
+  const idParsed = parseParam(rawId, zCuid);
+  if (!idParsed.ok) return idParsed.response;
+  const id = idParsed.data;
   const { chart, authorised } = await getChartAndCheckAccess(id, session.user.id);
   if (!chart) return notFound("SizeChart");
   if (!authorised) return forbidden();
 
-  const body = await req.json().catch(() => null);
-  if (!body) return err("INVALID_JSON", "Invalid request body");
-
-  const parsed = updateSchema.safeParse(body);
-  if (!parsed.success) {
-    return err("VALIDATION_ERROR", parsed.error.issues[0]?.message ?? "Invalid input");
-  }
+  const parsed = await parseJsonBody(req, updateSchema);
+  if (!parsed.ok) return parsed.response;
 
   const updated = await db.sizeChart.update({
     where: { id },
@@ -61,7 +66,7 @@ export async function PUT(
       ...(parsed.data.category && { category: parsed.data.category }),
       gender: parsed.data.gender,
       ...(parsed.data.chartJson !== undefined && {
-        chartJson: parsed.data.chartJson as object,
+        chartJson: parsed.data.chartJson as Prisma.InputJsonValue,
       }),
     },
   });
@@ -76,7 +81,10 @@ export async function DELETE(
   const session = await auth();
   if (!session?.user?.id) return unauthorized();
 
-  const { id } = await params;
+  const { id: rawId } = await params;
+  const idParsed = parseParam(rawId, zCuid);
+  if (!idParsed.ok) return idParsed.response;
+  const id = idParsed.data;
   const { chart, authorised } = await getChartAndCheckAccess(id, session.user.id);
   if (!chart) return notFound("SizeChart");
   if (!authorised) return forbidden();

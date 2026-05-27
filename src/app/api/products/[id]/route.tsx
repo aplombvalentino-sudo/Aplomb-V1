@@ -2,18 +2,21 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { ok, err, unauthorized, forbidden, notFound } from "@/lib/api";
+import { ok, unauthorized, forbidden, notFound } from "@/lib/api";
+import { parseJsonBody, parseParam, zCuid } from "@/lib/validate";
 
-const updateSchema = z.object({
-  name: z.string().min(1).max(200).optional(),
-  description: z.string().optional(),
-  category: z.string().optional(),
-  subcategory: z.string().optional(),
-  imageUrl: z.string().url().optional().or(z.literal("")),
-  externalId: z.string().optional(),
-  tags: z.array(z.string()).optional(),
-  isActive: z.boolean().optional(),
-});
+const updateSchema = z
+  .object({
+    name: z.string().min(1).max(200).optional(),
+    description: z.string().max(2000).optional(),
+    category: z.string().max(80).optional(),
+    subcategory: z.string().max(80).optional(),
+    imageUrl: z.string().url().max(2048).optional().or(z.literal("")),
+    externalId: z.string().max(120).optional(),
+    tags: z.array(z.string().min(1).max(40)).max(40).optional(),
+    isActive: z.boolean().optional(),
+  })
+  .strict();
 
 async function getProductAndCheckAccess(productId: string, userId: string) {
   const product = await db.product.findUnique({
@@ -35,7 +38,10 @@ export async function GET(
   const session = await auth();
   if (!session?.user?.id) return unauthorized();
 
-  const { id } = await params;
+  const { id: rawId } = await params;
+  const idParsed = parseParam(rawId, zCuid);
+  if (!idParsed.ok) return idParsed.response;
+  const id = idParsed.data;
   const { product, authorised } = await getProductAndCheckAccess(id, session.user.id);
   if (!product) return notFound("Product");
   if (!authorised) return forbidden();
@@ -50,18 +56,16 @@ export async function PUT(
   const session = await auth();
   if (!session?.user?.id) return unauthorized();
 
-  const { id } = await params;
+  const { id: rawId } = await params;
+  const idParsed = parseParam(rawId, zCuid);
+  if (!idParsed.ok) return idParsed.response;
+  const id = idParsed.data;
   const { product, authorised } = await getProductAndCheckAccess(id, session.user.id);
   if (!product) return notFound("Product");
   if (!authorised) return forbidden();
 
-  const body = await req.json().catch(() => null);
-  if (!body) return err("INVALID_JSON", "Invalid request body");
-
-  const parsed = updateSchema.safeParse(body);
-  if (!parsed.success) {
-    return err("VALIDATION_ERROR", parsed.error.issues[0]?.message ?? "Invalid input");
-  }
+  const parsed = await parseJsonBody(req, updateSchema);
+  if (!parsed.ok) return parsed.response;
 
   const updated = await db.product.update({
     where: { id },
@@ -82,7 +86,10 @@ export async function DELETE(
   const session = await auth();
   if (!session?.user?.id) return unauthorized();
 
-  const { id } = await params;
+  const { id: rawId } = await params;
+  const idParsed = parseParam(rawId, zCuid);
+  if (!idParsed.ok) return idParsed.response;
+  const id = idParsed.data;
   const { product, authorised } = await getProductAndCheckAccess(id, session.user.id);
   if (!product) return notFound("Product");
   if (!authorised) return forbidden();
