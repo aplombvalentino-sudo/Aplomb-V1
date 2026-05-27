@@ -1,13 +1,26 @@
 # Aplomb
 
-AI-powered fitting room and outfit stylist for fashion brands. Embed into any ecommerce storefront to give shoppers accurate size recommendations and personalised outfit suggestions.
+AI fitting room for fashion brands. Shoppers get accurate size recommendations,
+personalised outfit suggestions, and virtual try-on imagery; brands get a
+marketplace presence with catalog, size charts, and analytics.
 
-## Quick start
+- **Brand side** (`/pro/*`) — catalog manager, size charts, marketplace presence
+  dashboard, discovery + analytics consoles.
+- **Shopper side** (`/app/*`) — brand discovery, AI fit wizard (Easy/Advanced
+  modes), outfit ideas, virtual try-on, digital wardrobe.
 
-### Prerequisites
+## Stack
 
-- Node.js 18+
-- PostgreSQL 14+
+- Next.js 16 (App Router, Turbopack) · React 19 · TypeScript
+- Supabase Auth + Postgres · Prisma
+- NextAuth v5 (JWT session strategy)
+- Tailwind v4 · `motion` (animations) · `lucide-react` (icons)
+- Gemini 2.5 Flash (outfit generation) · fal.ai FASHN (virtual try-on)
+- Zod (strict input validation on every endpoint)
+
+---
+
+## Running locally
 
 ### 1. Install
 
@@ -15,69 +28,64 @@ AI-powered fitting room and outfit stylist for fashion brands. Embed into any ec
 npm install
 ```
 
-### 2. Configure environment
+### 2. Set up environment variables
+
+Copy the template **but never commit the resulting file**:
 
 ```bash
-cp .env.example .env
+cp .env.example .env.local
 ```
 
-Edit `.env`:
+`.env.local` is already in `.gitignore`. Fill in real values. Required vars:
 
-```env
-DATABASE_URL="postgresql://postgres:password@localhost:5432/aplomb"
-NEXTAUTH_SECRET="run: openssl rand -base64 32"
-NEXTAUTH_URL="http://localhost:3000"
-```
+| Variable | Where to get it |
+|---|---|
+| `DATABASE_URL`, `DIRECT_URL`, `PRISMA_DATABASE_URL` | Supabase → Project Settings → Database |
+| `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → API |
+| `NEXTAUTH_URL` | `http://localhost:3000` (local) / your domain (prod) |
+| `NEXTAUTH_SECRET` | Generate: `openssl rand -base64 32` |
+| `GEMINI_API_KEY` | https://aistudio.google.com/apikey |
+| `FAL_KEY` | https://fal.ai/dashboard/keys (format: `<id>:<secret>`) |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google Cloud Console (optional — only if Google OAuth is enabled) |
 
-### 3. Set up the database
+> ⚠️ See [SECURITY.md](./SECURITY.md) for the rules on handling secrets. Never
+> put real values in tracked files.
+
+### 3. Set up the database schema
 
 ```bash
-npx prisma generate
-npx prisma migrate dev --name init
+npx prisma db push      # apply current schema to Supabase (dev)
+npx prisma generate     # generate the Prisma client
 ```
 
-### 4. Seed demo data
+> For production-grade changes, switch to migrations: `npx prisma migrate dev`.
+> Migrations live under `prisma/migrations/` and are committed to git.
 
-```bash
-npx tsx prisma/seed.ts
-```
+### 4. Create the body-scans bucket (one-time)
 
-This creates:
-- **User**: demo@aplomb.ai / password123
-- **Brand**: Demo Brand (slug: `demo-brand`)
-- **Products**: 5 demo products with variants
-- **Size chart**: Shirt / male
+In the Supabase dashboard → Storage → **New bucket** → `body-scans` →
+**Public toggle = OFF**. The service role inserts/reads/deletes via our
+server-only client (`src/lib/supabase.ts → getSupabaseServiceClient()`).
 
-### 5. Run dev server
+### 5. Run the dev server
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000)
+Open http://localhost:3000.
 
 ---
 
-## Testing the widget end-to-end
+## Deployment (Vercel)
 
-1. Sign in at [http://localhost:3000/login](http://localhost:3000/login) with `demo@aplomb.ai` / `password123`
-2. Explore the dashboard: products, size charts, integration tab
-3. Open the widget at: `http://localhost:3000/widget?brand=demo-brand`
-4. Complete the flow → outfits appear in the Fit Sessions dashboard page
-
-### API test (curl)
-
-```bash
-# Step 1: measurements
-curl -X POST http://localhost:3000/api/measurements \
-  -H "Content-Type: application/json" \
-  -d '{"brandSlug":"demo-brand","mediaUrl":"https://example.com/photo.jpg","heightCm":175}'
-
-# Step 2: outfits (use recommendationSessionId from step 1)
-curl -X POST http://localhost:3000/api/outfits \
-  -H "Content-Type: application/json" \
-  -d '{"brandSlug":"demo-brand","recommendationSessionId":"<id>","context":{"occasion":"office"}}'
-```
+1. Push to GitHub. Vercel auto-detects the Next.js app.
+2. In Vercel → Project Settings → Environment Variables, add every variable
+   from `.env.example`. Mark each as **"Sensitive"** so the value can't be
+   re-read from the dashboard.
+3. First deploy. Copy the resulting `*.vercel.app` URL and set it as
+   `NEXTAUTH_URL`, then redeploy once.
+4. Build command (already set in `package.json`): `prisma generate && next build`.
 
 ---
 
@@ -86,42 +94,57 @@ curl -X POST http://localhost:3000/api/outfits \
 ```
 src/
   app/
-    (public)/          # Marketing pages (/, /pricing)
-    (auth)/            # Login / Signup
-    (dashboard)/       # Merchant dashboard (auth required)
-    widget/            # Embeddable widget iframe
-    api/               # REST API routes
+    (public)/             # Marketing pages (landing, pricing, etc.)
+    (auth)/               # /login, /signup (brand vs shopper split)
+    (proAuth)/pro/        # Authenticated brand workspace
+      (workspace)/        # Sidebar shell: dashboard, catalog, size-charts,
+                          #                discovery, analytics, billing, settings
+      onboarding/         # Brand creation flow
+    (clientArea)/app/     # Public shopper experience (brand discovery,
+                          # fit wizard, wardrobe, pricing)
+    widget/               # Embeddable iframe for brand product pages
+    api/                  # REST endpoints (Zod-validated, rate-limited)
+    checkout/             # Plan checkout placeholder (Shopify integration TODO)
   lib/
-    auth.ts            # Auth.js v5 config
-    db.ts              # Prisma singleton
-    measurementProvider.ts   # Stub → plug in 3DLOOK / SizeStream
-    outfitGenerator.ts       # Stub → plug in Anthropic / OpenAI
-    shopify.ts               # Placeholder for Shopify sync
+    auth.ts               # NextAuth v5 config
+    db.ts                 # Prisma singleton
+    supabase.ts           # anon + service-role clients
+    validate.ts           # Shared Zod helpers (parseJsonBody / parseQuery / parseParam)
+    planLimits.ts         # Client plan tiers (Essential / Fashion / Model)
+    plans/proPlans.ts     # Pro plan tiers (Listed / Featured / Premier)
+    discovery/            # Brand visibility / completeness / discovery score
+    analytics/            # Monthly exposure quota, engagement metrics
+    ai/
+      measurementProvider.ts  # Easy/Advanced body measurement (stub → 3DLOOK)
+      sizing/recommendSizes.ts # Deterministic size engine with confidence
+      gemini/                  # Outfit generation
+      fal/                     # Virtual try-on
+      storage.ts               # Private body-scans bucket helpers
   components/
-    ui/                # Button, Input, Card, Badge
-    dashboard/         # Dashboard-specific components
-    public/            # Marketing site components
+    public/                # Landing / pricing / hero
+    pro/                   # Brand workspace UI
+    client/                # Shopper experience UI (wizard, wardrobe, etc.)
+    pricing/               # Brand + client pricing card variants
+    dashboard/             # Charts, copy buttons, etc.
+    ui/                    # Button, Input, Card, Badge
 ```
 
-## Plugging in a real measurement provider
+---
 
-1. Set `MEASUREMENT_PROVIDER=3dlook` in `.env`
-2. Set `MEASUREMENT_PROVIDER_API_KEY` and `MEASUREMENT_PROVIDER_BASE_URL`
-3. Implement `callThreeDLook()` in `src/lib/measurementProvider.ts`
+## Security
 
-## Plugging in a real LLM stylist
+Aplomb handles paid AI integrations, user body imagery, and brand commercial
+data. Security expectations are tracked in [SECURITY.md](./SECURITY.md).
 
-1. Set `STYLIST_LLM_PROVIDER=anthropic` in `.env`
-2. Set `STYLIST_LLM_API_KEY=sk-ant-...` and `STYLIST_LLM_MODEL=claude-sonnet-4-6`
-3. Implement `callStylistLLM()` in `src/lib/outfitGenerator.ts`
-
-## Deploying to Vercel
-
-```bash
-npx vercel --prod
-```
-
-Set all `.env` variables in Vercel project settings. Use a managed PostgreSQL (Neon, Supabase, Railway).
+Highlights:
+- Every API endpoint validates inputs with **Zod `.strict()` schemas** via the
+  shared helpers in `src/lib/validate.ts`.
+- Every authenticated endpoint checks **`auth()` + ownership** before touching
+  the database.
+- Body-scan photos go to a **private Supabase Storage bucket**; only the
+  service role can read or write. Signed URLs are short-lived (30 min) and
+  never returned to the browser.
+- See `SECURITY.md` for the full policy on secrets, rotation, and reporting.
 
 ---
 

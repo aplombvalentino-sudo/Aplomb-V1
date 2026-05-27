@@ -1,0 +1,58 @@
+# Gitleaks configuration for Aplomb.
+#
+# Install: https://github.com/gitleaks/gitleaks#installing
+# Then in this repo:
+#   gitleaks install   (adds a pre-commit hook)
+#   gitleaks detect    (one-off full-history scan)
+#
+# This config extends the default rule set with project-specific patterns
+# (Gemini, fal.ai, Supabase). It also relaxes detection on the .env.example
+# and SECURITY.md files where placeholders may LOOK like real keys.
+
+title = "Aplomb gitleaks config"
+
+[extend]
+useDefault = true
+
+# ─── Project-specific rules ────────────────────────────────────────────────
+
+[[rules]]
+id = "gemini-api-key"
+description = "Google Gemini / Google AI Studio API key"
+regex = '''AIza[0-9A-Za-z_-]{30,}'''
+tags = ["key", "google", "gemini"]
+
+[[rules]]
+id = "fal-ai-key"
+description = "fal.ai API key (uuid:hex format)"
+regex = '''[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}:[0-9a-f]{32}'''
+tags = ["key", "fal"]
+
+[[rules]]
+id = "supabase-service-role"
+description = "Supabase service-role JWT (eyJ...)"
+regex = '''eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}'''
+tags = ["key", "supabase"]
+
+[[rules]]
+id = "postgres-url-with-password"
+description = "Postgres connection string with embedded password"
+regex = '''postgres(?:ql)?://[^:/\s]+:[^@/\s]{4,}@[A-Za-z0-9.-]+(?::\d+)?/'''
+tags = ["db", "credential"]
+
+# ─── Allowlist ─────────────────────────────────────────────────────────────
+
+[allowlist]
+description = "Files that intentionally contain placeholder strings"
+paths = [
+  '''\.env\.example$''',
+  '''SECURITY\.md$''',
+  '''README\.md$''',
+  '''\.gitleaks\.toml$''',
+]
+regexes = [
+  # Allow doc-style placeholders
+  '''postgres(?:ql)?://(?:USER|user|postgres):(?:PASSWORD|password|<.+>)@''',
+  '''AIza[A-Za-z0-9]{0,8}\.\.\.''',          # truncated placeholders in docs
+  '''sb_(publishable|secret)_\.\.\.''',
+]
