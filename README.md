@@ -54,12 +54,32 @@ cp .env.example .env.local
 ### 3. Set up the database schema
 
 ```bash
-npx prisma db push      # apply current schema to Supabase (dev)
-npx prisma generate     # generate the Prisma client
+npm run db:deploy      # apply pending migrations to Supabase
+npm run db:generate    # generate the Prisma client
 ```
 
-> For production-grade changes, switch to migrations: `npx prisma migrate dev`.
-> Migrations live under `prisma/migrations/` and are committed to git.
+This repo uses **versioned Prisma migrations** under `prisma/migrations/`.
+Every schema change MUST be a new migration committed to git.
+
+#### Making a schema change
+
+```bash
+# 1. Edit prisma/schema.prisma
+# 2. Generate a new migration interactively (runs against your DB)
+npm run db:migrate -- --name describe_the_change
+
+# 3. The new SQL appears in prisma/migrations/<timestamp>_describe_the_change/
+# 4. Review the SQL, commit + push. Vercel runs `prisma migrate deploy` on every build.
+```
+
+#### Status / drift check
+
+```bash
+npm run db:status
+```
+
+Production deploys run `prisma migrate deploy` automatically as part of the
+build script (`package.json`).
 
 ### 4. Create the body-scans bucket (one-time)
 

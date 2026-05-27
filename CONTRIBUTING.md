@@ -95,9 +95,11 @@ These are non-negotiable. A PR that violates one of them should be sent back.
    ownership checks are mandatory even when RLS is enabled — the
    service-role Supabase client bypasses RLS by design.
 
-6. **Never use `prisma db push` against production.** Once we have a first
-   migration committed, use `prisma migrate deploy`. Schema changes that
-   could destroy data require a manual Supabase snapshot beforehand.
+6. **Never use `prisma db push`.** This repo uses versioned migrations under
+   `prisma/migrations/`. Use `npm run db:migrate -- --name <description>` to
+   generate a new migration locally; commit the resulting SQL. Vercel runs
+   `prisma migrate deploy` on every build. Destructive schema changes require
+   a manual Supabase snapshot before merging.
 
 ---
 
