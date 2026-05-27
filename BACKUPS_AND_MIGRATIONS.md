@@ -67,7 +67,8 @@ Additional requirements for destructive migrations:
 - [ ] **Take a manual snapshot in Supabase first.** Dashboard → Database →
       Backups → "Take backup now." Note the backup ID in the PR description.
 - [ ] **Test the migration end-to-end on a staging project** with realistic
-      data volume. Don't trust a fresh staging DB to surface backfill timeouts.
+      data volume. See [STAGING.md](./STAGING.md) for the setup. Don't trust a
+      fresh staging DB to surface backfill timeouts.
 - [ ] **Write a rollback SQL stub** (even if approximate) in the PR body. If
       you can't write one, document why and what data would be lost on rollback.
 - [ ] **The PR title starts with `db(destructive):`** so it shows up in the log

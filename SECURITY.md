@@ -37,7 +37,8 @@
    For full-history scrub, use `git filter-repo`.
 3. Add the file/pattern to `.gitignore`.
 4. Commit and push. If `git filter-repo` was used, you'll need to force-push.
-5. Document what was rotated in a `SECURITY_INCIDENTS.md` (one line per event).
+5. Document what was rotated in [SECURITY_INCIDENTS.md](./SECURITY_INCIDENTS.md)
+   — one block per event, template at the top of the file.
 
 ## Verification before each PR
 
