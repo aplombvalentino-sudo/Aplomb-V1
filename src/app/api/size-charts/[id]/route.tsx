@@ -5,6 +5,8 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { ok, unauthorized, forbidden, notFound } from "@/lib/api";
 import { parseJsonBody, parseParam, zCuid } from "@/lib/validate";
+import { requireBrandRole, ROLES_READ, ROLES_WRITE, ROLES_ADMIN } from "@/lib/brandRole";
+import type { BrandUserRole } from "@prisma/client";
 
 const updateSchema = z
   .object({
@@ -14,14 +16,23 @@ const updateSchema = z
   })
   .strict();
 
-async function getChartAndCheckAccess(chartId: string, userId: string) {
+async function loadChartWithRole(
+  chartId: string,
+  userId: string,
+  allowed: BrandUserRole[],
+) {
   const chart = await db.sizeChart.findUnique({ where: { id: chartId } });
-  if (!chart) return { chart: null, authorised: false };
+  if (!chart) return { ok: false as const, response: notFound("SizeChart") };
 
-  const m = await db.brandUser.findUnique({
-    where: { userId_brandId: { userId, brandId: chart.brandId } },
-  });
-  return { chart, authorised: !!m };
+  const role = await requireBrandRole(userId, chart.brandId, allowed);
+  if (!role.ok) return { ok: false as const, response: forbidden() };
+
+  return { ok: true as const, chart };
+}
+
+async function getValidId(params: Promise<{ id: string }>) {
+  const { id: rawId } = await params;
+  return parseParam(rawId, zCuid);
 }
 
 export async function GET(
@@ -31,15 +42,12 @@ export async function GET(
   const session = await auth();
   if (!session?.user?.id) return unauthorized();
 
-  const { id: rawId } = await params;
-  const idParsed = parseParam(rawId, zCuid);
+  const idParsed = await getValidId(params);
   if (!idParsed.ok) return idParsed.response;
-  const id = idParsed.data;
-  const { chart, authorised } = await getChartAndCheckAccess(id, session.user.id);
-  if (!chart) return notFound("SizeChart");
-  if (!authorised) return forbidden();
 
-  return ok(chart);
+  const r = await loadChartWithRole(idParsed.data, session.user.id, ROLES_READ);
+  if (!r.ok) return r.response;
+  return ok(r.chart);
 }
 
 export async function PUT(
@@ -49,13 +57,13 @@ export async function PUT(
   const session = await auth();
   if (!session?.user?.id) return unauthorized();
 
-  const { id: rawId } = await params;
-  const idParsed = parseParam(rawId, zCuid);
+  const idParsed = await getValidId(params);
   if (!idParsed.ok) return idParsed.response;
   const id = idParsed.data;
-  const { chart, authorised } = await getChartAndCheckAccess(id, session.user.id);
-  if (!chart) return notFound("SizeChart");
-  if (!authorised) return forbidden();
+
+  // Editors and above can update size charts.
+  const r = await loadChartWithRole(id, session.user.id, ROLES_WRITE);
+  if (!r.ok) return r.response;
 
   const parsed = await parseJsonBody(req, updateSchema);
   if (!parsed.ok) return parsed.response;
@@ -81,13 +89,13 @@ export async function DELETE(
   const session = await auth();
   if (!session?.user?.id) return unauthorized();
 
-  const { id: rawId } = await params;
-  const idParsed = parseParam(rawId, zCuid);
+  const idParsed = await getValidId(params);
   if (!idParsed.ok) return idParsed.response;
   const id = idParsed.data;
-  const { chart, authorised } = await getChartAndCheckAccess(id, session.user.id);
-  if (!chart) return notFound("SizeChart");
-  if (!authorised) return forbidden();
+
+  // Destructive — admins and above only.
+  const r = await loadChartWithRole(id, session.user.id, ROLES_ADMIN);
+  if (!r.ok) return r.response;
 
   await db.sizeChart.delete({ where: { id } });
   return ok({ deleted: true });

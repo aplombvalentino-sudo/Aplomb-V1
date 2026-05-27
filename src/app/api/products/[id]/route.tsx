@@ -4,6 +4,8 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { ok, unauthorized, forbidden, notFound } from "@/lib/api";
 import { parseJsonBody, parseParam, zCuid } from "@/lib/validate";
+import { requireBrandRole, ROLES_READ, ROLES_WRITE, ROLES_ADMIN } from "@/lib/brandRole";
+import type { BrandUserRole } from "@prisma/client";
 
 const updateSchema = z
   .object({
@@ -18,17 +20,30 @@ const updateSchema = z
   })
   .strict();
 
-async function getProductAndCheckAccess(productId: string, userId: string) {
+/**
+ * Loads the product and verifies the caller has the required role on its brand.
+ * Returns the product on success, or a typed failure with the response to return.
+ */
+async function loadProductWithRole(
+  productId: string,
+  userId: string,
+  allowed: BrandUserRole[],
+) {
   const product = await db.product.findUnique({
     where: { id: productId },
     include: { variants: true },
   });
-  if (!product) return { product: null, authorised: false };
+  if (!product) return { ok: false as const, response: notFound("Product") };
 
-  const membership = await db.brandUser.findUnique({
-    where: { userId_brandId: { userId, brandId: product.brandId } },
-  });
-  return { product, authorised: !!membership };
+  const role = await requireBrandRole(userId, product.brandId, allowed);
+  if (!role.ok) return { ok: false as const, response: forbidden() };
+
+  return { ok: true as const, product };
+}
+
+async function getValidId(params: Promise<{ id: string }>) {
+  const { id: rawId } = await params;
+  return parseParam(rawId, zCuid);
 }
 
 export async function GET(
@@ -38,15 +53,12 @@ export async function GET(
   const session = await auth();
   if (!session?.user?.id) return unauthorized();
 
-  const { id: rawId } = await params;
-  const idParsed = parseParam(rawId, zCuid);
+  const idParsed = await getValidId(params);
   if (!idParsed.ok) return idParsed.response;
-  const id = idParsed.data;
-  const { product, authorised } = await getProductAndCheckAccess(id, session.user.id);
-  if (!product) return notFound("Product");
-  if (!authorised) return forbidden();
 
-  return ok(product);
+  const r = await loadProductWithRole(idParsed.data, session.user.id, ROLES_READ);
+  if (!r.ok) return r.response;
+  return ok(r.product);
 }
 
 export async function PUT(
@@ -56,13 +68,13 @@ export async function PUT(
   const session = await auth();
   if (!session?.user?.id) return unauthorized();
 
-  const { id: rawId } = await params;
-  const idParsed = parseParam(rawId, zCuid);
+  const idParsed = await getValidId(params);
   if (!idParsed.ok) return idParsed.response;
   const id = idParsed.data;
-  const { product, authorised } = await getProductAndCheckAccess(id, session.user.id);
-  if (!product) return notFound("Product");
-  if (!authorised) return forbidden();
+
+  // Editors and above can update products.
+  const r = await loadProductWithRole(id, session.user.id, ROLES_WRITE);
+  if (!r.ok) return r.response;
 
   const parsed = await parseJsonBody(req, updateSchema);
   if (!parsed.ok) return parsed.response;
@@ -86,14 +98,15 @@ export async function DELETE(
   const session = await auth();
   if (!session?.user?.id) return unauthorized();
 
-  const { id: rawId } = await params;
-  const idParsed = parseParam(rawId, zCuid);
+  const idParsed = await getValidId(params);
   if (!idParsed.ok) return idParsed.response;
   const id = idParsed.data;
-  const { product, authorised } = await getProductAndCheckAccess(id, session.user.id);
-  if (!product) return notFound("Product");
-  if (!authorised) return forbidden();
+
+  // Destructive — admins and above only.
+  const r = await loadProductWithRole(id, session.user.id, ROLES_ADMIN);
+  if (!r.ok) return r.response;
 
   await db.product.delete({ where: { id } });
   return ok({ deleted: true });
 }
+

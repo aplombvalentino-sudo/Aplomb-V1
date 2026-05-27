@@ -12,6 +12,7 @@ import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/rateLimit";
 import { ok, err, notFound, serverError } from "@/lib/api";
 import { parseJsonBody, zCuid } from "@/lib/validate";
+import { authorizeSession } from "@/lib/ownership";
 import {
   generateOutfitsWithGemini,
   type CatalogProductInput,
@@ -51,7 +52,17 @@ export async function POST(req: NextRequest) {
     maxOutfits,
   } = parsed.data;
 
-  // Load the session + brand + catalog
+  // Authorise the caller for this session BEFORE running any expensive query.
+  const ownership = await authorizeSession(req, recommendationSessionId);
+  if (!ownership.ok) {
+    return err(
+      ownership.status === 401 ? "UNAUTHORIZED" : ownership.status === 403 ? "FORBIDDEN" : "NOT_FOUND",
+      ownership.reason,
+      ownership.status,
+    );
+  }
+
+  // Re-fetch with the nested data we need for the prompt
   const session = await db.recommendationSession.findUnique({
     where: { id: recommendationSessionId },
     include: {

@@ -9,12 +9,12 @@
  * Body photos are never returned to the client — only derived measurements.
  */
 
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/rateLimit";
-import { ok, err, notFound, serverError } from "@/lib/api";
+import { err, notFound, serverError } from "@/lib/api";
 import { runMeasurement, buildBodyShapeSummary } from "@/lib/ai/measurementProvider";
 import { recommendSizes } from "@/lib/ai/sizing/recommendSizes";
 import {
@@ -22,6 +22,11 @@ import {
   getSignedBodyScanUrl,
   buildScanPath,
 } from "@/lib/ai/storage";
+import {
+  newSessionToken,
+  SESSION_TOKEN_COOKIE,
+  sessionTokenCookieOptions,
+} from "@/lib/sessionToken";
 
 // ─── Schema (parsed AFTER multipart extraction) ─────────────────────────────
 
@@ -146,6 +151,11 @@ export async function POST(req: NextRequest) {
 
     const bodyShapeSummary = buildBodyShapeSummary(measurements);
 
+    // For anonymous shoppers, mint a session token. Hash goes in the DB,
+    // plaintext goes to the caller via httpOnly cookie. Logged-in users
+    // skip this — ownership is proven by userId.
+    const anonToken = userId === null ? newSessionToken() : null;
+
     // Persist BodyProfile + RecommendationSession atomically
     const [bodyProfile, recommendationSession] = await db.$transaction(async (tx) => {
       const bp = await tx.bodyProfile.create({
@@ -167,6 +177,7 @@ export async function POST(req: NextRequest) {
           bodyProfileId: bp.id,
           context: "widget",
           source: "app",
+          ownerTokenHash: anonToken?.hash ?? null,
         },
       });
       return [bp, rs];
@@ -175,13 +186,22 @@ export async function POST(req: NextRequest) {
     // Deterministic size recommendation
     const sizeRecommendations = recommendSizes(measurements, brand.sizeCharts);
 
-    return ok({
-      bodyProfileId: bodyProfile.id,
-      recommendationSessionId: recommendationSession.id,
-      measurements: measurementsToStore,
-      bodyShapeSummary,
-      sizeRecommendations,
-    });
+    const responseBody = {
+      success: true as const,
+      data: {
+        bodyProfileId: bodyProfile.id,
+        recommendationSessionId: recommendationSession.id,
+        measurements: measurementsToStore,
+        bodyShapeSummary,
+        sizeRecommendations,
+      },
+    };
+
+    const response = NextResponse.json(responseBody);
+    if (anonToken) {
+      response.cookies.set(SESSION_TOKEN_COOKIE, anonToken.token, sessionTokenCookieOptions());
+    }
+    return response;
   } catch (e) {
     console.error("[/api/measurements]", e);
     return serverError(

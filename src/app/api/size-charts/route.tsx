@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { ok, unauthorized, forbidden } from "@/lib/api";
 import { parseJsonBody, parseQuery, zCuid } from "@/lib/validate";
+import { requireBrandRole, ROLES_READ, ROLES_WRITE } from "@/lib/brandRole";
 
 const createSchema = z
   .object({
@@ -17,13 +18,6 @@ const createSchema = z
 
 const listQuerySchema = z.object({ brandId: zCuid }).strict();
 
-async function checkBrandAccess(userId: string, brandId: string) {
-  const m = await db.brandUser.findUnique({
-    where: { userId_brandId: { userId, brandId } },
-  });
-  return !!m;
-}
-
 export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) return unauthorized();
@@ -31,8 +25,8 @@ export async function GET(req: NextRequest) {
   const q = parseQuery(req, listQuerySchema);
   if (!q.ok) return q.response;
 
-  const accessOk = await checkBrandAccess(session.user.id, q.data.brandId);
-  if (!accessOk) return forbidden();
+  const role = await requireBrandRole(session.user.id, q.data.brandId, ROLES_READ);
+  if (!role.ok) return forbidden();
 
   const items = await db.sizeChart.findMany({
     where: { brandId: q.data.brandId },
@@ -50,8 +44,9 @@ export async function POST(req: NextRequest) {
   if (!parsed.ok) return parsed.response;
   const data = parsed.data;
 
-  const accessOk = await checkBrandAccess(session.user.id, data.brandId);
-  if (!accessOk) return forbidden();
+  // Editors and above can create size charts.
+  const role = await requireBrandRole(session.user.id, data.brandId, ROLES_WRITE);
+  if (!role.ok) return forbidden();
 
   const chart = await db.sizeChart.create({
     data: {

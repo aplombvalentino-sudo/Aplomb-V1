@@ -1,0 +1,78 @@
+name: Security smoke test
+
+# Runs against a deployed Vercel preview URL. Verifies the two critical
+# cross-user data-access scenarios fail closed:
+#
+#   1. Anonymous /api/outfits with an arbitrary cuid → must be 401/403/404.
+#      Failure = anyone in the world can burn Gemini credits.
+#   2. Anonymous /api/tryon with an arbitrary cuid → must be 401/403/404.
+#      Failure = anyone can render try-on against another user's body photo.
+#
+# Future expansions (need a seeded test DB + two test users):
+#   3. User-B calls /api/outfits with User-A's session id → expect 403.
+#   4. User-B calls /api/tryon with User-A's body profile → expect 403.
+#
+# For now this catches the worst-case anonymous abuse.
+
+on:
+  deployment_status:
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: "Full base URL to smoke-test (no trailing slash)"
+        required: true
+        default: "https://aplomb-v1.vercel.app"
+
+jobs:
+  smoke:
+    name: Anonymous cross-user fail-closed
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    # Only run on successful Vercel preview deploys (avoids running on failed deploys).
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.deployment_status.state == 'success' }}
+
+    steps:
+      - name: Determine target URL
+        id: url
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "url=${{ github.event.inputs.target_url }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "url=${{ github.event.deployment_status.target_url }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Test — anonymous POST /api/outfits must NOT return 200
+        run: |
+          status=$(curl -sS -o /dev/null -w '%{http_code}' \
+            -X POST "${{ steps.url.outputs.url }}/api/outfits" \
+            -H 'Content-Type: application/json' \
+            -d '{"brandSlug":"demo-brand","recommendationSessionId":"cxxxxxxxxxxxxxxxxxxxx"}')
+          echo "Status: $status"
+          if [ "$status" = "200" ]; then
+            echo "::error::Anonymous /api/outfits returned 200 — outfit generation is OPEN to the public."
+            exit 1
+          fi
+
+      - name: Test — anonymous POST /api/tryon must NOT return 200
+        run: |
+          status=$(curl -sS -o /dev/null -w '%{http_code}' \
+            -X POST "${{ steps.url.outputs.url }}/api/tryon" \
+            -H 'Content-Type: application/json' \
+            -d '{"outfitItemId":"cxxxxxxxxxxxxxxxxxxxx","bodyProfileId":"cyyyyyyyyyyyyyyyyyyyy"}')
+          echo "Status: $status"
+          if [ "$status" = "200" ]; then
+            echo "::error::Anonymous /api/tryon returned 200 — try-on is OPEN to the public."
+            exit 1
+          fi
+
+      - name: Test — POST /api/outfits without Content-Type still rejects
+        run: |
+          status=$(curl -sS -o /dev/null -w '%{http_code}' \
+            -X POST "${{ steps.url.outputs.url }}/api/outfits" \
+            -d 'not even json')
+          echo "Status: $status"
+          if [ "$status" = "200" ]; then
+            echo "::error::Malformed POST /api/outfits returned 200."
+            exit 1
+          fi

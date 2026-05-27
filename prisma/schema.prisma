@@ -221,6 +221,10 @@ model RecommendationSession {
   bodyProfileId String?
   context       SessionContext @default(widget)
   source        SessionSource  @default(webWidget)
+  /// SHA-256 hash of the anonymous session token. Only set when userId is null.
+  /// Used to prove ownership of the session for downstream calls (/api/outfits,
+  /// /api/tryon) when the caller is not authenticated.
+  ownerTokenHash String?
   createdAt     DateTime       @default(now())
 
   brand       Brand        @relation(fields: [brandId], references: [id], onDelete: Cascade)

@@ -2,8 +2,9 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { ok, err, unauthorized, forbidden } from "@/lib/api";
+import { ok, unauthorized, forbidden } from "@/lib/api";
 import { parseJsonBody, parseQuery, zCuid } from "@/lib/validate";
+import { requireBrandRole, ROLES_READ, ROLES_WRITE } from "@/lib/brandRole";
 
 const createSchema = z
   .object({
@@ -27,13 +28,6 @@ const listQuerySchema = z
   })
   .strict();
 
-async function getBrandIdForUser(userId: string, requestedBrandId: string) {
-  const membership = await db.brandUser.findUnique({
-    where: { userId_brandId: { userId, brandId: requestedBrandId } },
-  });
-  return membership?.brandId ?? null;
-}
-
 export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) return unauthorized();
@@ -42,8 +36,8 @@ export async function GET(req: NextRequest) {
   if (!q.ok) return q.response;
   const { brandId, search = "", page = 1, pageSize = 20 } = q.data;
 
-  const authorised = await getBrandIdForUser(session.user.id, brandId);
-  if (!authorised) return forbidden();
+  const role = await requireBrandRole(session.user.id, brandId, ROLES_READ);
+  if (!role.ok) return forbidden();
 
   const where = {
     brandId,
@@ -86,8 +80,9 @@ export async function POST(req: NextRequest) {
   if (!parsed.ok) return parsed.response;
   const data = parsed.data;
 
-  const authorised = await getBrandIdForUser(session.user.id, data.brandId);
-  if (!authorised) return forbidden();
+  // Editors and above can create products.
+  const role = await requireBrandRole(session.user.id, data.brandId, ROLES_WRITE);
+  if (!role.ok) return forbidden();
 
   const product = await db.product.create({
     data: {

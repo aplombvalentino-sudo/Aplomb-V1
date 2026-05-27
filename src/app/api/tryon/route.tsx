@@ -16,6 +16,7 @@ import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/rateLimit";
 import { ok, err, notFound, serverError } from "@/lib/api";
 import { parseJsonBody, zCuid } from "@/lib/validate";
+import { authorizeBodyProfile } from "@/lib/ownership";
 import { generateTryOnImage, type TryOnCategory } from "@/lib/ai/fal/tryon";
 import { getSignedBodyScanUrl } from "@/lib/ai/storage";
 
@@ -45,6 +46,17 @@ export async function POST(req: NextRequest) {
   if (!parsed.ok) return parsed.response;
   const { outfitItemId, bodyProfileId, qualityMode } = parsed.data;
 
+  // Authorise the caller for this body profile BEFORE doing anything expensive.
+  const ownership = await authorizeBodyProfile(req, bodyProfileId);
+  if (!ownership.ok) {
+    return err(
+      ownership.status === 401 ? "UNAUTHORIZED" : ownership.status === 403 ? "FORBIDDEN" : "NOT_FOUND",
+      ownership.reason,
+      ownership.status,
+    );
+  }
+  const bodyProfile = ownership.bodyProfile;
+
   // Cache: if we already rendered this exact pairing, return it.
   const cached = await db.tryOnResult.findFirst({
     where: { outfitItemId, bodyProfileId },
@@ -63,10 +75,6 @@ export async function POST(req: NextRequest) {
   });
   if (!outfitItem) return notFound("Outfit item");
 
-  const bodyProfile = await db.bodyProfile.findUnique({
-    where: { id: bodyProfileId },
-  });
-  if (!bodyProfile) return notFound("Body profile");
   if (!bodyProfile.frontImagePath) {
     return err(
       "NO_FRONT_PHOTO",
