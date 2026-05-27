@@ -1,0 +1,45 @@
+name: npm audit (advisory)
+
+# Runs on every push / PR. Currently advisory only — does NOT block merges.
+# Promote to required (remove `continue-on-error: true`) once the existing
+# high-severity findings are cleared.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/audit.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "package.json"
+      - "package-lock.json"
+  schedule:
+    # Weekly drift check — Monday 09:00 UTC
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+
+jobs:
+  audit:
+    name: npm audit (high)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install (no scripts — avoids running random postinstall hooks)
+        run: npm ci --ignore-scripts
+
+      - name: Run npm audit at high-or-above
+        run: npm audit --audit-level=high

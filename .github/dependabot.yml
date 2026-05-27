@@ -1,0 +1,58 @@
+# Dependabot configuration for Aplomb.
+#
+# Docs: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+#
+# Strategy:
+#   - Weekly checks on the npm ecosystem.
+#   - Group noisy categories (types, eslint) into single PRs.
+#   - Cap open PRs at 5 to keep the queue reviewable.
+#   - Pin next-auth to its beta line — don't auto-bump until v5 stable lands.
+
+version: 2
+
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    labels:
+      - "dependencies"
+    groups:
+      types:
+        patterns:
+          - "@types/*"
+      eslint:
+        patterns:
+          - "eslint*"
+          - "@typescript-eslint/*"
+      tailwind:
+        patterns:
+          - "tailwindcss"
+          - "@tailwindcss/*"
+    ignore:
+      # Pin to the beta line until v5 stable is released.
+      - dependency-name: "next-auth"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+      # Prisma 5 → 7 is a planned manual upgrade (migration tweaks needed).
+      - dependency-name: "prisma"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@prisma/client"
+        update-types: ["version-update:semver-major"]
+
+  # Also watch GitHub Actions versions used in workflows.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "ci"
+    labels:
+      - "ci"
