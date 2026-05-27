@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { supabase } from "@/lib/supabase";
 import { ok, err } from "@/lib/api";
+import { parseJsonBody } from "@/lib/validate";
 
 const signupSchema = z
   .object({
@@ -22,14 +23,8 @@ function slugify(str: string): string {
 }
 
 export async function POST(req: NextRequest) {
-  const body = await req.json().catch(() => null);
-  if (!body) return err("INVALID_JSON", "Invalid request body");
-
-  const parsed = signupSchema.safeParse(body);
-  if (!parsed.success) {
-    return err("VALIDATION_ERROR", parsed.error.issues[0]?.message ?? "Invalid input");
-  }
-
+  const parsed = await parseJsonBody(req, signupSchema);
+  if (!parsed.ok) return parsed.response;
   const { name, brandName, email, password } = parsed.data;
 
   // 1. Create the user in Supabase Auth

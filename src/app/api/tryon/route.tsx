@@ -15,13 +15,14 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/rateLimit";
 import { ok, err, notFound, serverError } from "@/lib/api";
+import { parseJsonBody, zCuid } from "@/lib/validate";
 import { generateTryOnImage, type TryOnCategory } from "@/lib/ai/fal/tryon";
 import { getSignedBodyScanUrl } from "@/lib/ai/storage";
 
 const schema = z
   .object({
-    outfitItemId: z.string().min(20).max(40).regex(/^c[a-z0-9]+$/, "Invalid id"),
-    bodyProfileId: z.string().min(20).max(40).regex(/^c[a-z0-9]+$/, "Invalid id"),
+    outfitItemId: zCuid,
+    bodyProfileId: zCuid,
     qualityMode: z.enum(["fast", "balanced", "quality"]).optional(),
   })
   .strict();
@@ -40,15 +41,8 @@ export async function POST(req: NextRequest) {
     return err("RATE_LIMITED", "Too many requests. Try again shortly.", 429);
   }
 
-  const body = await req.json().catch(() => null);
-  if (body === null || typeof body !== "object" || Array.isArray(body)) {
-    return err("INVALID_JSON", "Request body must be a JSON object.");
-  }
-  const parsed = schema.safeParse(body);
-  if (!parsed.success) {
-    const first = parsed.error.issues[0];
-    return err("VALIDATION_ERROR", `${first?.path?.join(".") ?? "input"}: ${first?.message ?? "Invalid input"}`);
-  }
+  const parsed = await parseJsonBody(req, schema);
+  if (!parsed.ok) return parsed.response;
   const { outfitItemId, bodyProfileId, qualityMode } = parsed.data;
 
   // Cache: if we already rendered this exact pairing, return it.

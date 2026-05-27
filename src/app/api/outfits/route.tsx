@@ -11,6 +11,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/rateLimit";
 import { ok, err, notFound, serverError } from "@/lib/api";
+import { parseJsonBody, zCuid } from "@/lib/validate";
 import {
   generateOutfitsWithGemini,
   type CatalogProductInput,
@@ -24,7 +25,7 @@ const schema = z
       .min(1)
       .max(120)
       .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Invalid brand slug"),
-    recommendationSessionId: z.string().min(20).max(40).regex(/^c[a-z0-9]+$/, "Invalid id"),
+    recommendationSessionId: zCuid,
     occasion: z.string().max(120).optional(),
     stylePreference: z.string().max(120).optional(),
     colorPalette: z.string().max(120).optional(),
@@ -39,15 +40,8 @@ export async function POST(req: NextRequest) {
     return err("RATE_LIMITED", "Too many requests. Try again in a minute.", 429);
   }
 
-  const body = await req.json().catch(() => null);
-  if (body === null || typeof body !== "object" || Array.isArray(body)) {
-    return err("INVALID_JSON", "Request body must be a JSON object.");
-  }
-  const parsed = schema.safeParse(body);
-  if (!parsed.success) {
-    const first = parsed.error.issues[0];
-    return err("VALIDATION_ERROR", `${first?.path?.join(".") ?? "input"}: ${first?.message ?? "Invalid input"}`);
-  }
+  const parsed = await parseJsonBody(req, schema);
+  if (!parsed.ok) return parsed.response;
   const {
     brandSlug,
     recommendationSessionId,
