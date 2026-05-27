@@ -156,6 +156,10 @@ src/
 Aplomb handles paid AI integrations, user body imagery, and brand commercial
 data. Security expectations are tracked in [SECURITY.md](./SECURITY.md).
 
+DB safety, backup, and migration rules are tracked in
+[BACKUPS_AND_MIGRATIONS.md](./BACKUPS_AND_MIGRATIONS.md). Read it before
+touching `prisma/`.
+
 Highlights:
 - Every API endpoint validates inputs with **Zod `.strict()` schemas** via the
   shared helpers in `src/lib/validate.ts`.

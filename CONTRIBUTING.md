@@ -98,8 +98,12 @@ These are non-negotiable. A PR that violates one of them should be sent back.
 6. **Never use `prisma db push`.** This repo uses versioned migrations under
    `prisma/migrations/`. Use `npm run db:migrate -- --name <description>` to
    generate a new migration locally; commit the resulting SQL. Vercel runs
-   `prisma migrate deploy` on every build. Destructive schema changes require
-   a manual Supabase snapshot before merging.
+   `prisma migrate deploy` on every build.
+
+7. **Destructive migrations follow the playbook in
+   [BACKUPS_AND_MIGRATIONS.md](./BACKUPS_AND_MIGRATIONS.md).** Snapshot first,
+   write a rollback plan, prefer expand-contract over single-step drops. The
+   PR template enforces the checklist.
 
 ---
 
