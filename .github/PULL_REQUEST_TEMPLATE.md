@@ -55,7 +55,7 @@ A migration is **destructive** if it contains any of:
 ### Destructive migration checklist
 
 - [ ] PR title starts with `db(destructive):`
-- [ ] Manual Supabase snapshot taken — backup ID: `____________`
+- [ ] Backup taken — Pro-tier backup ID OR free-tier `pg_dump` filename: `____________`
 - [ ] Migration tested end-to-end on a staging project with realistic data
 - [ ] Rollback strategy documented (paste below)
 - [ ] Considered + rejected the expand-contract alternative — reason: `____________`

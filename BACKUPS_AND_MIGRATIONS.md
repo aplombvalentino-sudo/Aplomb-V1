@@ -14,20 +14,51 @@ Quick rule of thumb:
 
 ## 1. Supabase backup configuration
 
-### Verify these once, per project
+> ⚠️ **Current production state: no managed backups.** Supabase's free tier
+> does not include daily backups. Until the project is upgraded to **Pro
+> ($25/mo)**, every destructive change is one-way — there is no "restore
+> yesterday's snapshot" lifeline. Treat every migration accordingly.
 
-In the Supabase dashboard → **Project Settings → Database → Backups**:
+### What each Supabase tier gives you
 
-| Setting | Value | Why |
-|---|---|---|
-| Daily backups | **Enabled** (default on all tiers) | 7 days of safety net |
-| Point-in-time recovery (PITR) | **Enabled** if on Pro tier or above | 1-minute granularity recovery for the last 7 days |
-| Retention | 7 days (free) / 7 days (Pro) — **30 days** on Enterprise | Longer = more grace |
+| Tier | Daily backups | PITR | Retention |
+|---|---|---|---|
+| **Free (current)** | ❌ none | ❌ no | — |
+| Pro ($25/mo) | ✅ daily | ✅ 1-minute granularity | 7 days |
+| Team / Enterprise | ✅ daily | ✅ | 14 / 30 days |
 
-If PITR is available but disabled, turn it on. It's the single highest-leverage
-safety measure for a production database.
+### What to do while on free tier
 
-### Restore procedure
+Until you upgrade, the practical playbook is:
+
+1. **Take a manual logical dump before any destructive migration.** From a
+   machine with the prod connection string in env (DON'T put it in `.env.local`):
+   ```bash
+   # Make a one-shot pg_dump snapshot tagged with the date. Requires
+   # postgresql-client tools installed locally.
+   pg_dump "$DIRECT_URL" --no-owner --no-acl \
+     -f "backup-prod-$(date -u +%Y%m%d-%H%M%S).sql"
+   ```
+   The resulting `.sql` file is your only safety net. **Save it somewhere
+   safe — encrypted cloud storage, password manager attachment.** Never
+   commit it to git (it contains every row of every table).
+
+2. **Restore is `psql < backup.sql` against a fresh Supabase project.**
+   Then update `DATABASE_URL` / `DIRECT_URL` / `PRISMA_DATABASE_URL` in
+   Vercel and redeploy. Allow 5–15 minutes downtime.
+
+3. **Document the manual snapshot's existence** in your PR description
+   (filename + where it's stored), since there's no Supabase backup ID to
+   reference.
+
+### Recommended: upgrade to Pro before the first destructive migration
+
+The first destructive migration that touches `User`, `BodyProfile`,
+`RecommendationSession`, or `Outfit` is the trigger to upgrade. Until then,
+free tier is acceptable because you can still recreate the data from seeds
++ fresh signups.
+
+### Restore procedure (once on Pro tier)
 
 1. Dashboard → Database → Backups → pick the backup → **Restore**.
 2. Restore creates a **new project**. You then need to:
@@ -64,8 +95,11 @@ A migration is destructive if it contains any of:
 
 Additional requirements for destructive migrations:
 
-- [ ] **Take a manual snapshot in Supabase first.** Dashboard → Database →
-      Backups → "Take backup now." Note the backup ID in the PR description.
+- [ ] **Take a backup first.** On **Pro tier**: dashboard → Database →
+      Backups → "Take backup now," note the backup ID in the PR description.
+      On **Free tier**: run `pg_dump` (see section 1 above) and store the
+      resulting `.sql` file in encrypted cloud storage; reference the
+      filename in the PR description.
 - [ ] **Test the migration end-to-end on a staging project** with realistic
       data volume. See [STAGING.md](./STAGING.md) for the setup. Don't trust a
       fresh staging DB to surface backfill timeouts.
@@ -175,5 +209,5 @@ npm run db:deploy       # apply pending migrations (used by build)
 npm run db:studio       # browse data
 ```
 
-Supabase dashboard backup link:
-https://supabase.com/dashboard/project/lpzinsfbftxcbngokgmc/database/backups
+Supabase dashboard: https://supabase.com/dashboard
+(Free-tier projects don't have a Backups page until upgrading to Pro.)
