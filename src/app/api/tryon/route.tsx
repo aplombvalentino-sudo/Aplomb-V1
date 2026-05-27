@@ -13,10 +13,11 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { rateLimit } from "@/lib/rateLimit";
+import { auth } from "@/lib/auth";
 import { ok, err, notFound, serverError } from "@/lib/api";
 import { parseJsonBody, zCuid } from "@/lib/validate";
 import { authorizeBodyProfile } from "@/lib/ownership";
+import { LIMITS, enforceLimits, tooManyRequests } from "@/lib/rateLimit-upstash";
 import { generateTryOnImage, type TryOnCategory } from "@/lib/ai/fal/tryon";
 import { getSignedBodyScanUrl } from "@/lib/ai/storage";
 
@@ -36,17 +37,12 @@ function positionToCategory(position: string): TryOnCategory {
 }
 
 export async function POST(req: NextRequest) {
-  const ip = req.headers.get("x-forwarded-for") ?? "anonymous";
-  const { allowed } = rateLimit(`tryon:${ip}`, 20, 60_000);
-  if (!allowed) {
-    return err("RATE_LIMITED", "Too many requests. Try again shortly.", 429);
-  }
-
   const parsed = await parseJsonBody(req, schema);
   if (!parsed.ok) return parsed.response;
   const { outfitItemId, bodyProfileId, qualityMode } = parsed.data;
 
-  // Authorise the caller for this body profile BEFORE doing anything expensive.
+  // Authorise BEFORE rate-limiting so attackers can't bypass ownership checks
+  // by burning rate-limit credits on random ids.
   const ownership = await authorizeBodyProfile(req, bodyProfileId);
   if (!ownership.ok) {
     return err(
@@ -56,6 +52,13 @@ export async function POST(req: NextRequest) {
     );
   }
   const bodyProfile = ownership.bodyProfile;
+
+  // Rate limit per identity. Logged-in user → user.id; anonymous shopper →
+  // bodyProfileId (proven theirs by the cookie token).
+  const session = await auth();
+  const identity = session?.user?.id ?? `bp:${bodyProfileId}`;
+  const guard = await enforceLimits(identity, [LIMITS.tryon_daily, LIMITS.tryon_minute]);
+  if (!guard.allowed) return tooManyRequests(guard.retryAfterSeconds);
 
   // Cache: if we already rendered this exact pairing, return it.
   const cached = await db.tryOnResult.findFirst({

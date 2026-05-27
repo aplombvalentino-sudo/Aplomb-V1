@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { ok, unauthorized, forbidden } from "@/lib/api";
 import { parseJsonBody, parseQuery, zCuid } from "@/lib/validate";
 import { requireBrandRole, ROLES_READ, ROLES_WRITE } from "@/lib/brandRole";
+import { LIMITS, enforceLimits, tooManyRequests } from "@/lib/rateLimit-upstash";
 
 const createSchema = z
   .object({
@@ -75,6 +76,9 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) return unauthorized();
+
+  const guard = await enforceLimits(`u:${session.user.id}`, [LIMITS.product_writes]);
+  if (!guard.allowed) return tooManyRequests(guard.retryAfterSeconds);
 
   const parsed = await parseJsonBody(req, createSchema);
   if (!parsed.ok) return parsed.response;

@@ -9,10 +9,11 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { rateLimit } from "@/lib/rateLimit";
+import { auth } from "@/lib/auth";
 import { ok, err, notFound, serverError } from "@/lib/api";
 import { parseJsonBody, zCuid } from "@/lib/validate";
 import { authorizeSession } from "@/lib/ownership";
+import { LIMITS, enforceLimits, tooManyRequests } from "@/lib/rateLimit-upstash";
 import {
   generateOutfitsWithGemini,
   type CatalogProductInput,
@@ -35,12 +36,6 @@ const schema = z
   .strict();
 
 export async function POST(req: NextRequest) {
-  const ip = req.headers.get("x-forwarded-for") ?? "anonymous";
-  const { allowed } = rateLimit(`outfits:${ip}`, 12, 60_000);
-  if (!allowed) {
-    return err("RATE_LIMITED", "Too many requests. Try again in a minute.", 429);
-  }
-
   const parsed = await parseJsonBody(req, schema);
   if (!parsed.ok) return parsed.response;
   const {
@@ -52,7 +47,8 @@ export async function POST(req: NextRequest) {
     maxOutfits,
   } = parsed.data;
 
-  // Authorise the caller for this session BEFORE running any expensive query.
+  // Authorise the caller BEFORE rate-limiting — so attackers can't bypass
+  // the ownership check by burning rate-limit credits on random session ids.
   const ownership = await authorizeSession(req, recommendationSessionId);
   if (!ownership.ok) {
     return err(
@@ -61,6 +57,13 @@ export async function POST(req: NextRequest) {
       ownership.status,
     );
   }
+
+  // Rate limit per identity. Logged-in user → user.id; anonymous shopper →
+  // recommendation session id (already proven theirs).
+  const authSession = await auth();
+  const identity = authSession?.user?.id ?? `rs:${recommendationSessionId}`;
+  const guard = await enforceLimits(identity, [LIMITS.ai_daily, LIMITS.ai_minute]);
+  if (!guard.allowed) return tooManyRequests(guard.retryAfterSeconds);
 
   // Re-fetch with the nested data we need for the prompt
   const session = await db.recommendationSession.findUnique({

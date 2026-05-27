@@ -4,6 +4,12 @@ import { db } from "@/lib/db";
 import { supabase } from "@/lib/supabase";
 import { ok, err } from "@/lib/api";
 import { parseJsonBody } from "@/lib/validate";
+import {
+  LIMITS,
+  enforceLimits,
+  tooManyRequests,
+  clientIp,
+} from "@/lib/rateLimit-upstash";
 
 const signupSchema = z
   .object({
@@ -26,6 +32,19 @@ export async function POST(req: NextRequest) {
   const parsed = await parseJsonBody(req, signupSchema);
   if (!parsed.ok) return parsed.response;
   const { name, brandName, email, password } = parsed.data;
+
+  // Two-tier rate limit against account-farming:
+  //   1) IP+email pair — slows targeted attempts to one slot per 5 min.
+  //   2) IP alone, daily — hard cap on the number of signups from one IP/day.
+  const ip = clientIp(req);
+  const emailLower = email.toLowerCase();
+  const guard = await enforceLimits(`${ip}:${emailLower}`, [
+    LIMITS.signup_daily,
+    LIMITS.signup_window,
+  ]);
+  if (!guard.allowed) return tooManyRequests(guard.retryAfterSeconds);
+  const ipGuard = await enforceLimits(`ip:${ip}`, [LIMITS.signup_daily]);
+  if (!ipGuard.allowed) return tooManyRequests(ipGuard.retryAfterSeconds);
 
   // 1. Create the user in Supabase Auth
   const { data: authData, error: authError } = await supabase.auth.signUp({

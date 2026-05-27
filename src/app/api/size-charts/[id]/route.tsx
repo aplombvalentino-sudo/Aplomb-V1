@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { ok, unauthorized, forbidden, notFound } from "@/lib/api";
 import { parseJsonBody, parseParam, zCuid } from "@/lib/validate";
 import { requireBrandRole, ROLES_READ, ROLES_WRITE, ROLES_ADMIN } from "@/lib/brandRole";
+import { LIMITS, enforceLimits, tooManyRequests } from "@/lib/rateLimit-upstash";
 import type { BrandUserRole } from "@prisma/client";
 
 const updateSchema = z
@@ -57,6 +58,9 @@ export async function PUT(
   const session = await auth();
   if (!session?.user?.id) return unauthorized();
 
+  const guard = await enforceLimits(`u:${session.user.id}`, [LIMITS.product_writes]);
+  if (!guard.allowed) return tooManyRequests(guard.retryAfterSeconds);
+
   const idParsed = await getValidId(params);
   if (!idParsed.ok) return idParsed.response;
   const id = idParsed.data;
@@ -88,6 +92,9 @@ export async function DELETE(
 ) {
   const session = await auth();
   if (!session?.user?.id) return unauthorized();
+
+  const guard = await enforceLimits(`u:${session.user.id}`, [LIMITS.product_writes]);
+  if (!guard.allowed) return tooManyRequests(guard.retryAfterSeconds);
 
   const idParsed = await getValidId(params);
   if (!idParsed.ok) return idParsed.response;

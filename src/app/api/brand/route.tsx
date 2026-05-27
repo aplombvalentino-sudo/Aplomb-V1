@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { ok, err, unauthorized, forbidden } from "@/lib/api";
 import { parseJsonBody } from "@/lib/validate";
+import { LIMITS, enforceLimits, tooManyRequests } from "@/lib/rateLimit-upstash";
 
 // ─── GET /api/brand — list caller's brands ────────────────────────────────────
 export async function GET(_req: NextRequest) {
@@ -39,6 +40,9 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) return unauthorized();
   const userId = session.user.id;
+
+  const guard = await enforceLimits(`u:${userId}`, [LIMITS.brand_writes]);
+  if (!guard.allowed) return tooManyRequests(guard.retryAfterSeconds);
 
   const parsed = await parseJsonBody(req, createSchema);
   if (!parsed.ok) return parsed.response;
@@ -81,6 +85,9 @@ const updateSchema = z
 export async function PATCH(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) return unauthorized();
+
+  const guard = await enforceLimits(`u:${session.user.id}`, [LIMITS.brand_writes]);
+  if (!guard.allowed) return tooManyRequests(guard.retryAfterSeconds);
 
   const membership = await db.brandUser.findFirst({
     where: { userId: session.user.id, role: { in: ["owner", "admin"] } },

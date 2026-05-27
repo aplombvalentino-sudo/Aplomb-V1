@@ -13,8 +13,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { rateLimit } from "@/lib/rateLimit";
 import { err, notFound, serverError } from "@/lib/api";
+import {
+  LIMITS,
+  enforceLimits,
+  tooManyRequests,
+  clientIp,
+} from "@/lib/rateLimit-upstash";
 import { runMeasurement, buildBodyShapeSummary } from "@/lib/ai/measurementProvider";
 import { recommendSizes } from "@/lib/ai/sizing/recommendSizes";
 import {
@@ -51,12 +56,15 @@ const MAX_PHOTO_BYTES = 8 * 1024 * 1024; // 8 MB
 const ACCEPTED_MIME = ["image/jpeg", "image/png", "image/webp"];
 
 export async function POST(req: NextRequest) {
-  // Rate-limit by IP — measurement is an expensive path.
-  const ip = req.headers.get("x-forwarded-for") ?? "anonymous";
-  const { allowed } = rateLimit(`measurements:${ip}`, 12, 60_000);
-  if (!allowed) {
-    return err("RATE_LIMITED", "Too many requests. Try again in a minute.", 429);
-  }
+  // Rate-limit by IP — measurement is an expensive path. We can't key by
+  // user.id here because anonymous shoppers don't have one yet at this point
+  // (the session token is minted by THIS endpoint), so IP is the only identity.
+  const ip = clientIp(req);
+  const guard = await enforceLimits(`ip:${ip}`, [
+    LIMITS.measurements_day,
+    LIMITS.measurements_min,
+  ]);
+  if (!guard.allowed) return tooManyRequests(guard.retryAfterSeconds);
 
   // Multipart parse
   let form: FormData;
