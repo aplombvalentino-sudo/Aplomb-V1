@@ -139,10 +139,17 @@ export function BrandScanWizard({
   brand,
   productsByCategory,
   clientPlan = "essential",
+  widgetMode = false,
 }: {
   brand: Brand;
   productsByCategory: Record<string, Product[]>;
   clientPlan?: ClientPlan;
+  /**
+   * When true, hides every cross-brand link (← All brands, Browse more brands,
+   * View wardrobe, Sign out). Use for embedded iframe widget renders so the
+   * shopper stays on the host brand's experience.
+   */
+  widgetMode?: boolean;
 }) {
   const planLimits = getClientPlanLimits(clientPlan);
 
@@ -375,14 +382,23 @@ export function BrandScanWizard({
         </div>
         <div className="flex items-center gap-4">
           <StepDots total={6} current={step} />
-          <Link
-            href="/app"
-            className="text-[12px] text-[#9C9894] hover:text-[#111010] transition-colors duration-200"
-          >
-            ← All brands
-          </Link>
-          <span aria-hidden className="h-3 w-px bg-black/10" />
-          <ClientSignOutLink />
+          {!widgetMode && (
+            <>
+              <Link
+                href="/app"
+                className="text-[12px] text-[#9C9894] hover:text-[#111010] transition-colors duration-200"
+              >
+                ← All brands
+              </Link>
+              <span aria-hidden className="h-3 w-px bg-black/10" />
+              <ClientSignOutLink />
+            </>
+          )}
+          {widgetMode && (
+            <span className="text-[10px] uppercase tracking-[0.14em] text-[#9C9894]">
+              Powered by Aplomb
+            </span>
+          )}
         </div>
       </header>
 
@@ -979,14 +995,16 @@ export function BrandScanWizard({
                 >
                   Start over
                 </button>
-                <Link
-                  href="/app"
-                  className="rounded-full border border-black/[0.12] bg-white px-5 py-2.5 text-sm font-medium
-                             text-[#6B6965] hover:bg-white/80 transition-all duration-200"
-                >
-                  Browse more brands
-                </Link>
-                {savedIds.size > 0 && (
+                {!widgetMode && (
+                  <Link
+                    href="/app"
+                    className="rounded-full border border-black/[0.12] bg-white px-5 py-2.5 text-sm font-medium
+                               text-[#6B6965] hover:bg-white/80 transition-all duration-200"
+                  >
+                    Browse more brands
+                  </Link>
+                )}
+                {!widgetMode && savedIds.size > 0 && (
                   <Link
                     href="/app/wardrobe"
                     className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#C9A882] hover:text-[#b8956e] transition-colors duration-200"
