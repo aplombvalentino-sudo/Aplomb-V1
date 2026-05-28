@@ -33,30 +33,60 @@
     encodeURIComponent(brandSlug) +
     (productId ? "&product=" + encodeURIComponent(productId) : "");
 
+  // Inject a stylesheet for the trigger button so brand sites can override it
+  // with their own CSS (the inline-style approach couldn't be overridden).
+  // Brands can restyle by targeting [data-aplomb="trigger"] or override the
+  // CSS custom properties --aplomb-bg / --aplomb-fg / --aplomb-radius, e.g.:
+  //
+  //   [data-aplomb="trigger"] {
+  //     --aplomb-bg: #1d4ed8;
+  //     --aplomb-radius: 999px;
+  //     bottom: 16px; right: 16px;
+  //   }
+  //
+  // Respects prefers-reduced-motion and includes a visible focus ring.
+  function injectStyles() {
+    if (document.getElementById("aplomb-styles")) return;
+    var css = [
+      "[data-aplomb='trigger']{",
+      "  --aplomb-bg:#111010;",
+      "  --aplomb-fg:#ffffff;",
+      "  --aplomb-radius:10px;",
+      "  position:fixed;bottom:24px;right:24px;z-index:9998;",
+      "  background:var(--aplomb-bg);color:var(--aplomb-fg);",
+      "  border:none;border-radius:var(--aplomb-radius);",
+      "  padding:12px 20px;font-size:14px;font-weight:600;cursor:pointer;",
+      "  box-shadow:0 4px 12px rgba(0,0,0,0.2);",
+      "  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;",
+      "  transition:transform .2s ease, box-shadow .2s ease, opacity .2s ease;",
+      "}",
+      "[data-aplomb='trigger']:hover{",
+      "  box-shadow:0 6px 20px rgba(0,0,0,0.28);transform:translateY(-1px);",
+      "}",
+      "[data-aplomb='trigger']:active{transform:translateY(0);}",
+      "[data-aplomb='trigger']:focus-visible{",
+      "  outline:2px solid var(--aplomb-fg);outline-offset:2px;",
+      "}",
+      "@media (prefers-reduced-motion: reduce){",
+      "  [data-aplomb='trigger']{transition:none;}",
+      "  [data-aplomb='trigger']:hover{transform:none;}",
+      "}",
+    ].join("");
+    var style = document.createElement("style");
+    style.id = "aplomb-styles";
+    style.appendChild(document.createTextNode(css));
+    document.head.appendChild(style);
+  }
+
   // Create trigger button
   function createTriggerButton() {
+    injectStyles();
     var btn = document.createElement("button");
     btn.id = "aplomb-trigger";
+    btn.type = "button";
     btn.innerText = "Find my size & outfit";
-    btn.setAttribute(
-      "style",
-      [
-        "position:fixed",
-        "bottom:24px",
-        "right:24px",
-        "z-index:9998",
-        "background:#000",
-        "color:#fff",
-        "border:none",
-        "border-radius:8px",
-        "padding:12px 20px",
-        "font-size:14px",
-        "font-weight:600",
-        "cursor:pointer",
-        "box-shadow:0 4px 12px rgba(0,0,0,0.2)",
-        "font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",
-      ].join(";")
-    );
+    btn.setAttribute("data-aplomb", "trigger");
+    btn.setAttribute("aria-haspopup", "dialog");
     btn.addEventListener("click", openWidget);
     document.body.appendChild(btn);
     return btn;

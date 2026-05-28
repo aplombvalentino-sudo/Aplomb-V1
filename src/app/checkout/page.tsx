@@ -104,7 +104,7 @@ export default async function CheckoutPage({ searchParams }: Props) {
         >
           Aplomb
         </Link>
-        <span className="text-[12px] text-[#9C9894]">Checkout</span>
+        <span className="text-[12px] text-[#7A7773]">Checkout</span>
       </header>
 
       <main className="mx-auto max-w-md px-6 py-20">
@@ -171,7 +171,7 @@ export default async function CheckoutPage({ searchParams }: Props) {
 
           <Link
             href="/pricing"
-            className="text-[12px] text-[#9C9894] hover:text-[#111010] transition-colors duration-200"
+            className="text-[12px] text-[#7A7773] hover:text-[#111010] transition-colors duration-200"
           >
             ← Change plan
           </Link>

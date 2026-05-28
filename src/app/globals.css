@@ -4,7 +4,7 @@
   --canvas: #F7F6F3;
   --ink: #111010;
   --ink-muted: #6B6965;
-  --ink-subtle: #9C9894;
+  --ink-subtle: #7A7773;
   --border: rgba(0, 0, 0, 0.07);
   --surface: #FFFFFF;
   --surface-raised: #F9F8F6;
@@ -20,6 +20,29 @@
 
 html {
   scroll-behavior: smooth;
+}
+
+/*
+ * Reduced-motion support (WCAG 2.3.3).
+ * Catch-all for CSS transitions / keyframe animations / smooth scroll.
+ * JS-driven motion (motion/react) is handled per-component via
+ * useReducedMotion() in HeroSection, FadeUp, PublicHeader, etc.
+ */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .animate-marquee {
+    animation: none !important;
+  }
 }
 
 body {

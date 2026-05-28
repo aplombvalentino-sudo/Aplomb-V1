@@ -73,7 +73,7 @@ export function UpgradePrompt({
             {onDismiss && (
               <button
                 onClick={onDismiss}
-                className="block w-full rounded-xl py-3 text-sm font-medium text-[#9C9894]
+                className="block w-full rounded-xl py-3 text-sm font-medium text-[#7A7773]
                            hover:text-[#111010] transition-colors duration-200"
               >
                 Maybe later
@@ -108,7 +108,7 @@ export function UpgradePrompt({
         </Link>
       </div>
       {onDismiss && (
-        <button onClick={onDismiss} className="text-[#C9C5C0] hover:text-[#9C9894]
+        <button onClick={onDismiss} className="text-[#C9C5C0] hover:text-[#7A7773]
                                                transition-colors shrink-0">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
             <path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" strokeWidth="1.5"

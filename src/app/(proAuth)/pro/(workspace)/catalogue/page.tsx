@@ -19,7 +19,7 @@ export default async function ProCataloguePage() {
   return (
     <div>
       <div className="mb-8">
-        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#9C9894]">
+        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#7A7773]">
           Catalogue
         </p>
         <h1 className="mt-1 font-serif text-[1.8rem] font-semibold leading-tight

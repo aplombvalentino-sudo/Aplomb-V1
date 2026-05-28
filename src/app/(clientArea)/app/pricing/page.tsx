@@ -34,7 +34,7 @@ export default async function ClientPricingPage() {
           Aplomb
         </Link>
         <div className="flex items-center gap-4">
-          <Link href="/app" className="text-[12px] text-[#9C9894] hover:text-[#111010]
+          <Link href="/app" className="text-[12px] text-[#7A7773] hover:text-[#111010]
                                         transition-colors duration-200">
             ← Browse brands
           </Link>
@@ -67,10 +67,10 @@ export default async function ClientPricingPage() {
           <span className="inline-flex items-center gap-1.5 rounded-full bg-white
                            border border-black/[0.07] px-4 py-2 text-[13px]
                            text-[#6B6965] shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
-            <span className="text-[#9C9894]">Current plan:</span>
+            <span className="text-[#7A7773]">Current plan:</span>
             <span className="font-medium text-[#111010] capitalize">{plan}</span>
             <span className="text-[#C9C5C0]">·</span>
-            <span className="text-[#9C9894]">
+            <span className="text-[#7A7773]">
               {limits.maxScansPerMonth === Infinity
                 ? "Unlimited scans"
                 : `${limits.maxScansPerMonth} scans/month`}
@@ -80,7 +80,7 @@ export default async function ClientPricingPage() {
 
         <ClientPricingCards currentPlan={plan} />
 
-        <p className="mt-8 text-center text-[12px] text-[#9C9894]">
+        <p className="mt-8 text-center text-[12px] text-[#7A7773]">
           No payment required yet — plan selection is instant.{" "}
           <Link href="/app" className="text-[#6B6965] hover:text-[#111010] underline
                                        underline-offset-2 transition-colors">

@@ -10,19 +10,19 @@ const ease = [0.16, 1, 0.3, 1] as const;
 // ─── Brand panel content ────────────────────────────────────────────────────
 
 const brandStats = [
-  { n: "−38%", l: "return rate" },
-  { n: "+22%", l: "conversion" },
+  { n: "Fewer", l: "returns" },
+  { n: "Higher", l: "conversion" },
   { n: "10 min", l: "to go live" },
 ];
 
 const brandTestimonials = [
   {
-    quote: "Aplomb cut our return rate in half within the first month.",
+    quote: "The fit recommendations are the closest we've seen to in-store accuracy.",
     author: "Léa Marchand",
     brand: "Forme Paris",
   },
   {
-    quote: "Setup took 8 minutes. Our conversion went up 19% the same week.",
+    quote: "Setup was genuinely fast — embedded and live the same afternoon.",
     author: "Tom Hirsch",
     brand: "Arc & Thread",
   },
@@ -31,14 +31,14 @@ const brandTestimonials = [
 // ─── Shopper panel content ──────────────────────────────────────────────────
 
 const clientStats = [
-  { n: "92%", l: "perfect fit" },
+  { n: "Your fit", l: "across brands" },
   { n: "60 sec", l: "to get your size" },
   { n: "0", l: "tape measures" },
 ];
 
 const clientTestimonials = [
   {
-    quote: "Finally found my actual size across brands. Returns went to zero.",
+    quote: "Finally found my actual size across brands — far fewer returns for me.",
     author: "Charlotte Rivière",
     brand: "Paris",
   },
@@ -191,7 +191,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     <Suspense
       fallback={
         <div className="flex min-h-[100dvh] items-center justify-center bg-[#F7F6F3]">
-          <p className="text-sm text-[#9C9894]">Loading…</p>
+          <p className="text-sm text-[#7A7773]">Loading…</p>
         </div>
       }
     >

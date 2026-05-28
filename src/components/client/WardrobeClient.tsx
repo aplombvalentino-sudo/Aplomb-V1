@@ -122,7 +122,7 @@ function OutfitCard({
           >
             {outfit.brandName}
           </a>
-          <p className="mt-0.5 text-[11px] text-[#9C9894]">{formatDate(outfit.savedAt)}</p>
+          <p className="mt-0.5 text-[11px] text-[#7A7773]">{formatDate(outfit.savedAt)}</p>
         </div>
 
         {/* Remove button */}
@@ -138,7 +138,7 @@ function OutfitCard({
             <button
               onClick={() => setConfirmDelete(false)}
               className="rounded-lg border border-black/[0.08] px-2.5 py-1 text-[11px]
-                         font-medium text-[#9C9894] hover:text-[#111010] transition-colors"
+                         font-medium text-[#7A7773] hover:text-[#111010] transition-colors"
             >
               Cancel
             </button>
@@ -184,7 +184,7 @@ function OutfitCard({
       <div className="mt-4 pt-3.5 border-t border-black/[0.06]">
         <a
           href={`/app/${outfit.brandSlug}`}
-          className="inline-flex items-center gap-1 text-[12px] text-[#9C9894]
+          className="inline-flex items-center gap-1 text-[12px] text-[#7A7773]
                      hover:text-[#111010] transition-colors duration-200"
         >
           Scan again
@@ -244,7 +244,7 @@ export function WardrobeClient() {
     <div>
       {/* Toolbar */}
       <div className="mb-5 flex items-center justify-between gap-4">
-        <p className="text-[13px] text-[#9C9894]">
+        <p className="text-[13px] text-[#7A7773]">
           {outfits.length} {outfits.length === 1 ? "look" : "looks"} saved
         </p>
         <button
@@ -292,7 +292,7 @@ export function WardrobeClient() {
                 saveWardrobe([]);
               }
             }}
-            className="text-[12px] text-[#C9C5C0] hover:text-[#9C9894] transition-colors duration-200"
+            className="text-[12px] text-[#C9C5C0] hover:text-[#7A7773] transition-colors duration-200"
           >
             Clear all looks
           </button>

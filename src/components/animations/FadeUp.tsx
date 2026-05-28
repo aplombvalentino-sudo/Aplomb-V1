@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { type ReactNode } from "react";
 
 interface FadeUpProps {
@@ -12,6 +12,14 @@ interface FadeUpProps {
 const ease = [0.16, 1, 0.3, 1] as const;
 
 export function FadeUp({ children, delay = 0, className }: FadeUpProps) {
+  const reduce = useReducedMotion();
+
+  // When the user prefers reduced motion, render content in place with no
+  // transform/opacity tween (WCAG 2.3.3).
+  if (reduce) {
+    return <div className={className}>{children}</div>;
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 28 }}

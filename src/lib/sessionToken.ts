@@ -41,9 +41,26 @@ export function safeEqual(a: string, b: string): boolean {
   return diff === 0;
 }
 
-/** Read the session token cookie, if present. */
-export function readSessionTokenCookie(req: NextRequest): string | undefined {
+/** Header used to carry the session token when cookies are unavailable. */
+export const SESSION_TOKEN_HEADER = "x-aplomb-session";
+
+/**
+ * Read the session token from the request.
+ *
+ * Checks the header FIRST, then the cookie. The header path exists because
+ * Safari's Intelligent Tracking Prevention blocks cookie writes from
+ * third-party iframes (the embedded widget). In that context the client holds
+ * the token in memory and echoes it back via the X-Aplomb-Session header.
+ */
+export function readSessionToken(req: NextRequest): string | undefined {
+  const header = req.headers.get(SESSION_TOKEN_HEADER);
+  if (header) return header;
   return req.cookies.get(SESSION_TOKEN_COOKIE)?.value;
+}
+
+/** @deprecated use readSessionToken — kept for backward compatibility. */
+export function readSessionTokenCookie(req: NextRequest): string | undefined {
+  return readSessionToken(req);
 }
 
 /** Cookie settings for the session token. */

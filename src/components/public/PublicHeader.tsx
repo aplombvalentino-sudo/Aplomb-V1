@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "motion/react";
+import { motion, AnimatePresence, useScroll, useMotionValueEvent, useReducedMotion } from "motion/react";
 
 const ease = [0.32, 0.72, 0, 1] as const;
 
@@ -18,6 +18,7 @@ export function PublicHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
   const { scrollY } = useScroll();
+  const reduce = useReducedMotion();
 
   useMotionValueEvent(scrollY, "change", (y) => {
     setScrolled(y > 24);
@@ -37,7 +38,7 @@ export function PublicHeader() {
   return (
     <>
       <motion.header
-        initial={{ opacity: 0, y: -20 }}
+        initial={reduce ? false : { opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease }}
         className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-5 px-4"
@@ -160,10 +161,10 @@ export function PublicHeader() {
               {[...navLinks, { label: "Log in", href: "/login" }].map((link, i) => (
                 <motion.div
                   key={link.href}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={reduce ? false : { opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  transition={{ duration: 0.35, delay: i * 0.07, ease }}
+                  exit={reduce ? undefined : { opacity: 0, y: 10 }}
+                  transition={{ duration: 0.35, delay: reduce ? 0 : i * 0.07, ease }}
                 >
                   <Link
                     href={link.href}
@@ -177,10 +178,10 @@ export function PublicHeader() {
               ))}
 
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
+                initial={reduce ? false : { opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                transition={{ duration: 0.35, delay: 0.28, ease }}
+                exit={reduce ? undefined : { opacity: 0, y: 10 }}
+                transition={{ duration: 0.35, delay: reduce ? 0 : 0.28, ease }}
                 className="mt-8"
               >
                 <Link

@@ -15,7 +15,7 @@ import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import {
   hashToken,
-  readSessionTokenCookie,
+  readSessionToken,
   safeEqual,
 } from "@/lib/sessionToken";
 
@@ -56,7 +56,7 @@ export async function authorizeSession(
     // Session has no ownership marker at all — refuse.
     return { ok: false, status: 403, reason: "Session has no ownership token." };
   }
-  const cookieToken = readSessionTokenCookie(req);
+  const cookieToken = readSessionToken(req);
   if (!cookieToken) {
     return { ok: false, status: 401, reason: "Missing session token cookie." };
   }
@@ -99,7 +99,7 @@ export async function authorizeBodyProfile(
   }
 
   // Case 2: anonymous — find a sibling session whose token matches.
-  const cookieToken = readSessionTokenCookie(req);
+  const cookieToken = readSessionToken(req);
   if (!cookieToken) {
     return { ok: false, status: 401, reason: "Missing session token cookie." };
   }

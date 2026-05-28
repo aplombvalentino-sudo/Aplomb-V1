@@ -83,6 +83,8 @@ type MeasurementResponse = {
   };
   bodyShapeSummary: string;
   sizeRecommendations: SizeRec[];
+  /** Anonymous-shopper session token — echoed back via X-Aplomb-Session header. */
+  sessionToken: string | null;
 };
 
 type OutfitItemDTO = {
@@ -262,6 +264,17 @@ export function BrandScanWizard({
     setLoading(false);
   }
 
+  /**
+   * Build request headers. When we have an anonymous session token (Safari /
+   * 3rd-party-iframe contexts where the cookie was blocked by ITP), echo it
+   * via X-Aplomb-Session so the server can still verify ownership.
+   */
+  function authedHeaders(): HeadersInit {
+    const h: Record<string, string> = { "Content-Type": "application/json" };
+    if (result?.sessionToken) h["X-Aplomb-Session"] = result.sessionToken;
+    return h;
+  }
+
   // ── Generate outfits ─────────────────────────────────────────────────────
   async function generateOutfits() {
     if (!result) return;
@@ -270,7 +283,7 @@ export function BrandScanWizard({
     try {
       const res = await fetch("/api/outfits", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authedHeaders(),
         body: JSON.stringify({
           brandSlug: brand.slug,
           recommendationSessionId: result.recommendationSessionId,
@@ -300,7 +313,7 @@ export function BrandScanWizard({
     try {
       const res = await fetch("/api/tryon", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authedHeaders(),
         body: JSON.stringify({
           outfitItemId: itemId,
           bodyProfileId: result.bodyProfileId,
@@ -386,7 +399,7 @@ export function BrandScanWizard({
             <>
               <Link
                 href="/app"
-                className="text-[12px] text-[#9C9894] hover:text-[#111010] transition-colors duration-200"
+                className="text-[12px] text-[#7A7773] hover:text-[#111010] transition-colors duration-200"
               >
                 ← All brands
               </Link>
@@ -395,7 +408,7 @@ export function BrandScanWizard({
             </>
           )}
           {widgetMode && (
-            <span className="text-[10px] uppercase tracking-[0.14em] text-[#9C9894]">
+            <span className="text-[10px] uppercase tracking-[0.14em] text-[#7A7773]">
               Powered by Aplomb
             </span>
           )}
@@ -413,7 +426,7 @@ export function BrandScanWizard({
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.45, ease }}
             >
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[#9C9894]">
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[#7A7773]">
                 Step 1 of 6
               </p>
               <h1 className="mt-3 font-serif text-[2rem] font-semibold leading-[1.1] tracking-[-0.025em] text-[#111010]">
@@ -477,7 +490,7 @@ export function BrandScanWizard({
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.45, ease }}
             >
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[#9C9894]">
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[#7A7773]">
                 Step 2 of 6
               </p>
               <h2 className="mt-3 font-serif text-[2rem] font-semibold leading-[1.1] tracking-[-0.025em] text-[#111010]">
@@ -533,7 +546,7 @@ export function BrandScanWizard({
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.45, ease }}
             >
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[#9C9894]">
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[#7A7773]">
                 Step 3 of 6 · {mode === "easy" ? "Easy" : "Advanced"} mode
               </p>
               <h2 className="mt-3 font-serif text-[2rem] font-semibold leading-[1.1] tracking-[-0.025em] text-[#111010]">
@@ -713,7 +726,7 @@ export function BrandScanWizard({
               exit={{ opacity: 0 }}
               transition={{ duration: 0.5, ease }}
             >
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[#9C9894]">
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[#7A7773]">
                 Step 4 of 6
               </p>
               <h2 className="mt-3 font-serif text-[2rem] font-semibold leading-[1.1] tracking-[-0.025em] text-[#111010]">
@@ -738,7 +751,7 @@ export function BrandScanWizard({
                     />
                     <span
                       className={`text-[14px] ${
-                        i <= processingStage ? "text-[#111010]" : "text-[#9C9894]"
+                        i <= processingStage ? "text-[#111010]" : "text-[#7A7773]"
                       }`}
                     >
                       {label}
@@ -769,13 +782,13 @@ export function BrandScanWizard({
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.5, ease }}
             >
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[#9C9894]">
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[#7A7773]">
                 Step 5 of 6
               </p>
               <h2 className="mt-3 font-serif text-[2rem] font-semibold leading-[1.1] tracking-[-0.025em] text-[#111010]">
                 Here&apos;s your fit.
               </h2>
-              <p className="mt-2 text-[13px] text-[#9C9894]">
+              <p className="mt-2 text-[13px] text-[#7A7773]">
                 Estimated with{" "}
                 <span className="font-medium text-[#6B6965]">
                   {result.measurements.measurementMode === "advanced" ? "Advanced" : "Easy"}
@@ -801,12 +814,12 @@ export function BrandScanWizard({
                         key={k as string}
                         className="rounded-xl bg-white border border-black/[0.06] px-4 py-3.5"
                       >
-                        <p className="text-[10px] uppercase tracking-[0.1em] text-[#9C9894] capitalize mb-0.5">
+                        <p className="text-[10px] uppercase tracking-[0.1em] text-[#7A7773] capitalize mb-0.5">
                           {k as string}
                         </p>
                         <p className="font-serif text-[1.4rem] font-semibold text-[#111010] leading-none tabular-nums">
                           {Math.round(v as number)}
-                          <span className="text-[12px] font-normal text-[#9C9894] ml-1">cm</span>
+                          <span className="text-[12px] font-normal text-[#7A7773] ml-1">cm</span>
                         </p>
                         <p className="mt-1 text-[10px] text-[#C9C5C0]">
                           {source === "manual" ? "you provided" : "estimated"}
@@ -877,7 +890,7 @@ export function BrandScanWizard({
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.5, ease }}
             >
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[#9C9894]">
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[#7A7773]">
                 Step 6 of 6
               </p>
               <h2 className="mt-3 font-serif text-[2rem] font-semibold leading-[1.1] tracking-[-0.025em] text-[#111010]">
@@ -899,12 +912,12 @@ export function BrandScanWizard({
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div className="min-w-0">
-                          <p className="text-[11px] text-[#9C9894] uppercase tracking-[0.12em] font-medium mb-0.5">
+                          <p className="text-[11px] text-[#7A7773] uppercase tracking-[0.12em] font-medium mb-0.5">
                             Look {i + 1}
                           </p>
                           <p className="text-[15px] font-semibold text-[#111010]">{outfit.title}</p>
                           {outfit.description && (
-                            <p className="mt-0.5 text-[12px] text-[#9C9894]">{outfit.description}</p>
+                            <p className="mt-0.5 text-[12px] text-[#7A7773]">{outfit.description}</p>
                           )}
                         </div>
                       </div>
@@ -956,7 +969,7 @@ export function BrandScanWizard({
                       </ul>
 
                       {outfit.rationale && (
-                        <p className="mt-3 text-[12px] text-[#9C9894] leading-[1.6] border-t border-black/[0.05] pt-3">
+                        <p className="mt-3 text-[12px] text-[#7A7773] leading-[1.6] border-t border-black/[0.05] pt-3">
                           {outfit.rationale}
                         </p>
                       )}
@@ -1150,7 +1163,7 @@ function NumField({
         className="w-full rounded-xl border border-black/[0.1] bg-white px-4 py-3 text-sm
                    text-[#111010] focus:outline-none focus:ring-2 focus:ring-[#111010]/10"
       />
-      {help && <p className="mt-1 text-[11px] text-[#9C9894] leading-[1.4]">{help}</p>}
+      {help && <p className="mt-1 text-[11px] text-[#7A7773] leading-[1.4]">{help}</p>}
     </div>
   );
 }
@@ -1201,7 +1214,7 @@ function PhotoField({
               <path d="M7 6l1.5-2h5L15 6" stroke="#6B6965" strokeWidth="1.5" strokeLinejoin="round" />
             </svg>
             <p className="mt-2 text-[12px] font-medium text-[#3a3632]">Add photo</p>
-            <p className="mt-0.5 text-[10px] text-[#9C9894] leading-[1.4] max-w-[20ch]">{guidance}</p>
+            <p className="mt-0.5 text-[10px] text-[#7A7773] leading-[1.4] max-w-[20ch]">{guidance}</p>
           </div>
         )}
       </button>
@@ -1213,7 +1226,7 @@ function PhotoField({
             onChange(null);
             if (inputRef.current) inputRef.current.value = "";
           }}
-          className="mt-1.5 text-[11px] text-[#9C9894] hover:text-[#111010] transition-colors"
+          className="mt-1.5 text-[11px] text-[#7A7773] hover:text-[#111010] transition-colors"
         >
           Replace
         </button>

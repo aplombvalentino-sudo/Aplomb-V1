@@ -54,7 +54,7 @@ export default async function ClientDiscoveryPage() {
         <div className="flex items-center gap-4">
           <Link
             href="/app/wardrobe"
-            className="text-[12px] text-[#9C9894] hover:text-[#111010] transition-colors duration-200
+            className="text-[12px] text-[#7A7773] hover:text-[#111010] transition-colors duration-200
                        flex items-center gap-1.5"
           >
             <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden>
@@ -65,7 +65,7 @@ export default async function ClientDiscoveryPage() {
           </Link>
           <Link
             href="/app/pricing"
-            className="text-[12px] text-[#9C9894] hover:text-[#111010] transition-colors duration-200"
+            className="text-[12px] text-[#7A7773] hover:text-[#111010] transition-colors duration-200"
           >
             Plans
           </Link>
@@ -96,7 +96,7 @@ export default async function ClientDiscoveryPage() {
         {brands.length === 0 ? (
           <div className="rounded-2xl border border-black/[0.06] bg-white py-20 text-center">
             <p className="text-[#6B6965] font-medium">No brands available yet.</p>
-            <p className="mt-2 text-sm text-[#9C9894]">
+            <p className="mt-2 text-sm text-[#7A7773]">
               Check back soon or{" "}
               <Link href="/signup" className="text-[#111010] underline underline-offset-2">
                 create your brand
@@ -146,7 +146,7 @@ export default async function ClientDiscoveryPage() {
                 <p className="text-[15px] font-semibold text-[#111010] leading-tight">
                   {brand.name}
                 </p>
-                <p className="mt-1 text-[12px] text-[#9C9894]">
+                <p className="mt-1 text-[12px] text-[#7A7773]">
                   {brand._count.products} product{brand._count.products !== 1 ? "s" : ""}
                 </p>
 

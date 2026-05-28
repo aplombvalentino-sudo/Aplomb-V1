@@ -27,7 +27,7 @@ export default function NotFound() {
       {/* Content */}
       <div className="relative z-10 max-w-md">
         <span className="inline-flex items-center rounded-full border border-black/10 bg-white/60
-                         px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-[#9C9894]">
+                         px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-[#7A7773]">
           Page not found
         </span>
 
@@ -72,7 +72,7 @@ export default function NotFound() {
       </div>
 
       {/* Footer note */}
-      <p className="absolute bottom-8 text-[12px] text-[#9C9894]">
+      <p className="absolute bottom-8 text-[12px] text-[#7A7773]">
         Aplomb — AI Fitting Room for Fashion Brands
       </p>
     </div>

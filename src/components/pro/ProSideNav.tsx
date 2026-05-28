@@ -57,7 +57,7 @@ export function ProSideNav({
           Aplomb
         </Link>
         <ChevronRight strokeWidth={1.5} className="ml-1 h-3 w-3 text-[#C9C5C0]" />
-        <span className="ml-1 text-[13px] text-[#9C9894] font-medium">Pro</span>
+        <span className="ml-1 text-[13px] text-[#7A7773] font-medium">Pro</span>
       </div>
 
       {/* Brand identity */}
@@ -86,7 +86,7 @@ export function ProSideNav({
             {brandName}
           </p>
           {plan && (
-            <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-[#9C9894]">
+            <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-[#7A7773]">
               {plan}
             </p>
           )}
@@ -137,7 +137,7 @@ export function ProSideNav({
         <Link
           href="/app"
           className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-[12px]
-                     font-medium text-[#9C9894] hover:text-[#111010] hover:bg-black/[0.04]
+                     font-medium text-[#7A7773] hover:text-[#111010] hover:bg-black/[0.04]
                      transition-colors duration-200"
         >
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="shrink-0">
@@ -150,7 +150,7 @@ export function ProSideNav({
         <button
           onClick={() => signOut({ callbackUrl: "/" })}
           className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-[12px]
-                     font-medium text-[#9C9894] hover:text-[#111010] hover:bg-black/[0.04]
+                     font-medium text-[#7A7773] hover:text-[#111010] hover:bg-black/[0.04]
                      transition-colors duration-200"
         >
           <LogOut strokeWidth={1.5} className="h-3.5 w-3.5 shrink-0" />

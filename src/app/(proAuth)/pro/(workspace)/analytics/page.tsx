@@ -68,7 +68,7 @@ export default async function ProAnalyticsPage() {
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#9C9894]">
+          <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#7A7773]">
             Analytics
           </p>
           <h1 className="mt-1 font-serif text-[1.8rem] font-semibold leading-tight
@@ -99,7 +99,7 @@ export default async function ProAnalyticsPage() {
       {/* ── Scan trend chart ───────────────────────────────────────────────── */}
       <div className="rounded-2xl bg-white border border-black/[0.06]
                       shadow-[0_2px_16px_rgba(0,0,0,0.04)] px-6 py-5 mb-6">
-        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#9C9894] mb-4">
+        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#7A7773] mb-4">
           Shopper scans — last 30 days
         </p>
         <OverviewCharts
@@ -114,7 +114,7 @@ export default async function ProAnalyticsPage() {
         <AdvancedCard title="Top performing products" locked={!hasAdvanced}>
           {hasAdvanced ? (
             topProductsWithCounts.length === 0 ? (
-              <p className="text-[13px] text-[#9C9894]">
+              <p className="text-[13px] text-[#7A7773]">
                 No outfit data yet for this period.
               </p>
             ) : (
@@ -129,7 +129,7 @@ export default async function ProAnalyticsPage() {
                         {t.product?.name ?? "Unknown product"}
                       </p>
                       {t.product?.category && (
-                        <p className="text-[11px] text-[#9C9894]">{t.product.category}</p>
+                        <p className="text-[11px] text-[#7A7773]">{t.product.category}</p>
                       )}
                     </div>
                     <span className="font-mono text-[12px] tabular-nums text-[#6B6965]">
@@ -150,7 +150,7 @@ export default async function ProAnalyticsPage() {
               <p className="font-serif text-[2rem] font-semibold leading-none text-[#111010] tabular-nums">
                 {engagement.saves30d.toLocaleString()}
               </p>
-              <p className="mt-2 text-[12px] text-[#9C9894]">
+              <p className="mt-2 text-[12px] text-[#7A7773]">
                 Saves in the last 30 days. Detailed save events arrive with the
                 event tracking release.
               </p>
@@ -166,7 +166,7 @@ export default async function ProAnalyticsPage() {
               <p className="font-serif text-[2rem] font-semibold leading-none text-[#111010] tabular-nums">
                 {engagement.productClicks30d.toLocaleString()}
               </p>
-              <p className="mt-2 text-[12px] text-[#9C9894]">
+              <p className="mt-2 text-[12px] text-[#7A7773]">
                 Click-through events from outfit recommendations.
               </p>
             </div>
@@ -177,7 +177,7 @@ export default async function ProAnalyticsPage() {
 
         <AdvancedCard title="Conversion signals" locked={!hasAdvanced}>
           {hasAdvanced ? (
-            <p className="text-[13px] text-[#9C9894]">
+            <p className="text-[13px] text-[#7A7773]">
               Conversion proxy events surface here once your widget reports
               add-to-cart and checkout events.
             </p>
@@ -220,7 +220,7 @@ function MetricTile({ label, value }: { label: string; value: number | string })
   return (
     <div className="rounded-2xl bg-white border border-black/[0.06]
                     shadow-[0_2px_8px_rgba(0,0,0,0.03)] px-5 py-4">
-      <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-[#9C9894]">
+      <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-[#7A7773]">
         {label}
       </p>
       <p className="mt-1.5 font-serif text-[1.8rem] font-semibold leading-none tabular-nums text-[#111010]">
@@ -246,7 +246,7 @@ function AdvancedCard({
                       : "border-black/[0.06] shadow-[0_2px_16px_rgba(0,0,0,0.04)]"
                     }`}>
       <div className="flex items-center justify-between mb-3">
-        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#9C9894]">
+        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#7A7773]">
           {title}
         </p>
         {locked && (

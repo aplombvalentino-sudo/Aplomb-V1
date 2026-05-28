@@ -153,7 +153,7 @@ function PlanCard({ plan, i }: { plan: Plan; i: number }) {
           <div className="flex items-center justify-between gap-3">
             <span
               className={`text-[10px] font-medium uppercase tracking-[0.18em]
-                          ${plan.highlight ? "text-white/50" : "text-[#9C9894]"}`}
+                          ${plan.highlight ? "text-white/50" : "text-[#7A7773]"}`}
             >
               {plan.name}
             </span>
@@ -196,7 +196,7 @@ function PlanCard({ plan, i }: { plan: Plan; i: number }) {
               <>
                 <span
                   className={`self-start mt-2 text-[1.1rem] font-medium tabular-nums
-                              ${plan.highlight ? "text-white/40" : "text-[#9C9894]"}`}
+                              ${plan.highlight ? "text-white/40" : "text-[#7A7773]"}`}
                 >
                   €
                 </span>
@@ -207,7 +207,7 @@ function PlanCard({ plan, i }: { plan: Plan; i: number }) {
                   {plan.price}
                 </span>
                 <span
-                  className={`mb-1 self-end text-sm ${plan.highlight ? "text-white/40" : "text-[#9C9894]"}`}
+                  className={`mb-1 self-end text-sm ${plan.highlight ? "text-white/40" : "text-[#7A7773]"}`}
                 >
                   {plan.period}
                 </span>
@@ -228,7 +228,7 @@ function PlanCard({ plan, i }: { plan: Plan; i: number }) {
             {plan.features.map((f) => (
               <li key={f} className="flex items-start gap-2.5 text-sm">
                 <svg
-                  className={`mt-0.5 h-4 w-4 flex-shrink-0 ${plan.highlight ? "text-white/50" : "text-[#9C9894]"}`}
+                  className={`mt-0.5 h-4 w-4 flex-shrink-0 ${plan.highlight ? "text-white/50" : "text-[#7A7773]"}`}
                   viewBox="0 0 16 16"
                   fill="none"
                   aria-hidden

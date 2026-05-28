@@ -25,7 +25,7 @@ export function ClientSignOutLink({
       onClick={handleSignOut}
       className={
         className ||
-        "text-[12px] text-[#9C9894] hover:text-[#111010] transition-colors duration-200"
+        "text-[12px] text-[#7A7773] hover:text-[#111010] transition-colors duration-200"
       }
     >
       {label}

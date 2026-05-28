@@ -99,7 +99,7 @@ function EnterpriseModal({ onClose }: { onClose: () => void }) {
                   onChange={(e) => setFields(f => ({ ...f, message: e.target.value }))}
                   placeholder="Tell us about your catalogue size, expected scan volume..."
                   className="rounded-xl border border-black/[0.12] bg-white px-3.5 py-2.5
-                             text-[14px] text-[#111010] placeholder:text-[#9C9894] resize-none
+                             text-[14px] text-[#111010] placeholder:text-[#7A7773] resize-none
                              focus:border-[#111010] focus:outline-none focus:ring-1
                              focus:ring-[#111010] transition-colors duration-200"
                 />
@@ -250,7 +250,7 @@ export function ProPricingCards({
                   "absolute top-4 right-4 rounded-full px-2.5 py-0.5 text-[10px] font-medium",
                   tier.dark
                     ? "bg-white/10 text-white/60"
-                    : "bg-[#F7F6F3] text-[#9C9894]"
+                    : "bg-[#F7F6F3] text-[#7A7773]"
                 )}>
                   Current plan
                 </span>
@@ -259,7 +259,7 @@ export function ProPricingCards({
               <div>
                 <p className={cn(
                   "text-[11px] font-medium uppercase tracking-[0.16em]",
-                  tier.dark ? "text-white/40" : "text-[#9C9894]"
+                  tier.dark ? "text-white/40" : "text-[#7A7773]"
                 )}>
                   {tier.name}
                 </p>
@@ -269,7 +269,7 @@ export function ProPricingCards({
                     <>
                       <span className={cn(
                         "text-[0.9rem] font-medium",
-                        tier.dark ? "text-white/50" : "text-[#9C9894]"
+                        tier.dark ? "text-white/50" : "text-[#7A7773]"
                       )}>€</span>
                       <span className={cn(
                         "font-serif text-[2.8rem] font-semibold leading-none tracking-tight tabular-nums",
@@ -279,7 +279,7 @@ export function ProPricingCards({
                       </span>
                       <span className={cn(
                         "ml-1 self-end text-sm",
-                        tier.dark ? "text-white/40" : "text-[#9C9894]"
+                        tier.dark ? "text-white/40" : "text-[#7A7773]"
                       )}>
                         {tier.period}
                       </span>

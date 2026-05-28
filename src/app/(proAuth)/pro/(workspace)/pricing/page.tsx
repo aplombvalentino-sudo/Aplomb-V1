@@ -26,7 +26,7 @@ export default async function ProBillingPage() {
     <div>
       {/* Header */}
       <div className="mb-10">
-        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#9C9894]">
+        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#7A7773]">
           Billing
         </p>
         <h1 className="mt-1 font-serif text-[1.8rem] font-semibold leading-tight
@@ -68,16 +68,16 @@ export default async function ProBillingPage() {
       <ProPricingCards currentPlan={brand.plan as ProPlan} />
 
       <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Return rate stat */}
+        {/* Returns stat */}
         <div className="rounded-2xl bg-[#111010] px-6 py-5 text-white">
           <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-white/40">
-            Return rate
+            Returns
           </p>
-          <p className="mt-2 font-serif text-[2.4rem] font-semibold tabular-nums leading-none">
-            −38%
+          <p className="mt-2 font-serif text-[2rem] font-semibold leading-tight">
+            Built to reduce
           </p>
           <p className="mt-2 text-[12px] text-white/60">
-            average reduction across brands using Aplomb
+            accurate sizing means shoppers keep what they order
           </p>
         </div>
 
@@ -94,7 +94,7 @@ export default async function ProBillingPage() {
         </div>
       </div>
 
-      <p className="mt-6 text-center text-[12px] text-[#9C9894]">
+      <p className="mt-6 text-center text-[12px] text-[#7A7773]">
         Payments handled by Shopify (wiring in progress) — your selected plan is reserved.
       </p>
     </div>
@@ -104,13 +104,13 @@ export default async function ProBillingPage() {
 function UsageStat({ label, value, subtle }: { label: string; value: string; subtle?: string }) {
   return (
     <div>
-      <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#9C9894]">
+      <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#7A7773]">
         {label}
       </p>
       <p className="mt-0.5 font-serif text-[1.4rem] font-semibold text-[#111010] tabular-nums">
         {value}
       </p>
-      {subtle && <p className="mt-0.5 text-[11px] text-[#9C9894]">{subtle}</p>}
+      {subtle && <p className="mt-0.5 text-[11px] text-[#7A7773]">{subtle}</p>}
     </div>
   );
 }

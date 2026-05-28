@@ -36,11 +36,11 @@ export default async function WardrobePage() {
           Aplomb
         </Link>
         <div className="flex items-center gap-4">
-          <Link href="/app" className="text-[12px] text-[#9C9894] hover:text-[#111010]
+          <Link href="/app" className="text-[12px] text-[#7A7773] hover:text-[#111010]
                                         transition-colors">
             ← Browse
           </Link>
-          <Link href="/app/pricing" className="text-[12px] text-[#9C9894] hover:text-[#111010]
+          <Link href="/app/pricing" className="text-[12px] text-[#7A7773] hover:text-[#111010]
                                                 transition-colors">
             Plans
           </Link>
@@ -124,7 +124,7 @@ export default async function WardrobePage() {
               </Link>
             </div>
 
-            <p className="mt-6 text-[12px] text-[#9C9894]">
+            <p className="mt-6 text-[12px] text-[#7A7773]">
               Current plan: <span className="font-medium capitalize text-[#6B6965]">{clientPlan}</span>
             </p>
           </div>

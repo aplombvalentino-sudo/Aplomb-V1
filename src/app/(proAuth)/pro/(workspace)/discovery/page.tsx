@@ -112,7 +112,7 @@ export default async function ProDiscoveryPage() {
     <div>
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="mb-8">
-        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#9C9894]">
+        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#7A7773]">
           Marketplace
         </p>
         <h1 className="mt-1 font-serif text-[1.8rem] font-semibold leading-tight
@@ -132,7 +132,7 @@ export default async function ProDiscoveryPage() {
             : "bg-white border-black/[0.06] text-[#111010]"
         }`}>
           <p className={`text-[10px] font-medium uppercase tracking-[0.14em] ${
-            visibilityStatus === "Featured" ? "text-white/50" : "text-[#9C9894]"
+            visibilityStatus === "Featured" ? "text-white/50" : "text-[#7A7773]"
           }`}>
             Current visibility
           </p>
@@ -151,12 +151,12 @@ export default async function ProDiscoveryPage() {
         </div>
 
         <Card>
-          <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[#9C9894]">
+          <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[#7A7773]">
             Discovery score
           </p>
           <p className="mt-2 font-serif text-[2rem] font-semibold tabular-nums leading-none text-[#111010]">
             {discoveryScore}
-            <span className="text-[14px] text-[#9C9894] ml-1">/100</span>
+            <span className="text-[14px] text-[#7A7773] ml-1">/100</span>
           </p>
           <div className="mt-3 h-1.5 rounded-full bg-black/[0.06] overflow-hidden">
             <div
@@ -167,13 +167,13 @@ export default async function ProDiscoveryPage() {
         </Card>
 
         <Card>
-          <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[#9C9894]">
+          <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[#7A7773]">
             Exposure this month
           </p>
           <p className="mt-2 font-serif text-[2rem] font-semibold tabular-nums leading-none text-[#111010]">
             {exposure.used.toLocaleString()}
             {plan.monthlyExposureQuota !== Infinity && (
-              <span className="text-[14px] text-[#9C9894] ml-1">
+              <span className="text-[14px] text-[#7A7773] ml-1">
                 / {plan.monthlyExposureQuota.toLocaleString()}
               </span>
             )}
@@ -189,7 +189,7 @@ export default async function ProDiscoveryPage() {
                       shadow-[0_2px_16px_rgba(0,0,0,0.04)]">
         <div className="px-6 py-5 border-b border-black/[0.06]">
           <p className="text-[13px] font-semibold text-[#111010]">What drives your ranking</p>
-          <p className="mt-0.5 text-[12px] text-[#9C9894]">
+          <p className="mt-0.5 text-[12px] text-[#7A7773]">
             Each signal feeds into your discovery score with balanced weighting.
           </p>
         </div>

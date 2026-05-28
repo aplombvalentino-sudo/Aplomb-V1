@@ -202,11 +202,17 @@ export async function POST(req: NextRequest) {
         measurements: measurementsToStore,
         bodyShapeSummary,
         sizeRecommendations,
+        // Anonymous shoppers get the session token here too, so the client can
+        // echo it via the X-Aplomb-Session header on subsequent /api/outfits
+        // and /api/tryon calls. Required for Safari/3rd-party-iframe contexts
+        // where ITP blocks the cookie. Null for logged-in users.
+        sessionToken: anonToken?.token ?? null,
       },
     };
 
     const response = NextResponse.json(responseBody);
     if (anonToken) {
+      // Still set the cookie for browsers that allow it (first-party + non-ITP).
       response.cookies.set(SESSION_TOKEN_COOKIE, anonToken.token, sessionTokenCookieOptions());
     }
     return response;

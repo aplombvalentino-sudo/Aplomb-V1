@@ -17,7 +17,7 @@ export function PricingPageContent() {
           className="max-w-2xl"
         >
           <span className="inline-flex items-center rounded-full border border-black/10 bg-white/60
-                           px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-[#9C9894]">
+                           px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-[#7A7773]">
             Pricing
           </span>
           <h1 className="mt-5 font-serif text-[clamp(2.4rem,4vw,3.5rem)] font-semibold
@@ -37,7 +37,7 @@ export function PricingPageContent() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.6, ease }}
-          className="mt-12 text-center text-sm text-[#9C9894]"
+          className="mt-12 text-center text-sm text-[#7A7773]"
         >
           No credit card required to start. Cancel anytime.
         </motion.p>

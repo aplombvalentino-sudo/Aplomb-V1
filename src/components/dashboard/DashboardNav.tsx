@@ -52,7 +52,7 @@ export function DashboardNav({ brandName }: { brandName: string }) {
         transition={{ delay: 0.12, duration: 0.4 }}
         className="border-b border-black/[0.07] px-6 py-3"
       >
-        <p className="text-[10px] font-medium uppercase tracking-[0.15em] text-[#9C9894]">
+        <p className="text-[10px] font-medium uppercase tracking-[0.15em] text-[#7A7773]">
           Brand
         </p>
         <p className="mt-0.5 truncate text-[13px] font-medium text-[#111010]">
@@ -108,7 +108,7 @@ export function DashboardNav({ brandName }: { brandName: string }) {
           onClick={() => signOut({ callbackUrl: "/" })}
           whileHover={{ backgroundColor: "rgba(0,0,0,0.04)" }}
           className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px]
-                     font-medium text-[#9C9894] hover:text-[#111010] transition-colors duration-200"
+                     font-medium text-[#7A7773] hover:text-[#111010] transition-colors duration-200"
         >
           <LogOut strokeWidth={1.5} className="h-4 w-4 shrink-0" />
           Sign out

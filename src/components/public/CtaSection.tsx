@@ -35,7 +35,7 @@ export function CtaSection() {
             className="inline-flex items-center rounded-full border border-white/[0.12]
                        px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-white/40"
           >
-            147 brands already live
+            Built for fashion brands
           </motion.span>
 
           {/* Heading */}
@@ -112,8 +112,8 @@ export function CtaSection() {
           className="absolute right-0 top-1/2 -translate-y-1/2 hidden lg:flex flex-col gap-4"
         >
           {[
-            { stat: "−38%", label: "avg. return rate" },
-            { stat: "+22%", label: "conversion uplift" },
+            { stat: "Fewer", label: "returns" },
+            { stat: "Higher", label: "conversion" },
             { stat: "10 min", label: "to go live" },
           ].map((s) => (
             <div key={s.stat} className="text-right">

@@ -27,7 +27,7 @@ export function PublicFooter() {
           {/* Brand column */}
           <div className="col-span-2 md:col-span-1">
             <span className="text-[15px] font-semibold tracking-tight text-[#111010]">Aplomb</span>
-            <p className="mt-2 max-w-[28ch] text-[13px] leading-[1.65] text-[#9C9894]">
+            <p className="mt-2 max-w-[28ch] text-[13px] leading-[1.65] text-[#7A7773]">
               Size intelligence and outfit styling for fashion brands that care about the fitting room.
             </p>
             {/* Social */}
@@ -57,7 +57,7 @@ export function PublicFooter() {
                   href={s.href}
                   aria-label={s.label}
                   className="flex h-8 w-8 items-center justify-center rounded-full
-                             bg-black/[0.04] text-[#9C9894] ring-1 ring-black/[0.07]
+                             bg-black/[0.04] text-[#7A7773] ring-1 ring-black/[0.07]
                              transition-all duration-200 hover:bg-black/[0.08] hover:text-[#111010]"
                 >
                   {s.icon}
@@ -68,7 +68,7 @@ export function PublicFooter() {
 
           {/* Product */}
           <div>
-            <p className="mb-4 text-[11px] font-medium uppercase tracking-[0.15em] text-[#9C9894]">
+            <p className="mb-4 text-[11px] font-medium uppercase tracking-[0.15em] text-[#7A7773]">
               Product
             </p>
             <ul className="space-y-3">
@@ -87,7 +87,7 @@ export function PublicFooter() {
 
           {/* Company */}
           <div>
-            <p className="mb-4 text-[11px] font-medium uppercase tracking-[0.15em] text-[#9C9894]">
+            <p className="mb-4 text-[11px] font-medium uppercase tracking-[0.15em] text-[#7A7773]">
               Company
             </p>
             <ul className="space-y-3">
@@ -106,7 +106,7 @@ export function PublicFooter() {
 
           {/* Legal */}
           <div>
-            <p className="mb-4 text-[11px] font-medium uppercase tracking-[0.15em] text-[#9C9894]">
+            <p className="mb-4 text-[11px] font-medium uppercase tracking-[0.15em] text-[#7A7773]">
               Legal
             </p>
             <ul className="space-y-3">
@@ -126,7 +126,7 @@ export function PublicFooter() {
 
         {/* Bottom bar */}
         <div className="flex flex-col items-start justify-between gap-3 border-t border-black/[0.06]
-                        py-6 text-[12px] text-[#9C9894] sm:flex-row sm:items-center">
+                        py-6 text-[12px] text-[#7A7773] sm:flex-row sm:items-center">
           <p>© 2026 Aplomb. Built for fashion brands that care.</p>
           <p>Made in Paris &amp; Montreal</p>
         </div>

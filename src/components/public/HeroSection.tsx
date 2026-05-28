@@ -1,11 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
 export function HeroSection() {
+  // Respect the OS "reduce motion" setting (WCAG 2.3.3). When true, we skip
+  // every enter animation by passing initial={false} so content renders in
+  // its final position with no transform/opacity tween.
+  const reduce = useReducedMotion();
+
+  /** Helper: returns the `initial` prop, or `false` to disable the animation. */
+  const enter = (value: Record<string, number>) => (reduce ? false : value);
+
   return (
     <section className="relative min-h-[100dvh] flex items-center bg-[#F7F6F3] overflow-hidden px-4 sm:px-6 lg:px-8">
       {/* Ambient radial glow — fixed, pointer-events-none */}
@@ -26,7 +34,7 @@ export function HeroSection() {
 
             {/* Eyebrow pill */}
             <motion.span
-              initial={{ opacity: 0, y: 16 }}
+              initial={enter({ opacity: 0, y: 16 })}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, ease }}
               className="inline-flex self-start items-center rounded-full border border-black/10 bg-white/60
@@ -37,7 +45,7 @@ export function HeroSection() {
 
             {/* H1 — serif editorial */}
             <motion.h1
-              initial={{ opacity: 0, y: 32 }}
+              initial={enter({ opacity: 0, y: 32 })}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.08, ease }}
               className="mt-5 font-serif text-[clamp(2.6rem,5vw,4.5rem)] font-semibold leading-[1.08]
@@ -50,7 +58,7 @@ export function HeroSection() {
 
             {/* Description */}
             <motion.p
-              initial={{ opacity: 0, y: 20 }}
+              initial={enter({ opacity: 0, y: 20 })}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.2, ease }}
               className="mt-7 max-w-[42ch] text-[17px] leading-[1.65] text-[#6B6965]"
@@ -62,26 +70,27 @@ export function HeroSection() {
 
             {/* CTAs */}
             <motion.div
-              initial={{ opacity: 0, y: 16 }}
+              initial={enter({ opacity: 0, y: 16 })}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.65, delay: 0.33, ease }}
               className="mt-10 flex flex-wrap items-center gap-3"
             >
               {/* Primary CTA — button-in-button */}
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
+              <motion.div whileHover={reduce ? undefined : { scale: 1.02 }} whileTap={reduce ? undefined : { scale: 0.97 }}>
                 <Link
                   href="/signup"
                   className="group inline-flex items-center gap-2.5 rounded-full bg-[#111010]
                              pl-6 pr-2.5 py-3 text-sm font-medium text-white
                              transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
-                             hover:bg-[#2a2a2a]"
+                             hover:bg-[#2a2a2a]
+                             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111010] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F7F6F3]"
                 >
                   Start for free
                   <span className="flex h-7 w-7 items-center justify-center rounded-full
                                    bg-white/[0.12] transition-all duration-500
                                    ease-[cubic-bezier(0.32,0.72,0,1)]
                                    group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:scale-105">
-                    <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                    <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true">
                       <path d="M2.5 8.5L8.5 2.5M8.5 2.5H3.5M8.5 2.5V7.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   </span>
@@ -89,12 +98,13 @@ export function HeroSection() {
               </motion.div>
 
               {/* Secondary CTA */}
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
+              <motion.div whileHover={reduce ? undefined : { scale: 1.02 }} whileTap={reduce ? undefined : { scale: 0.97 }}>
                 <Link
                   href="/pricing"
                   className="inline-flex items-center gap-2 rounded-full border border-black/[0.12]
                              bg-white/70 px-6 py-3 text-sm font-medium text-[#111010]
-                             hover:bg-white transition-all duration-300"
+                             hover:bg-white transition-all duration-300
+                             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111010] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F7F6F3]"
                 >
                   View pricing
                 </Link>
@@ -103,12 +113,13 @@ export function HeroSection() {
 
             {/* Social proof micro-stat */}
             <motion.div
-              initial={{ opacity: 0 }}
+              initial={enter({ opacity: 0 })}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.7, delay: 0.55, ease }}
               className="mt-12 flex items-center gap-3"
             >
-              <div className="flex -space-x-2">
+              {/* Decorative avatar cluster — not announced to screen readers */}
+              <div className="flex -space-x-2" aria-hidden="true">
                 {[
                   { bg: "#C9A882", initials: "OM" },
                   { bg: "#8A7A6A", initials: "MT" },
@@ -124,31 +135,34 @@ export function HeroSection() {
                   </div>
                 ))}
               </div>
-              <p className="text-[12px] text-[#9C9894]">
-                Trusted by <span className="text-[#6B6965] font-medium">147</span> fashion brands worldwide
+              <p className="text-[12px] text-[#6B6965]">
+                Built for fashion brands that care about fit.
               </p>
             </motion.div>
           </div>
 
           {/* ── RIGHT: widget mockup — double-bezel ── */}
+          {/* Visible on every breakpoint now (was hidden on mobile). On small
+              screens it stacks below the CTAs as a compressed proof asset. */}
           <motion.div
-            initial={{ opacity: 0, y: 40, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
+            initial={enter({ opacity: 0, y: 40 })}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 0.18, ease }}
-            className="hidden md:flex justify-center lg:justify-end"
+            className="flex justify-center lg:justify-end"
+            aria-hidden="true"
           >
             {/* Outer shell */}
             <div className="relative rounded-[2rem] bg-black/[0.04] p-2 ring-1 ring-black/[0.06]
                             shadow-[0_8px_64px_-16px_rgba(0,0,0,0.12)]">
               {/* Inner core */}
-              <div className="relative w-[320px] lg:w-[360px] overflow-hidden rounded-[calc(2rem-0.5rem)]
+              <div className="relative w-[min(320px,80vw)] sm:w-[320px] lg:w-[360px] overflow-hidden rounded-[calc(2rem-0.5rem)]
                               bg-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.8)]">
 
                 {/* Mock header bar */}
                 <div className="flex items-center justify-between border-b border-black/[0.06] px-5 py-4">
                   <span className="text-[13px] font-semibold text-[#111010]">AI Fitting Room</span>
                   <span className="rounded-full bg-[#EDF3EC] px-2.5 py-0.5 text-[10px] font-medium
-                                   uppercase tracking-wide text-[#346538]">
+                                   uppercase tracking-wide text-[#2c5530]">
                     Live
                   </span>
                 </div>
@@ -163,9 +177,9 @@ export function HeroSection() {
                     </div>
                     <div className="h-1.5 rounded-full bg-black/[0.06] overflow-hidden">
                       <motion.div
-                        initial={{ width: 0 }}
+                        initial={reduce ? { width: "94%" } : { width: 0 }}
                         animate={{ width: "94%" }}
-                        transition={{ duration: 1.4, delay: 0.9, ease }}
+                        transition={reduce ? { duration: 0 } : { duration: 1.4, delay: 0.9, ease }}
                         className="h-full rounded-full bg-[#111010]"
                       />
                     </div>
@@ -183,7 +197,7 @@ export function HeroSection() {
                         key={m.label}
                         className="rounded-xl bg-[#F7F6F3] px-3.5 py-3"
                       >
-                        <p className="text-[10px] text-[#9C9894] mb-0.5">{m.label}</p>
+                        <p className="text-[10px] text-[#6B6965] mb-0.5">{m.label}</p>
                         <p className="text-[14px] font-semibold text-[#111010]">{m.value}</p>
                       </div>
                     ))}
@@ -191,7 +205,7 @@ export function HeroSection() {
 
                   {/* Outfit recommendation */}
                   <div className="rounded-xl border border-black/[0.06] bg-[#F9F8F6] p-3.5">
-                    <p className="text-[10px] font-medium uppercase tracking-[0.15em] text-[#9C9894] mb-2.5">
+                    <p className="text-[10px] font-medium uppercase tracking-[0.15em] text-[#6B6965] mb-2.5">
                       Recommended outfit
                     </p>
                     <div className="flex items-center gap-3">
@@ -207,7 +221,7 @@ export function HeroSection() {
                       </div>
                       <div>
                         <p className="text-[12px] font-medium text-[#111010]">3-piece look</p>
-                        <p className="text-[11px] text-[#9C9894]">Size M — 98% match</p>
+                        <p className="text-[11px] text-[#6B6965]">Size M — 98% match</p>
                       </div>
                     </div>
                   </div>
@@ -217,6 +231,7 @@ export function HeroSection() {
                     href="/signup?audience=client"
                     className="block text-center w-full rounded-xl bg-[#111010] py-3 text-[13px] font-medium
                                text-white transition-opacity hover:opacity-80"
+                    tabIndex={-1}
                   >
                     Shop this look
                   </Link>
@@ -224,7 +239,7 @@ export function HeroSection() {
 
                 {/* Mock bottom bar */}
                 <div className="border-t border-black/[0.06] px-5 py-3 flex items-center justify-center">
-                  <span className="text-[10px] text-[#9C9894]">Powered by Aplomb AI</span>
+                  <span className="text-[10px] text-[#6B6965]">Powered by Aplomb AI</span>
                 </div>
               </div>
 

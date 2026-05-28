@@ -278,7 +278,7 @@ function SignupForm({
       {onBack && (
         <button
           onClick={onBack}
-          className="mb-4 inline-flex items-center gap-1.5 text-[12px] text-[#9C9894]
+          className="mb-4 inline-flex items-center gap-1.5 text-[12px] text-[#7A7773]
                      hover:text-[#111010] transition-colors duration-200"
         >
           <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden>
@@ -430,7 +430,7 @@ function FormField({
 
 export default function SignupPage() {
   return (
-    <Suspense fallback={<div className="text-sm text-[#9C9894]">Loading…</div>}>
+    <Suspense fallback={<div className="text-sm text-[#7A7773]">Loading…</div>}>
       <SignupContent />
     </Suspense>
   );

@@ -105,7 +105,7 @@ function LoginForm() {
       >
         <div className="mt-5 flex items-center gap-3">
           <div className="h-px flex-1 bg-black/[0.08]" />
-          <span className="text-[12px] text-[#9C9894]">or</span>
+          <span className="text-[12px] text-[#7A7773]">or</span>
           <div className="h-px flex-1 bg-black/[0.08]" />
         </div>
 
@@ -152,7 +152,7 @@ export default function LoginPage() {
         </p>
       </motion.div>
 
-      <Suspense fallback={<div className="mt-6 text-sm text-[#9C9894]">Loading…</div>}>
+      <Suspense fallback={<div className="mt-6 text-sm text-[#7A7773]">Loading…</div>}>
         <LoginForm />
       </Suspense>
 
@@ -169,7 +169,7 @@ export default function LoginPage() {
           </Link>
         </p>
         <div className="border-t border-black/[0.06] pt-3">
-          <p className="text-[12px] text-[#9C9894]">
+          <p className="text-[12px] text-[#7A7773]">
             Shopping with Aplomb?{" "}
             <Link href="/app" className="font-medium text-[#C9A882] hover:underline underline-offset-2">
               Browse brands →

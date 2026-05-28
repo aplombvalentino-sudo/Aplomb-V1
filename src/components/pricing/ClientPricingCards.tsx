@@ -150,7 +150,7 @@ export function ClientPricingCards({
             {isActive && (
               <span className={cn(
                 "absolute top-4 right-4 rounded-full px-2.5 py-0.5 text-[10px] font-medium",
-                tier.dark ? "bg-white/10 text-white/60" : "bg-[#F7F6F3] text-[#9C9894]"
+                tier.dark ? "bg-white/10 text-white/60" : "bg-[#F7F6F3] text-[#7A7773]"
               )}>
                 Your plan
               </span>
@@ -159,7 +159,7 @@ export function ClientPricingCards({
             <div>
               <p className={cn(
                 "text-[11px] font-medium uppercase tracking-[0.16em]",
-                tier.dark ? "text-white/40" : "text-[#9C9894]"
+                tier.dark ? "text-white/40" : "text-[#7A7773]"
               )}>
                 {tier.name}
               </p>
@@ -188,7 +188,7 @@ export function ClientPricingCards({
                   <>
                     <span className={cn(
                       "text-[0.9rem] font-medium",
-                      tier.dark ? "text-white/50" : "text-[#9C9894]"
+                      tier.dark ? "text-white/50" : "text-[#7A7773]"
                     )}>€</span>
                     <span className={cn(
                       "font-serif text-[2.8rem] font-semibold leading-none tracking-tight tabular-nums",
@@ -198,7 +198,7 @@ export function ClientPricingCards({
                     </span>
                     <span className={cn(
                       "ml-1 self-end text-sm",
-                      tier.dark ? "text-white/40" : "text-[#9C9894]"
+                      tier.dark ? "text-white/40" : "text-[#7A7773]"
                     )}>
                       {tier.period}
                     </span>

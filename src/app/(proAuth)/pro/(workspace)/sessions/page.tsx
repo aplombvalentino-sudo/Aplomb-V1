@@ -34,7 +34,7 @@ export default async function ProSessionsPage() {
   return (
     <div>
       <div className="mb-8">
-        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#9C9894]">
+        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#7A7773]">
           Fit Sessions
         </p>
         <h1 className="mt-1 font-serif text-[1.8rem] font-semibold leading-tight
@@ -49,7 +49,7 @@ export default async function ProSessionsPage() {
       {sessions.length === 0 ? (
         <div className="rounded-2xl border border-black/[0.06] bg-white py-20 text-center">
           <p className="text-[#6B6965] font-medium">No sessions yet.</p>
-          <p className="mt-2 text-sm text-[#9C9894]">
+          <p className="mt-2 text-sm text-[#7A7773]">
             Sessions appear once shoppers use your widget or client link.
           </p>
         </div>
@@ -61,7 +61,7 @@ export default async function ProSessionsPage() {
               <tr>
                 {["Session", "Context", "Outfits", "Measurements", "Date"].map((h) => (
                   <th key={h} className="px-5 py-3.5 text-left text-[11px] font-medium
-                                         uppercase tracking-[0.12em] text-[#9C9894]">
+                                         uppercase tracking-[0.12em] text-[#7A7773]">
                     {h}
                   </th>
                 ))}
@@ -75,7 +75,7 @@ export default async function ProSessionsPage() {
                 return (
                   <tr key={s.id} className="hover:bg-[#FAFAF8] transition-colors duration-150">
                     <td className="px-5 py-3.5">
-                      <code className="text-[11px] text-[#9C9894] font-mono">
+                      <code className="text-[11px] text-[#7A7773] font-mono">
                         {s.id.slice(0, 14)}…
                       </code>
                     </td>
@@ -88,7 +88,7 @@ export default async function ProSessionsPage() {
                           {s.outfits.map((o) => (
                             <div key={o.id} className="text-xs text-[#6B6965]">
                               {o.title}{" "}
-                              <span className="text-[#9C9894]">({o.items.length} items)</span>
+                              <span className="text-[#7A7773]">({o.items.length} items)</span>
                             </div>
                           ))}
                         </div>
@@ -111,7 +111,7 @@ export default async function ProSessionsPage() {
                         <span className="text-[#C9C5C0]">—</span>
                       )}
                     </td>
-                    <td className="px-5 py-3.5 text-xs text-[#9C9894] tabular-nums">
+                    <td className="px-5 py-3.5 text-xs text-[#7A7773] tabular-nums">
                       {format(new Date(s.createdAt), "MMM d, yyyy HH:mm")}
                     </td>
                   </tr>

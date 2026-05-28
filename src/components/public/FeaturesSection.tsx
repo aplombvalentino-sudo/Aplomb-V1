@@ -103,7 +103,7 @@ export function FeaturesSection() {
           className="max-w-2xl"
         >
           <span className="inline-flex items-center rounded-full border border-black/10 bg-white/60
-                           px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-[#9C9894]">
+                           px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-[#7A7773]">
             Platform
           </span>
           <h2 className="mt-5 font-serif text-[clamp(2rem,3.5vw,2.8rem)] font-semibold leading-[1.1]

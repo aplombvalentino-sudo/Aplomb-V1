@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     template: "%s | Aplomb",
   },
   description:
-    "Give your shoppers accurate size recommendations and complete outfit suggestions powered by AI body measurement. Reduce returns by 38% on average.",
+    "Give your shoppers accurate size recommendations and complete outfit suggestions powered by AI body measurement — built to reduce returns and increase conversion.",
   keywords: ["AI fitting room", "size recommendation", "fashion tech", "outfit suggestion", "reduce returns"],
   authors: [{ name: "Aplomb" }],
   openGraph: {
