@@ -16,6 +16,7 @@ import {
   CreditCard,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
+import { Logo } from "@/components/brand/Logo";
 
 const navItems = [
   { href: "/pro/dashboard",   label: "Overview",    icon: LayoutDashboard, exact: true },
@@ -51,10 +52,10 @@ export function ProSideNav({
       <div className="flex h-14 items-center border-b border-black/[0.07] px-5">
         <Link
           href="/"
-          className="text-[15px] font-semibold tracking-tight text-[#111010]
-                     hover:opacity-60 transition-opacity duration-200"
+          aria-label="Aplomb — home"
+          className="text-[16px] text-[#111010] hover:opacity-60 transition-opacity duration-200"
         >
-          Aplomb
+          <Logo />
         </Link>
         <ChevronRight strokeWidth={1.5} className="ml-1 h-3 w-3 text-[#C9C5C0]" />
         <span className="ml-1 text-[13px] text-[#7A7773] font-medium">Pro</span>

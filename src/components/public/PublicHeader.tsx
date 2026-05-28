@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence, useScroll, useMotionValueEvent, useReducedMotion } from "motion/react";
+import { Logo } from "@/components/brand/Logo";
 
 const ease = [0.32, 0.72, 0, 1] as const;
 
@@ -58,10 +59,11 @@ export function PublicHeader() {
           {/* Logo */}
           <Link
             href="/"
-            className="px-4 py-1.5 text-[15px] font-semibold tracking-tight text-[#111010]
+            aria-label="Aplomb — home"
+            className="px-4 py-1.5 text-[17px] text-[#111010]
                        hover:opacity-70 transition-opacity duration-200"
           >
-            Aplomb
+            <Logo />
           </Link>
 
           {/* Divider */}

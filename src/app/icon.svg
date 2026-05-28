@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Aplomb">
+  <defs>
+    <radialGradient id="dot" cx="42%" cy="38%" r="62%">
+      <stop offset="0%" stop-color="#E86A3C"/>
+      <stop offset="55%" stop-color="#D9542C"/>
+      <stop offset="100%" stop-color="#B23E1C"/>
+    </radialGradient>
+    <radialGradient id="halo" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#D9542C" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#D9542C" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="32" height="32" rx="7" fill="#1a1410"/>
+  <circle cx="16" cy="16" r="13" fill="url(#halo)"/>
+  <circle cx="16" cy="16" r="7.5" fill="url(#dot)"/>
+</svg>

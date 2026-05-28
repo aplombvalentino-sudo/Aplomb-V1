@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Logo } from "@/components/brand/Logo";
 
 const productLinks = [
   { label: "Features", href: "/#features" },
@@ -26,7 +27,7 @@ export function PublicFooter() {
         <div className="grid grid-cols-2 gap-10 py-16 md:grid-cols-[2fr_1fr_1fr_1fr]">
           {/* Brand column */}
           <div className="col-span-2 md:col-span-1">
-            <span className="text-[15px] font-semibold tracking-tight text-[#111010]">Aplomb</span>
+            <span className="text-[18px] text-[#111010]"><Logo /></span>
             <p className="mt-2 max-w-[28ch] text-[13px] leading-[1.65] text-[#7A7773]">
               Size intelligence and outfit styling for fashion brands that care about the fitting room.
             </p>

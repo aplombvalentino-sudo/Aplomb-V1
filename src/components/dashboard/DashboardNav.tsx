@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
 import { cn } from "@/lib/cn";
+import { Logo } from "@/components/brand/Logo";
 import {
   LayoutDashboard,
   Package,
@@ -38,10 +39,10 @@ export function DashboardNav({ brandName }: { brandName: string }) {
       <div className="flex h-16 items-center border-b border-black/[0.07] px-6">
         <Link
           href="/"
-          className="text-[16px] font-semibold tracking-tight text-[#111010]
-                     hover:opacity-60 transition-opacity duration-200"
+          aria-label="Aplomb — home"
+          className="text-[18px] text-[#111010] hover:opacity-60 transition-opacity duration-200"
         >
-          Aplomb
+          <Logo />
         </Link>
       </div>
 

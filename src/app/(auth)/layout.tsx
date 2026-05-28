@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion } from "motion/react";
+import { Logo } from "@/components/brand/Logo";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
@@ -109,9 +110,10 @@ function AuthLayoutContent({ children }: { children: React.ReactNode }) {
         >
           <Link
             href="/"
-            className="text-[16px] font-semibold tracking-tight text-white hover:opacity-70 transition-opacity"
+            aria-label="Aplomb — home"
+            className="text-[18px] text-white hover:opacity-70 transition-opacity"
           >
-            Aplomb
+            <Logo />
           </Link>
         </motion.div>
 
@@ -175,8 +177,8 @@ function AuthLayoutContent({ children }: { children: React.ReactNode }) {
       <div className="flex flex-1 flex-col items-center justify-center px-4 py-12 sm:px-8">
         {/* Mobile logo */}
         <div className="mb-8 self-start lg:hidden">
-          <Link href="/" className="text-[16px] font-semibold tracking-tight text-[#111010]">
-            Aplomb
+          <Link href="/" aria-label="Aplomb — home" className="text-[18px] text-[#111010]">
+            <Logo />
           </Link>
         </div>
 

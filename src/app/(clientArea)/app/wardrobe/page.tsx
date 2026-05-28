@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { isValidClientPlan, CLIENT_PLAN_COOKIE } from "@/lib/planLimits";
 import { WardrobeClient } from "@/components/client/WardrobeClient";
 import { ClientSignOutLink } from "@/components/client/ClientSignOutLink";
+import { Logo } from "@/components/brand/Logo";
 import Link from "next/link";
 import { Metadata } from "next";
 
@@ -30,10 +31,9 @@ export default async function WardrobePage() {
       {/* Header */}
       <header className="sticky top-0 z-10 border-b border-black/[0.07] bg-[#F7F6F3]/90
                           backdrop-blur-md px-6 py-4 flex items-center justify-between">
-        <Link href="/"
-          className="text-[15px] font-semibold tracking-tight text-[#111010]
-                     hover:opacity-60 transition-opacity duration-200">
-          Aplomb
+        <Link href="/" aria-label="Aplomb — home"
+          className="text-[17px] text-[#111010] hover:opacity-60 transition-opacity duration-200">
+          <Logo />
         </Link>
         <div className="flex items-center gap-4">
           <Link href="/app" className="text-[12px] text-[#7A7773] hover:text-[#111010]

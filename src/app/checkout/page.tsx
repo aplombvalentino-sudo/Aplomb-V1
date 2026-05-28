@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Metadata } from "next";
+import { Logo } from "@/components/brand/Logo";
 
 export const metadata: Metadata = { title: "Checkout — Aplomb" };
 
@@ -99,10 +100,10 @@ export default async function CheckoutPage({ searchParams }: Props) {
                           backdrop-blur-md px-6 py-4 flex items-center justify-between">
         <Link
           href="/"
-          className="text-[15px] font-semibold tracking-tight text-[#111010]
-                     hover:opacity-60 transition-opacity duration-200"
+          aria-label="Aplomb — home"
+          className="text-[17px] text-[#111010] hover:opacity-60 transition-opacity duration-200"
         >
-          Aplomb
+          <Logo />
         </Link>
         <span className="text-[12px] text-[#7A7773]">Checkout</span>
       </header>
