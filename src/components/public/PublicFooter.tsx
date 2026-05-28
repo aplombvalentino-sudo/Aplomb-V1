@@ -21,7 +21,7 @@ const legalLinks = [
 
 export function PublicFooter() {
   return (
-    <footer className="border-t border-black/[0.07] bg-[#F7F6F3]">
+    <footer className="border-t border-black/[0.07] bg-[#F6F3EE]">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         {/* Top row */}
         <div className="grid grid-cols-2 gap-10 py-16 md:grid-cols-[2fr_1fr_1fr_1fr]">
@@ -74,7 +74,7 @@ export function PublicFooter() {
             </p>
             <ul className="space-y-3">
               {productLinks.map((l) => (
-                <li key={l.href}>
+                <li key={l.label}>
                   <Link
                     href={l.href}
                     className="text-[13px] text-[#6B6965] transition-colors duration-200 hover:text-[#111010]"
@@ -93,7 +93,7 @@ export function PublicFooter() {
             </p>
             <ul className="space-y-3">
               {companyLinks.map((l) => (
-                <li key={l.href}>
+                <li key={l.label}>
                   <Link
                     href={l.href}
                     className="text-[13px] text-[#6B6965] transition-colors duration-200 hover:text-[#111010]"
@@ -112,7 +112,7 @@ export function PublicFooter() {
             </p>
             <ul className="space-y-3">
               {legalLinks.map((l) => (
-                <li key={l.href}>
+                <li key={l.label}>
                   <Link
                     href={l.href}
                     className="text-[13px] text-[#6B6965] transition-colors duration-200 hover:text-[#111010]"

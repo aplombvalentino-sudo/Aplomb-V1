@@ -19,10 +19,10 @@
 
 | Rule | Detail |
 |---|---|
-| **No generic AI aesthetic** | No purple/cyan gradients, mesh blobs, neon glows, glassmorphism on scrolling content. |
-| **Off-black, not pure black** | Use `#111010`. Background canvas `#F7F6F3`. Surfaces `#FFFFFF` / `#F9F8F6`. |
-| **Brand palette** | Champagne accent `#C9A882`; **brand orange `#D9542C`** (the logo dot, `--accent`). One accent per context; saturation restrained. |
-| **Typography** | Display = Playfair serif (`font-serif`), often italic for the logo. Body = Geist sans. Mono = Geist Mono for numbers/tabular. Never use Inter. |
+| **No generic AI aesthetic** | **No background gradients** (decorative radial/linear glows removed), no mesh blobs, neon, or glassmorphism on scrolling content. **Exception:** the brand logo dot (`.aplomb-dot`) intentionally glows + pulses via `box-shadow` — keep it. |
+| **Warm surfaces, never black** | Canvas `#F6F3EE`, surface `#FFFFFF`, raised `#FBFAF7`, stone `#ECE6DC`/`#E3DCD0` for editorial blocks. Ink `#111010` is for text/buttons/small accents, NOT page surfaces. Tokens: `bg-canvas`/`bg-surface`/`bg-stone(-deep)`/`text-ink`. |
+| **Brand palette** | **Terracotta `#C9653B`** is the signature accent (`--accent`, the logo period), used **≤5%**. Champagne `#C9A882` is a quiet second warm accent. One accent per context; saturation restrained. (Updated 2026-05-28 — was orange `#D9542C`.) |
+| **Typography** | Two families only. Display/brand voice = **Fraunces** variable italic serif (`font-serif`), often italic with a terracotta signature period. Body/UI = **Geist** sans. **No mono** — numbers use the `.nums` tabular utility. Never use Inter. |
 | **Contrast ≥ AA** | Lightest muted text token is `#7A7773` (passes 4.5:1 on canvas). `#6B6965` for stronger muted. Never `#9C9894` for text. |
 | **Reduced motion** | All animated components use `useReducedMotion()`; global CSS block in `globals.css` neutralises CSS transitions for reduced-motion users. |
 | **Decorative = aria-hidden** | Icons, avatar clusters, mockups get `aria-hidden`; interactive elements get visible `focus-visible` rings. |

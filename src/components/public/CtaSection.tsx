@@ -7,23 +7,7 @@ const ease = [0.16, 1, 0.3, 1] as const;
 
 export function CtaSection() {
   return (
-    <section className="relative overflow-hidden bg-[#1C1915] px-4 py-28 sm:px-6 lg:px-8">
-      {/* Gradient bridge — fades from canvas into the dark section */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-20"
-        style={{ background: "linear-gradient(to bottom, #F7F6F3, transparent)" }}
-      />
-      {/* Radial glow */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(ellipse 60% 80% at 20% 50%, rgba(180,140,100,0.10) 0%, transparent 65%)",
-        }}
-      />
-
+    <section className="relative overflow-hidden border-t border-hairline bg-stone-deep px-4 py-28 sm:px-6 lg:px-8">
       <div className="relative mx-auto max-w-6xl">
         <div className="max-w-2xl">
           {/* Eyebrow */}
@@ -32,8 +16,8 @@ export function CtaSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.55, ease }}
-            className="inline-flex items-center rounded-full border border-white/[0.12]
-                       px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-white/40"
+            className="inline-flex items-center rounded-full border border-hairline-strong
+                       px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-ink-subtle"
           >
             Built for fashion brands
           </motion.span>
@@ -44,10 +28,11 @@ export function CtaSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.75, delay: 0.07, ease }}
-            className="mt-5 font-serif text-[clamp(2rem,3.8vw,3.2rem)] font-semibold leading-[1.08]
-                       tracking-[-0.03em] text-white"
+            className="mt-5 font-serif text-[clamp(2rem,3.8vw,3.2rem)] font-medium leading-[1.08]
+                       tracking-[-0.02em] text-ink"
           >
-            Ready to reduce returns and boost conversion?
+            Ready to reduce returns and boost <em className="italic">conversion</em>
+            <span className="text-accent">?</span>
           </motion.h2>
 
           {/* Sub-copy */}
@@ -56,10 +41,9 @@ export function CtaSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.65, delay: 0.15, ease }}
-            className="mt-5 text-[17px] leading-[1.6] text-white/50"
+            className="mt-5 text-[17px] leading-[1.6] text-ink-muted"
           >
-            Set up Aplomb in under 30 minutes.
-            No engineering team required.
+            Set up Aplomb in under 30 minutes. No engineering team required.
           </motion.p>
 
           {/* CTAs */}
@@ -70,22 +54,22 @@ export function CtaSection() {
             transition={{ duration: 0.6, delay: 0.26, ease }}
             className="mt-10 flex flex-wrap items-center gap-3"
           >
-            {/* Primary */}
+            {/* Primary — ink pill with terracotta arrow */}
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
               <Link
                 href="/signup"
-                className="group inline-flex items-center gap-2.5 rounded-full bg-white
-                           pl-6 pr-2.5 py-3 text-sm font-medium text-[#111010]
+                className="group inline-flex items-center gap-2.5 rounded-full bg-ink
+                           pl-6 pr-2.5 py-3 text-sm font-medium text-white
                            transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
-                           hover:bg-[#F7F6F3]"
+                           hover:bg-[#2a2622]"
               >
                 Start for free
                 <span className="flex h-7 w-7 items-center justify-center rounded-full
-                                 bg-black/[0.06] transition-all duration-500
+                                 bg-accent aplomb-glow transition-all duration-500
                                  ease-[cubic-bezier(0.32,0.72,0,1)]
                                  group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
                   <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-                    <path d="M2.5 8.5L8.5 2.5M8.5 2.5H3.5M8.5 2.5V7.5" stroke="#111010" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M2.5 8.5L8.5 2.5M8.5 2.5H3.5M8.5 2.5V7.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </span>
               </Link>
@@ -94,9 +78,9 @@ export function CtaSection() {
             {/* Secondary */}
             <Link
               href="/pricing"
-              className="inline-flex items-center gap-2 rounded-full border border-white/[0.14]
-                         px-6 py-3 text-sm font-medium text-white/70
-                         hover:text-white hover:border-white/25 transition-all duration-300"
+              className="inline-flex items-center gap-2 rounded-full border border-hairline-strong
+                         px-6 py-3 text-sm font-medium text-ink-muted
+                         hover:text-ink hover:border-ink/30 transition-all duration-300"
             >
               View pricing
             </Link>
@@ -110,6 +94,7 @@ export function CtaSection() {
           viewport={{ once: true }}
           transition={{ duration: 0.75, delay: 0.3, ease }}
           className="absolute right-0 top-1/2 -translate-y-1/2 hidden lg:flex flex-col gap-4"
+          aria-hidden="true"
         >
           {[
             { stat: "Fewer", label: "returns" },
@@ -117,10 +102,10 @@ export function CtaSection() {
             { stat: "10 min", label: "to go live" },
           ].map((s) => (
             <div key={s.stat} className="text-right">
-              <p className="text-[2rem] font-semibold tracking-[-0.03em] text-white leading-none">
+              <p className="font-serif text-[2rem] font-medium tracking-[-0.02em] text-ink leading-none">
                 {s.stat}
               </p>
-              <p className="mt-1 text-[12px] text-white/40">{s.label}</p>
+              <p className="mt-1 text-[12px] text-ink-subtle">{s.label}</p>
             </div>
           ))}
         </motion.div>

@@ -33,14 +33,14 @@ export function DashboardNav({ brandName }: { brandName: string }) {
       initial={{ opacity: 0, x: -16 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.5, ease }}
-      className="flex h-full w-60 flex-col border-r border-black/[0.07] bg-[#F9F8F6]"
+      className="flex h-full w-60 flex-col border-r border-hairline bg-[#FBFAF7]"
     >
       {/* Logo */}
-      <div className="flex h-16 items-center border-b border-black/[0.07] px-6">
+      <div className="flex h-16 items-center border-b border-hairline px-6">
         <Link
           href="/"
           aria-label="Aplomb — home"
-          className="text-[18px] text-[#111010] hover:opacity-60 transition-opacity duration-200"
+          className="text-[18px] text-ink hover:opacity-60 transition-opacity duration-200"
         >
           <Logo />
         </Link>
@@ -51,12 +51,12 @@ export function DashboardNav({ brandName }: { brandName: string }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.12, duration: 0.4 }}
-        className="border-b border-black/[0.07] px-6 py-3"
+        className="border-b border-hairline px-6 py-3"
       >
-        <p className="text-[10px] font-medium uppercase tracking-[0.15em] text-[#7A7773]">
+        <p className="text-[10px] font-medium uppercase tracking-[0.15em] text-ink-subtle">
           Brand
         </p>
-        <p className="mt-0.5 truncate text-[13px] font-medium text-[#111010]">
+        <p className="mt-0.5 truncate text-[13px] font-medium text-ink">
           {brandName}
         </p>
       </motion.div>
@@ -81,7 +81,7 @@ export function DashboardNav({ brandName }: { brandName: string }) {
                     "relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium transition-colors duration-200",
                     active
                       ? "text-white"
-                      : "text-[#6B6965] hover:text-[#111010] hover:bg-black/[0.04]"
+                      : "text-ink-muted hover:text-ink hover:bg-ink/5"
                   )}
                 >
                   {active && (
@@ -104,12 +104,12 @@ export function DashboardNav({ brandName }: { brandName: string }) {
       </nav>
 
       {/* Sign out */}
-      <div className="border-t border-black/[0.07] px-3 py-4">
+      <div className="border-t border-hairline px-3 py-4">
         <motion.button
           onClick={() => signOut({ callbackUrl: "/" })}
           whileHover={{ backgroundColor: "rgba(0,0,0,0.04)" }}
           className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px]
-                     font-medium text-[#7A7773] hover:text-[#111010] transition-colors duration-200"
+                     font-medium text-ink-subtle hover:text-ink transition-colors duration-200"
         >
           <LogOut strokeWidth={1.5} className="h-4 w-4 shrink-0" />
           Sign out

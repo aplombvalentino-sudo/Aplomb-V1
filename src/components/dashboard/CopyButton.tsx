@@ -25,8 +25,8 @@ export function CopyButton({ text, className, dark }: CopyButtonProps) {
       className={cn(
         "inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-colors",
         dark
-          ? "bg-white/10 text-gray-300 hover:bg-white/20"
-          : "bg-gray-100 text-gray-600 hover:bg-gray-200",
+          ? "bg-white/10 text-ink-subtle hover:bg-white/20"
+          : "bg-surface-raised text-ink-muted hover:bg-stone",
         className
       )}
       title="Copy to clipboard"

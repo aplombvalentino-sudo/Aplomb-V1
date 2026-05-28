@@ -84,36 +84,26 @@ export default async function CheckoutPage({ searchParams }: Props) {
   const continueHref = audience === "brand" ? "/pro/dashboard" : "/app";
 
   return (
-    <div className="min-h-[100dvh] bg-[#F7F6F3]">
-      {/* Ambient glow */}
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 -z-10"
-        style={{
-          background:
-            "radial-gradient(ellipse 50% 40% at 50% 20%, rgba(201,168,130,0.16) 0%, transparent 70%)",
-        }}
-      />
-
+    <div className="min-h-[100dvh] bg-canvas">
       {/* Header */}
-      <header className="sticky top-0 z-10 border-b border-black/[0.07] bg-[#F7F6F3]/90
+      <header className="sticky top-0 z-10 border-b border-hairline bg-canvas/90
                           backdrop-blur-md px-6 py-4 flex items-center justify-between">
         <Link
           href="/"
           aria-label="Aplomb — home"
-          className="text-[17px] text-[#111010] hover:opacity-60 transition-opacity duration-200"
+          className="text-[17px] text-ink hover:opacity-60 transition-opacity duration-200"
         >
           <Logo />
         </Link>
-        <span className="text-[12px] text-[#7A7773]">Checkout</span>
+        <span className="text-[12px] text-ink-subtle">Checkout</span>
       </header>
 
       <main className="mx-auto max-w-md px-6 py-20">
         {/* Champagne ring icon */}
         <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full
-                        ring-2 ring-[#C9A882]/40">
+                        ring-2 ring-champagne/40">
           <div className="flex h-11 w-11 items-center justify-center rounded-full
-                          ring-2 ring-[#C9A882]">
+                          ring-2 ring-champagne">
             <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden>
               <path
                 d="M11 3l2.5 6.5H20l-5.5 4 2 6.5L11 16l-5.5 4 2-6.5L2 9.5h6.5L11 3z"
@@ -126,21 +116,22 @@ export default async function CheckoutPage({ searchParams }: Props) {
         </div>
 
         <div className="text-center">
-          <span className="inline-flex items-center rounded-full border border-black/10
-                           bg-white/60 px-3 py-1 text-[10px] font-medium uppercase
-                           tracking-[0.18em] text-[#6B6965]">
+          <span className="inline-flex items-center rounded-full border border-hairline
+                           bg-surface/60 px-3 py-1 text-[10px] font-medium uppercase
+                           tracking-[0.18em] text-ink-muted">
             {audience === "brand" ? "Brand plan" : "Shopper plan"}
           </span>
           <h1 className="mt-5 font-serif text-[2rem] font-semibold leading-[1.1]
-                         tracking-[-0.025em] text-[#111010]">
-            You&apos;re ready for {planLabel}.
+                         tracking-[-0.025em] text-ink">
+            You&apos;re ready for <em className="italic">{planLabel}</em>
+            <span className="text-accent">.</span>
           </h1>
           {planPrice && (
-            <p className="mt-2 font-serif text-[1.2rem] text-[#6B6965] tabular-nums">
+            <p className="mt-2 font-serif text-[1.2rem] text-ink-muted tabular-nums nums">
               {planPrice}
             </p>
           )}
-          <p className="mt-4 text-sm leading-relaxed text-[#6B6965] max-w-[34ch] mx-auto">
+          <p className="mt-4 text-sm leading-relaxed text-ink-muted max-w-[34ch] mx-auto">
             Your account has been created. Payments through Shopify
             will be enabled soon — for now your plan is reserved.
           </p>
@@ -150,9 +141,9 @@ export default async function CheckoutPage({ searchParams }: Props) {
         <div className="mt-10 flex flex-col items-center gap-3">
           <Link
             href={continueHref}
-            className="group inline-flex items-center gap-2.5 rounded-full bg-[#111010]
+            className="group inline-flex items-center gap-2.5 rounded-full bg-ink
                        pl-6 pr-2.5 py-3 text-sm font-medium text-white
-                       hover:bg-[#2a2a2a] transition-all duration-300"
+                       hover:bg-ink/90 transition-all duration-300"
           >
             {audience === "brand" ? "Go to dashboard" : "Start fitting"}
             <span className="flex h-7 w-7 items-center justify-center rounded-full
@@ -172,7 +163,7 @@ export default async function CheckoutPage({ searchParams }: Props) {
 
           <Link
             href="/pricing"
-            className="text-[12px] text-[#7A7773] hover:text-[#111010] transition-colors duration-200"
+            className="text-[12px] text-ink-subtle hover:text-ink transition-colors duration-200"
           >
             ← Change plan
           </Link>

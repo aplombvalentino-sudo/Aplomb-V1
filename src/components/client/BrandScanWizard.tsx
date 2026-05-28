@@ -373,9 +373,9 @@ export function BrandScanWizard({
   // ─── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-[100dvh] bg-[#F7F6F3]">
+    <div className="min-h-[100dvh] bg-[#F6F3EE]">
       {/* Header */}
-      <header className="sticky top-0 z-10 border-b border-black/[0.07] bg-[#F7F6F3]/90
+      <header className="sticky top-0 z-10 border-b border-black/[0.07] bg-[#F6F3EE]/90
                           backdrop-blur-md px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div
@@ -391,7 +391,7 @@ export function BrandScanWizard({
               </span>
             )}
           </div>
-          <span className="text-[14px] font-semibold text-[#111010]">{brand.name}</span>
+          <span className="text-[14px] font-semibold text-ink">{brand.name}</span>
         </div>
         <div className="flex items-center gap-4">
           <StepDots total={6} current={step} />
@@ -399,7 +399,7 @@ export function BrandScanWizard({
             <>
               <Link
                 href="/app"
-                className="text-[12px] text-[#7A7773] hover:text-[#111010] transition-colors duration-200"
+                className="text-[12px] text-ink-subtle hover:text-ink transition-colors duration-200"
               >
                 ← All brands
               </Link>
@@ -408,7 +408,7 @@ export function BrandScanWizard({
             </>
           )}
           {widgetMode && (
-            <span className="text-[10px] uppercase tracking-[0.14em] text-[#7A7773]">
+            <span className="text-[10px] uppercase tracking-[0.14em] text-ink-subtle">
               Powered by Aplomb
             </span>
           )}
@@ -426,19 +426,19 @@ export function BrandScanWizard({
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.45, ease }}
             >
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[#7A7773]">
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-ink-subtle">
                 Step 1 of 6
               </p>
-              <h1 className="mt-3 font-serif text-[2rem] font-semibold leading-[1.1] tracking-[-0.025em] text-[#111010]">
+              <h1 className="mt-3 font-serif text-[2rem] font-semibold leading-[1.1] tracking-[-0.025em] text-ink">
                 Before we start.
               </h1>
-              <p className="mt-3 text-[14px] leading-[1.6] text-[#6B6965] max-w-[52ch]">
+              <p className="mt-3 text-[14px] leading-[1.6] text-ink-muted max-w-[52ch]">
                 We&apos;ll take two photos to estimate your body measurements. Photos are
                 stored privately, used once for measurement and try-on, and never shared
                 with third parties or shown publicly. You can delete your scan at any time.
               </p>
 
-              <ul className="mt-6 space-y-2 text-[13px] text-[#3a3632]">
+              <ul className="mt-6 space-y-2 text-[13px] text-ink">
                 <li className="flex gap-2.5">
                   <Dot />
                   Photos go to a private storage bucket — never indexed or public.
@@ -460,7 +460,7 @@ export function BrandScanWizard({
                   onChange={(e) => setConsentAccepted(e.target.checked)}
                   className="mt-1 h-4 w-4 accent-[#111010]"
                 />
-                <span className="text-[13px] text-[#3a3632] leading-[1.5]">
+                <span className="text-[13px] text-ink leading-[1.5]">
                   I agree to the body-scan privacy terms above.
                 </span>
               </label>
@@ -471,7 +471,7 @@ export function BrandScanWizard({
                   disabled={!consentAccepted || totalProducts === 0}
                   className="inline-flex items-center gap-2.5 rounded-full bg-[#111010]
                              pl-6 pr-2.5 py-3 text-sm font-medium text-white
-                             hover:bg-[#2a2a2a] transition-all duration-300
+                             hover:bg-[#2a2622] transition-all duration-300
                              disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Start
@@ -490,13 +490,13 @@ export function BrandScanWizard({
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.45, ease }}
             >
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[#7A7773]">
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-ink-subtle">
                 Step 2 of 6
               </p>
-              <h2 className="mt-3 font-serif text-[2rem] font-semibold leading-[1.1] tracking-[-0.025em] text-[#111010]">
+              <h2 className="mt-3 font-serif text-[2rem] font-semibold leading-[1.1] tracking-[-0.025em] text-ink">
                 Choose your measurement mode.
               </h2>
-              <p className="mt-3 text-[14px] text-[#6B6965]">
+              <p className="mt-3 text-[14px] text-ink-muted">
                 You can switch later in your wardrobe.
               </p>
 
@@ -520,15 +520,15 @@ export function BrandScanWizard({
               <div className="mt-8 flex items-center gap-3">
                 <button
                   onClick={() => setStep(0)}
-                  className="rounded-full border border-black/[0.12] bg-white px-5 py-2.5
-                             text-sm font-medium text-[#6B6965] hover:bg-white/80 transition-all duration-200"
+                  className="rounded-full border border-hairline-strong bg-white px-5 py-2.5
+                             text-sm font-medium text-ink-muted hover:bg-white/80 transition-all duration-200"
                 >
                   Back
                 </button>
                 <button
                   onClick={() => setStep(2)}
                   className="inline-flex items-center gap-2.5 rounded-full bg-[#111010] pl-6 pr-2.5 py-3
-                             text-sm font-medium text-white hover:bg-[#2a2a2a] transition-all duration-300"
+                             text-sm font-medium text-white hover:bg-[#2a2622] transition-all duration-300"
                 >
                   Continue with {mode === "easy" ? "Easy" : "Advanced"}
                   <Arrow />
@@ -546,13 +546,13 @@ export function BrandScanWizard({
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.45, ease }}
             >
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[#7A7773]">
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-ink-subtle">
                 Step 3 of 6 · {mode === "easy" ? "Easy" : "Advanced"} mode
               </p>
-              <h2 className="mt-3 font-serif text-[2rem] font-semibold leading-[1.1] tracking-[-0.025em] text-[#111010]">
+              <h2 className="mt-3 font-serif text-[2rem] font-semibold leading-[1.1] tracking-[-0.025em] text-ink">
                 Your measurements.
               </h2>
-              <p className="mt-3 text-[14px] text-[#6B6965]">
+              <p className="mt-3 text-[14px] text-ink-muted">
                 We&apos;ll combine your inputs with the photos to estimate your size.
               </p>
 
@@ -564,7 +564,7 @@ export function BrandScanWizard({
 
               {/* Gender (optional, improves heuristic) */}
               <div className="mt-3">
-                <label className="block text-[11px] font-medium text-[#6B6965] mb-1.5">
+                <label className="block text-[11px] font-medium text-ink-muted mb-1.5">
                   Gender (optional, improves accuracy)
                 </label>
                 <div className="flex gap-2">
@@ -576,7 +576,7 @@ export function BrandScanWizard({
                       className={`rounded-full px-4 py-2 text-[13px] font-medium capitalize border transition-all duration-200 ${
                         gender === g
                           ? "bg-[#111010] text-white border-[#111010]"
-                          : "bg-white text-[#6B6965] border-black/[0.1] hover:border-black/20"
+                          : "bg-white text-ink-muted border-black/[0.1] hover:border-black/20"
                       }`}
                     >
                       {g}
@@ -616,7 +616,7 @@ export function BrandScanWizard({
               {/* Style / occasion (drives outfit step downstream) */}
               <div className="mt-7 space-y-4">
                 <div>
-                  <label className="block text-[11px] font-medium text-[#6B6965] mb-1.5">Style</label>
+                  <label className="block text-[11px] font-medium text-ink-muted mb-1.5">Style</label>
                   <div className="flex gap-2">
                     {(["casual", "formal", "sport"] as const).map((s) => (
                       <button
@@ -626,7 +626,7 @@ export function BrandScanWizard({
                         className={`rounded-full px-4 py-2 text-[13px] font-medium capitalize border transition-all duration-200 ${
                           stylePreference === s
                             ? "bg-[#111010] text-white border-[#111010]"
-                            : "bg-white text-[#6B6965] border-black/[0.1] hover:border-black/20"
+                            : "bg-white text-ink-muted border-black/[0.1] hover:border-black/20"
                         }`}
                       >
                         {s}
@@ -636,7 +636,7 @@ export function BrandScanWizard({
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-medium text-[#6B6965] mb-1.5">
+                  <label className="block text-[11px] font-medium text-ink-muted mb-1.5">
                     Occasion (optional)
                   </label>
                   <div className="flex flex-wrap gap-2 mb-2">
@@ -648,7 +648,7 @@ export function BrandScanWizard({
                         className={`rounded-full px-3 py-1.5 text-[12px] font-medium border transition-all duration-200 ${
                           occasion === o
                             ? "bg-[#111010] text-white border-[#111010]"
-                            : "bg-white text-[#6B6965] border-black/[0.1] hover:border-black/20"
+                            : "bg-white text-ink-muted border-black/[0.1] hover:border-black/20"
                         }`}
                       >
                         {o}
@@ -662,7 +662,7 @@ export function BrandScanWizard({
                       onChange={(e) => setOccasion(e.target.value)}
                       placeholder="Or type a custom occasion…"
                       className="w-full rounded-xl border border-black/[0.1] bg-white px-4 py-3 text-sm
-                                 text-[#111010] placeholder:text-[#C9C5C0]
+                                 text-ink placeholder:text-ink-subtle
                                  focus:outline-none focus:ring-2 focus:ring-[#111010]/10"
                     />
                   )}
@@ -671,10 +671,10 @@ export function BrandScanWizard({
 
               {/* Quota counter */}
               {planLimits.maxScansPerMonth !== Infinity && (
-                <div className="mt-6 rounded-xl bg-white border border-black/[0.06] px-4 py-3
+                <div className="mt-6 rounded-xl bg-white border border-hairline px-4 py-3
                                  flex items-center justify-between">
-                  <span className="text-[12px] text-[#6B6965]">Scans used this month</span>
-                  <span className="text-[13px] font-semibold text-[#111010] tabular-nums">
+                  <span className="text-[12px] text-ink-muted">Scans used this month</span>
+                  <span className="text-[13px] font-semibold text-ink tabular-nums">
                     {scanCount} / {planLimits.maxScansPerMonth}
                   </span>
                 </div>
@@ -698,8 +698,8 @@ export function BrandScanWizard({
               <div className="mt-8 flex items-center gap-3">
                 <button
                   onClick={() => setStep(1)}
-                  className="rounded-full border border-black/[0.12] bg-white px-5 py-2.5 text-sm
-                             font-medium text-[#6B6965] hover:bg-white/80 transition-all duration-200"
+                  className="rounded-full border border-hairline-strong bg-white px-5 py-2.5 text-sm
+                             font-medium text-ink-muted hover:bg-white/80 transition-all duration-200"
                 >
                   Back
                 </button>
@@ -707,7 +707,7 @@ export function BrandScanWizard({
                   onClick={submitMeasurements}
                   disabled={loading || scanLimitReached}
                   className="inline-flex items-center gap-2.5 rounded-full bg-[#111010] pl-6 pr-2.5 py-3
-                             text-sm font-medium text-white hover:bg-[#2a2a2a] transition-all duration-300
+                             text-sm font-medium text-white hover:bg-[#2a2622] transition-all duration-300
                              disabled:opacity-50 disabled:cursor-wait"
                 >
                   {loading ? "Sending…" : scanLimitReached ? "Limit reached" : "Get my fit"}
@@ -726,10 +726,10 @@ export function BrandScanWizard({
               exit={{ opacity: 0 }}
               transition={{ duration: 0.5, ease }}
             >
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[#7A7773]">
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-ink-subtle">
                 Step 4 of 6
               </p>
-              <h2 className="mt-3 font-serif text-[2rem] font-semibold leading-[1.1] tracking-[-0.025em] text-[#111010]">
+              <h2 className="mt-3 font-serif text-[2rem] font-semibold leading-[1.1] tracking-[-0.025em] text-ink">
                 Reading your shape.
               </h2>
 
@@ -751,7 +751,7 @@ export function BrandScanWizard({
                     />
                     <span
                       className={`text-[14px] ${
-                        i <= processingStage ? "text-[#111010]" : "text-[#7A7773]"
+                        i <= processingStage ? "text-ink" : "text-ink-subtle"
                       }`}
                     >
                       {label}
@@ -765,7 +765,7 @@ export function BrandScanWizard({
                 {[1, 2, 3].map((i) => (
                   <div
                     key={i}
-                    className="h-[60px] rounded-2xl bg-black/[0.04] animate-pulse"
+                    className="h-[60px] rounded-2xl bg-ink/5 animate-pulse"
                     style={{ animationDelay: `${i * 80}ms` }}
                   />
                 ))}
@@ -782,15 +782,15 @@ export function BrandScanWizard({
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.5, ease }}
             >
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[#7A7773]">
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-ink-subtle">
                 Step 5 of 6
               </p>
-              <h2 className="mt-3 font-serif text-[2rem] font-semibold leading-[1.1] tracking-[-0.025em] text-[#111010]">
+              <h2 className="mt-3 font-serif text-[2rem] font-semibold leading-[1.1] tracking-[-0.025em] text-ink">
                 Here&apos;s your fit.
               </h2>
-              <p className="mt-2 text-[13px] text-[#7A7773]">
+              <p className="mt-2 text-[13px] text-ink-subtle">
                 Estimated with{" "}
-                <span className="font-medium text-[#6B6965]">
+                <span className="font-medium text-ink-muted">
                   {result.measurements.measurementMode === "advanced" ? "Advanced" : "Easy"}
                 </span>{" "}
                 mode.
@@ -812,16 +812,16 @@ export function BrandScanWizard({
                     return (
                       <div
                         key={k as string}
-                        className="rounded-xl bg-white border border-black/[0.06] px-4 py-3.5"
+                        className="rounded-xl bg-white border border-hairline px-4 py-3.5"
                       >
-                        <p className="text-[10px] uppercase tracking-[0.1em] text-[#7A7773] capitalize mb-0.5">
+                        <p className="text-[10px] uppercase tracking-[0.1em] text-ink-subtle capitalize mb-0.5">
                           {k as string}
                         </p>
-                        <p className="font-serif text-[1.4rem] font-semibold text-[#111010] leading-none tabular-nums">
+                        <p className="font-serif text-[1.4rem] font-semibold text-ink leading-none tabular-nums">
                           {Math.round(v as number)}
-                          <span className="text-[12px] font-normal text-[#7A7773] ml-1">cm</span>
+                          <span className="text-[12px] font-normal text-ink-subtle ml-1">cm</span>
                         </p>
-                        <p className="mt-1 text-[10px] text-[#C9C5C0]">
+                        <p className="mt-1 text-[10px] text-ink-subtle">
                           {source === "manual" ? "you provided" : "estimated"}
                         </p>
                       </div>
@@ -831,27 +831,27 @@ export function BrandScanWizard({
 
               {/* Sizes per category */}
               {result.sizeRecommendations.length > 0 && (
-                <div className="mt-6 rounded-2xl bg-[#111010] px-6 py-5">
-                  <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-white/40 mb-4">
+                <div className="mt-6 rounded-2xl border border-hairline bg-stone-deep px-6 py-5">
+                  <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink-subtle mb-4">
                     Recommended sizes
                   </p>
-                  <ul className="divide-y divide-white/[0.08]">
+                  <ul className="divide-y divide-hairline">
                     {result.sizeRecommendations.map((r) => (
                       <li key={r.category} className="flex items-start justify-between gap-3 py-3 first:pt-0 last:pb-0">
                         <div className="min-w-0">
-                          <p className="text-[13px] text-white/80 capitalize">{r.category}</p>
+                          <p className="text-[13px] text-ink capitalize">{r.category}</p>
                           <div className="mt-1 flex items-center gap-1.5">
                             <span
                               className="h-1.5 w-1.5 rounded-full"
                               style={{ background: confidenceDot(r.confidence) }}
                             />
-                            <span className="text-[10px] uppercase tracking-[0.12em] text-white/40">
+                            <span className="text-[10px] uppercase tracking-[0.12em] text-ink-subtle">
                               {confidenceLabel(r.confidence)}
                             </span>
                           </div>
-                          <p className="mt-2 text-[12px] text-white/50 leading-[1.5]">{r.explanation}</p>
+                          <p className="mt-2 text-[12px] text-ink-muted leading-[1.5]">{r.explanation}</p>
                         </div>
-                        <span className="shrink-0 font-serif text-[1.6rem] font-semibold text-white leading-none tabular-nums">
+                        <span className="shrink-0 font-serif text-[1.6rem] font-medium text-ink leading-none nums">
                           {r.recommendedSize}
                         </span>
                       </li>
@@ -871,7 +871,7 @@ export function BrandScanWizard({
                   onClick={generateOutfits}
                   disabled={loading}
                   className="inline-flex items-center gap-2.5 rounded-full bg-[#111010] pl-6 pr-2.5 py-3
-                             text-sm font-medium text-white hover:bg-[#2a2a2a] transition-all duration-300
+                             text-sm font-medium text-white hover:bg-[#2a2622] transition-all duration-300
                              disabled:opacity-50 disabled:cursor-wait"
                 >
                   {loading ? "Building outfits…" : "See outfit ideas"}
@@ -890,34 +890,34 @@ export function BrandScanWizard({
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.5, ease }}
             >
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[#7A7773]">
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-ink-subtle">
                 Step 6 of 6
               </p>
-              <h2 className="mt-3 font-serif text-[2rem] font-semibold leading-[1.1] tracking-[-0.025em] text-[#111010]">
+              <h2 className="mt-3 font-serif text-[2rem] font-semibold leading-[1.1] tracking-[-0.025em] text-ink">
                 {outfits.length > 0
                   ? `${outfits.length} look${outfits.length === 1 ? "" : "s"} picked for you.`
                   : "No outfits available yet."}
               </h2>
 
               {outfits.length === 0 ? (
-                <div className="mt-8 rounded-2xl border border-black/[0.06] bg-white py-12 text-center">
-                  <p className="text-[#6B6965]">Not enough products to build an outfit yet.</p>
+                <div className="mt-8 rounded-2xl border border-hairline bg-white py-12 text-center">
+                  <p className="text-ink-muted">Not enough products to build an outfit yet.</p>
                 </div>
               ) : (
                 <div className="mt-6 space-y-4">
                   {outfits.map((outfit, i) => (
                     <article
                       key={outfit.id}
-                      className="rounded-2xl bg-white border border-black/[0.06] shadow-[0_2px_16px_rgba(0,0,0,0.04)] p-5"
+                      className="rounded-2xl bg-white border border-hairline shadow-[0_2px_16px_rgba(0,0,0,0.04)] p-5"
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div className="min-w-0">
-                          <p className="text-[11px] text-[#7A7773] uppercase tracking-[0.12em] font-medium mb-0.5">
+                          <p className="text-[11px] text-ink-subtle uppercase tracking-[0.12em] font-medium mb-0.5">
                             Look {i + 1}
                           </p>
-                          <p className="text-[15px] font-semibold text-[#111010]">{outfit.title}</p>
+                          <p className="text-[15px] font-semibold text-ink">{outfit.title}</p>
                           {outfit.description && (
-                            <p className="mt-0.5 text-[12px] text-[#7A7773]">{outfit.description}</p>
+                            <p className="mt-0.5 text-[12px] text-ink-subtle">{outfit.description}</p>
                           )}
                         </div>
                       </div>
@@ -928,7 +928,7 @@ export function BrandScanWizard({
                           return (
                             <li key={item.id} className="flex items-center gap-3 py-3 first:pt-0">
                               {/* Product thumbnail */}
-                              <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-[#F7F6F3]">
+                              <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-[#F6F3EE]">
                                 {item.product.imageUrl ? (
                                   <Image
                                     src={item.product.imageUrl}
@@ -943,18 +943,18 @@ export function BrandScanWizard({
                                 )}
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="truncate text-[13px] font-medium text-[#111010]">
+                                <p className="truncate text-[13px] font-medium text-ink">
                                   {item.product.name}
                                 </p>
-                                <p className="text-[10px] uppercase tracking-[0.1em] text-[#C9C5C0]">
+                                <p className="text-[10px] uppercase tracking-[0.1em] text-ink-subtle">
                                   {item.position}
                                 </p>
                               </div>
                               <button
                                 onClick={() => runTryOn(item.id)}
                                 disabled={t?.loading}
-                                className="shrink-0 rounded-full border border-black/[0.12] bg-white px-3.5 py-1.5 text-[12px] font-medium
-                                           text-[#3a3632] hover:border-black/30 transition-all duration-200
+                                className="shrink-0 rounded-full border border-hairline-strong bg-white px-3.5 py-1.5 text-[12px] font-medium
+                                           text-ink hover:border-black/30 transition-all duration-200
                                            disabled:opacity-50 disabled:cursor-wait"
                               >
                                 {t?.loading
@@ -969,7 +969,7 @@ export function BrandScanWizard({
                       </ul>
 
                       {outfit.rationale && (
-                        <p className="mt-3 text-[12px] text-[#7A7773] leading-[1.6] border-t border-black/[0.05] pt-3">
+                        <p className="mt-3 text-[12px] text-ink-subtle leading-[1.6] border-t border-black/[0.05] pt-3">
                           {outfit.rationale}
                         </p>
                       )}
@@ -1003,16 +1003,16 @@ export function BrandScanWizard({
                     setFrontPhoto(null);
                     setSidePhoto(null);
                   }}
-                  className="rounded-full border border-black/[0.12] bg-white px-5 py-2.5 text-sm font-medium
-                             text-[#6B6965] hover:bg-white/80 transition-all duration-200"
+                  className="rounded-full border border-hairline-strong bg-white px-5 py-2.5 text-sm font-medium
+                             text-ink-muted hover:bg-white/80 transition-all duration-200"
                 >
                   Start over
                 </button>
                 {!widgetMode && (
                   <Link
                     href="/app"
-                    className="rounded-full border border-black/[0.12] bg-white px-5 py-2.5 text-sm font-medium
-                               text-[#6B6965] hover:bg-white/80 transition-all duration-200"
+                    className="rounded-full border border-hairline-strong bg-white px-5 py-2.5 text-sm font-medium
+                               text-ink-muted hover:bg-white/80 transition-all duration-200"
                   >
                     Browse more brands
                   </Link>
@@ -1051,7 +1051,7 @@ export function BrandScanWizard({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setActiveTryOn(null)}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-ink/70 backdrop-blur-sm p-4"
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.96 }}
@@ -1065,7 +1065,7 @@ export function BrandScanWizard({
               <img
                 src={activeTryOn}
                 alt="Try-on preview"
-                className="w-full h-auto max-h-[88vh] object-contain bg-[#F7F6F3]"
+                className="w-full h-auto max-h-[88vh] object-contain bg-[#F6F3EE]"
               />
               <button
                 onClick={() => setActiveTryOn(null)}
@@ -1106,11 +1106,11 @@ function ModeCard({
       className={`group text-left rounded-2xl border p-5 transition-all duration-200 ${
         active
           ? "border-[#111010] bg-white shadow-[0_2px_24px_rgba(0,0,0,0.06)]"
-          : "border-black/[0.08] bg-white hover:border-black/20"
+          : "border-hairline bg-white hover:border-black/20"
       }`}
     >
       <div className="flex items-start justify-between gap-3">
-        <h3 className="font-serif text-[1.4rem] font-semibold tracking-[-0.02em] text-[#111010] leading-tight">
+        <h3 className="font-serif text-[1.4rem] font-semibold tracking-[-0.02em] text-ink leading-tight">
           {title}
         </h3>
         <span
@@ -1120,13 +1120,13 @@ function ModeCard({
           }`}
         />
       </div>
-      <p className="mt-1.5 text-[13px] text-[#6B6965] leading-[1.55]">{body}</p>
+      <p className="mt-1.5 text-[13px] text-ink-muted leading-[1.55]">{body}</p>
       <div className="mt-3 flex flex-wrap gap-1.5">
         {tags.map((t) => (
           <span
             key={t}
-            className="inline-flex items-center rounded-full bg-[#F7F6F3] px-2.5 py-0.5
-                       text-[10px] font-medium uppercase tracking-[0.12em] text-[#6B6965]"
+            className="inline-flex items-center rounded-full bg-[#F6F3EE] px-2.5 py-0.5
+                       text-[10px] font-medium uppercase tracking-[0.12em] text-ink-muted"
           >
             {t}
           </span>
@@ -1153,7 +1153,7 @@ function NumField({
 }) {
   return (
     <div>
-      <label className="block text-[11px] font-medium text-[#6B6965] mb-1.5">{label}</label>
+      <label className="block text-[11px] font-medium text-ink-muted mb-1.5">{label}</label>
       <input
         type="number"
         min={min}
@@ -1161,9 +1161,9 @@ function NumField({
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
         className="w-full rounded-xl border border-black/[0.1] bg-white px-4 py-3 text-sm
-                   text-[#111010] focus:outline-none focus:ring-2 focus:ring-[#111010]/10"
+                   text-ink focus:outline-none focus:ring-2 focus:ring-[#111010]/10"
       />
-      {help && <p className="mt-1 text-[11px] text-[#7A7773] leading-[1.4]">{help}</p>}
+      {help && <p className="mt-1 text-[11px] text-ink-subtle leading-[1.4]">{help}</p>}
     </div>
   );
 }
@@ -1194,7 +1194,7 @@ function PhotoField({
 
   return (
     <div>
-      <label className="block text-[11px] font-medium text-[#6B6965] mb-1.5">{label}</label>
+      <label className="block text-[11px] font-medium text-ink-muted mb-1.5">{label}</label>
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
@@ -1213,8 +1213,8 @@ function PhotoField({
               <circle cx="11" cy="12" r="3" stroke="#6B6965" strokeWidth="1.5" />
               <path d="M7 6l1.5-2h5L15 6" stroke="#6B6965" strokeWidth="1.5" strokeLinejoin="round" />
             </svg>
-            <p className="mt-2 text-[12px] font-medium text-[#3a3632]">Add photo</p>
-            <p className="mt-0.5 text-[10px] text-[#7A7773] leading-[1.4] max-w-[20ch]">{guidance}</p>
+            <p className="mt-2 text-[12px] font-medium text-ink">Add photo</p>
+            <p className="mt-0.5 text-[10px] text-ink-subtle leading-[1.4] max-w-[20ch]">{guidance}</p>
           </div>
         )}
       </button>
@@ -1226,7 +1226,7 @@ function PhotoField({
             onChange(null);
             if (inputRef.current) inputRef.current.value = "";
           }}
-          className="mt-1.5 text-[11px] text-[#7A7773] hover:text-[#111010] transition-colors"
+          className="mt-1.5 text-[11px] text-ink-subtle hover:text-ink transition-colors"
         >
           Replace
         </button>
@@ -1251,7 +1251,7 @@ function Dot() {
 
 function Arrow() {
   return (
-    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/[0.12]">
+    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent aplomb-glow">
       <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden>
         <path
           d="M2.5 8.5L8.5 2.5M8.5 2.5H3.5M8.5 2.5V7.5"

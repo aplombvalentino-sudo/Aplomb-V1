@@ -46,14 +46,14 @@ export function PublicHeader() {
       >
         <motion.nav
           animate={{
-            backgroundColor: scrolled ? "rgba(247,246,243,0.88)" : "rgba(247,246,243,0.72)",
+            backgroundColor: scrolled ? "rgba(246,243,238,0.98)" : "rgba(246,243,238,0.88)",
             boxShadow: scrolled
-              ? "0 2px 32px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.6)"
-              : "0 1px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.5)",
+              ? "0 2px 28px rgba(17,16,16,0.08), inset 0 1px 0 rgba(255,255,255,0.6)"
+              : "0 1px 14px rgba(17,16,16,0.05), inset 0 1px 0 rgba(255,255,255,0.5)",
           }}
           transition={{ duration: 0.4, ease: "easeOut" }}
-          className="flex items-center gap-1 rounded-full px-2 py-2 backdrop-blur-md
-                     ring-1 ring-black/[0.07]"
+          className="flex items-center gap-1 rounded-full px-2 py-2 backdrop-blur-sm
+                     ring-1 ring-hairline"
           style={{ willChange: "box-shadow" }}
         >
           {/* Logo */}
@@ -110,7 +110,7 @@ export function PublicHeader() {
                            hover:bg-[#2a2a2a]"
               >
                 Get started
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent aplomb-glow
                                  transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]
                                  group-hover:translate-x-0.5 group-hover:-translate-y-px">
                   <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
@@ -157,7 +157,7 @@ export function PublicHeader() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="fixed inset-0 z-40 flex flex-col bg-[#F7F6F3]/95 backdrop-blur-2xl pt-28 px-8"
+            className="fixed inset-0 z-40 flex flex-col bg-[#F6F3EE]/95 backdrop-blur-2xl pt-28 px-8"
           >
             <nav className="flex flex-col gap-2">
               {[...navLinks, { label: "Log in", href: "/login" }].map((link, i) => (

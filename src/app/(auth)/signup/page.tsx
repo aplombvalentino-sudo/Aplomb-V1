@@ -54,10 +54,10 @@ function SignupContent() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.08, ease }}
         >
-          <h1 className="font-serif text-[2rem] font-semibold leading-[1.1] tracking-[-0.025em] text-[#111010]">
-            How will you use Aplomb?
+          <h1 className="font-serif text-[2.2rem] font-medium leading-[1.05] tracking-[-0.02em] text-ink">
+            How will you <em className="italic">use</em> Aplomb<span className="text-accent">?</span>
           </h1>
-          <p className="mt-2 text-sm text-[#6B6965]">
+          <p className="mt-2 text-sm text-ink-muted">
             Choose the right path — you can switch later.
           </p>
         </motion.div>
@@ -99,10 +99,10 @@ function SignupContent() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4, delay: 0.4 }}
-          className="mt-7 text-sm text-[#6B6965]"
+          className="mt-7 text-sm text-ink-muted"
         >
           Already have an account?{" "}
-          <Link href="/login" className="font-medium text-[#111010] hover:underline underline-offset-2">
+          <Link href="/login" className="font-medium text-ink hover:underline underline-offset-2">
             Sign in
           </Link>
         </motion.p>
@@ -164,8 +164,8 @@ function ChooserButton({
       className={`group relative overflow-hidden rounded-2xl border p-5 text-left transition-all duration-300
                   ${
                     accent === "gold"
-                      ? "border-[#C9A882]/30 bg-[#FDF8F3] hover:border-[#C9A882] hover:shadow-[0_8px_32px_rgba(201,168,130,0.18)]"
-                      : "border-black/[0.08] bg-white hover:border-black/20 hover:shadow-[0_8px_32px_rgba(0,0,0,0.06)]"
+                      ? "border-champagne/40 bg-[var(--champagne-tint)] hover:border-champagne hover:shadow-[0_10px_34px_-12px_rgba(182,146,106,0.30)]"
+                      : "border-hairline bg-surface hover:border-ink/20 hover:shadow-[0_10px_34px_-16px_rgba(17,16,16,0.16)]"
                   }`}
     >
       <div className="flex items-start gap-4">
@@ -175,8 +175,8 @@ function ChooserButton({
           </svg>
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[15px] font-semibold text-[#111010]">{title}</p>
-          <p className="mt-1 text-[13px] text-[#6B6965] leading-relaxed">{body}</p>
+          <p className="text-[15px] font-semibold text-ink">{title}</p>
+          <p className="mt-1 text-[13px] text-ink-muted leading-relaxed">{body}</p>
         </div>
         <svg
           width="16"
@@ -184,7 +184,7 @@ function ChooserButton({
           viewBox="0 0 16 16"
           fill="none"
           className={`mt-1 shrink-0 transition-all duration-200 group-hover:translate-x-1
-                      ${accent === "gold" ? "text-[#C9A882]" : "text-[#C9C5C0] group-hover:text-[#111010]"}`}
+                      ${accent === "gold" ? "text-champagne-deep" : "text-ink-subtle group-hover:text-ink"}`}
           aria-hidden
         >
           <path d="M5 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -278,8 +278,8 @@ function SignupForm({
       {onBack && (
         <button
           onClick={onBack}
-          className="mb-4 inline-flex items-center gap-1.5 text-[12px] text-[#7A7773]
-                     hover:text-[#111010] transition-colors duration-200"
+          className="mb-4 inline-flex items-center gap-1.5 text-[12px] text-ink-subtle
+                     hover:text-ink transition-colors duration-200"
         >
           <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden>
             <path d="M7 2L3 5.5l4 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -296,7 +296,7 @@ function SignupForm({
           transition={{ duration: 0.4, ease }}
           className={`mb-4 inline-flex items-center gap-1.5 rounded-full px-3 py-1
                       text-[11px] font-medium uppercase tracking-[0.14em]
-                      ${isBrand ? "bg-black/[0.04] text-[#6B6965]" : "bg-[#FDF8F3] text-[#C9A882]"}`}
+                      ${isBrand ? "bg-ink/5 text-ink-muted" : "bg-[var(--champagne-tint)] text-champagne-deep"}`}
         >
           {plan} plan
         </motion.div>
@@ -307,10 +307,14 @@ function SignupForm({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.08, ease }}
       >
-        <h1 className="font-serif text-[2rem] font-semibold leading-[1.1] tracking-[-0.025em] text-[#111010]">
-          {isBrand ? "Create your brand account" : "Create your shopper account"}
+        <h1 className="font-serif text-[2.2rem] font-medium leading-[1.05] tracking-[-0.02em] text-ink">
+          {isBrand ? (
+            <>Create your <em className="italic">brand</em> account<span className="text-accent">.</span></>
+          ) : (
+            <>Create your <em className="italic">shopper</em> account<span className="text-accent">.</span></>
+          )}
         </h1>
-        <p className="mt-2 text-sm text-[#6B6965]">
+        <p className="mt-2 text-sm text-ink-muted">
           {plan
             ? "Quick setup — you'll be redirected to checkout next."
             : isBrand
@@ -396,10 +400,10 @@ function SignupForm({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4, delay: 0.56 }}
-        className="mt-7 text-sm text-[#6B6965]"
+        className="mt-7 text-sm text-ink-muted"
       >
         Already have an account?{" "}
-        <Link href="/login" className="font-medium text-[#111010] hover:underline underline-offset-2">
+        <Link href="/login" className="font-medium text-ink hover:underline underline-offset-2">
           Sign in
         </Link>
       </motion.p>
@@ -430,7 +434,7 @@ function FormField({
 
 export default function SignupPage() {
   return (
-    <Suspense fallback={<div className="text-sm text-[#7A7773]">Loading…</div>}>
+    <Suspense fallback={<div className="text-sm text-ink-subtle">Loading…</div>}>
       <SignupContent />
     </Suspense>
   );

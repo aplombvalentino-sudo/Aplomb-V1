@@ -23,7 +23,7 @@ export default async function ProWorkspaceLayout({
   const { brand } = membership;
 
   return (
-    <div className="flex h-[100dvh] overflow-hidden bg-[#F5F4F1]">
+    <div className="flex h-[100dvh] overflow-hidden bg-canvas">
       <ProSideNav
         brandName={brand.name}
         brandLogoUrl={brand.logoUrl}

@@ -18,22 +18,22 @@ export function SocialProofBar() {
   const doubled = [...brands, ...brands];
 
   return (
-    <section className="relative overflow-hidden border-y border-black/[0.06] bg-[#F7F6F3] py-5">
+    <section className="relative overflow-hidden border-y border-hairline bg-canvas py-5">
 
       <div className="relative overflow-hidden">
-        {/* Left / right fade masks */}
+        {/* Left / right occlusion masks (functional edge fade for the marquee) */}
         <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-24 z-10
-                        bg-gradient-to-r from-[#F7F6F3] to-transparent" />
+                        bg-gradient-to-r from-canvas to-transparent" />
         <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-24 z-10
-                        bg-gradient-to-l from-[#F7F6F3] to-transparent" />
+                        bg-gradient-to-l from-canvas to-transparent" />
 
         {/* Scrolling track */}
         <div className="flex animate-marquee whitespace-nowrap">
           {doubled.map((brand, i) => (
             <span
               key={i}
-              className="mx-10 inline-block text-[15px] font-semibold tracking-[-0.02em]
-                         text-[#6B6965]/70 select-none"
+              className="mx-10 inline-block font-serif italic text-[16px] tracking-[-0.01em]
+                         text-ink-muted/75 select-none"
             >
               {brand}
             </span>

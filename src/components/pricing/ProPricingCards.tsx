@@ -41,7 +41,7 @@ function EnterpriseModal({ onClose }: { onClose: () => void }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40
                  backdrop-blur-sm px-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
@@ -50,36 +50,36 @@ function EnterpriseModal({ onClose }: { onClose: () => void }) {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96, y: 8 }}
         transition={{ duration: 0.35, ease }}
-        className="w-full max-w-md rounded-2xl bg-white border border-black/[0.06]
+        className="w-full max-w-md rounded-2xl bg-white border border-hairline
                    shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] p-8"
       >
         {sent ? (
           <div className="text-center py-4">
-            <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-[#F7F6F3]
+            <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-[#F6F3EE]
                              flex items-center justify-center">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                 <path d="M4 10l4 4 8-8" stroke="#111010" strokeWidth="1.5"
                       strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
-            <h3 className="font-serif text-[1.4rem] font-semibold text-[#111010]">
+            <h3 className="font-serif text-[1.4rem] font-semibold text-ink">
               Message sent.
             </h3>
-            <p className="mt-2 text-sm text-[#6B6965]">
+            <p className="mt-2 text-sm text-ink-muted">
               Our team will reach out within 24 hours.
             </p>
             <button onClick={onClose}
               className="mt-6 rounded-full bg-[#111010] px-6 py-2.5 text-sm
-                         font-medium text-white hover:bg-[#2a2a2a] transition-colors">
+                         font-medium text-white hover:bg-[#2a2622] transition-colors">
               Close
             </button>
           </div>
         ) : (
           <>
-            <h3 className="font-serif text-[1.5rem] font-semibold text-[#111010] mb-1">
+            <h3 className="font-serif text-[1.5rem] font-semibold text-ink mb-1">
               Contact our team.
             </h3>
-            <p className="text-sm text-[#6B6965] mb-6">
+            <p className="text-sm text-ink-muted mb-6">
               Tell us about your brand and we&apos;ll prepare a custom proposal.
             </p>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -92,28 +92,28 @@ function EnterpriseModal({ onClose }: { onClose: () => void }) {
               <Input label="Email" type="email" required
                 value={fields.email} onChange={(e) => setFields(f => ({ ...f, email: e.target.value }))} />
               <div className="flex flex-col gap-1.5">
-                <label className="text-[13px] font-medium text-[#111010]">Message</label>
+                <label className="text-[13px] font-medium text-ink">Message</label>
                 <textarea
                   required rows={4}
                   value={fields.message}
                   onChange={(e) => setFields(f => ({ ...f, message: e.target.value }))}
                   placeholder="Tell us about your catalogue size, expected scan volume..."
-                  className="rounded-xl border border-black/[0.12] bg-white px-3.5 py-2.5
-                             text-[14px] text-[#111010] placeholder:text-[#7A7773] resize-none
+                  className="rounded-xl border border-hairline-strong bg-white px-3.5 py-2.5
+                             text-[14px] text-ink placeholder:text-ink-subtle resize-none
                              focus:border-[#111010] focus:outline-none focus:ring-1
                              focus:ring-[#111010] transition-colors duration-200"
                 />
               </div>
               <div className="flex items-center gap-3 pt-1">
                 <button type="button" onClick={onClose}
-                  className="rounded-full border border-black/[0.12] bg-white px-5 py-2.5
-                             text-sm font-medium text-[#6B6965] hover:bg-[#F7F6F3]
+                  className="rounded-full border border-hairline-strong bg-white px-5 py-2.5
+                             text-sm font-medium text-ink-muted hover:bg-[#F6F3EE]
                              transition-colors">
                   Cancel
                 </button>
                 <button type="submit" disabled={loading}
                   className="flex-1 rounded-full bg-[#111010] py-2.5 text-sm font-medium
-                             text-white hover:bg-[#2a2a2a] transition-colors
+                             text-white hover:bg-[#2a2622] transition-colors
                              disabled:opacity-50 disabled:cursor-wait">
                   {loading ? "Sending…" : "Send message"}
                 </button>
@@ -223,91 +223,59 @@ export function ProPricingCards({
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: i * 0.07, ease }}
               className={cn(
-                "relative flex flex-col rounded-2xl p-6 transition-shadow duration-300",
-                tier.dark
-                  ? "bg-[#111010] text-white ring-1 ring-white/10 shadow-[0_8px_48px_-8px_rgba(0,0,0,0.35)]"
-                  : "bg-white border border-black/[0.06] shadow-[0_2px_16px_rgba(0,0,0,0.04)]",
-                tier.recommended && !tier.dark &&
-                  "ring-2 ring-[#C9A882]"
+                "relative flex flex-col rounded-2xl p-6 bg-surface transition-shadow duration-300",
+                tier.recommended
+                  ? "ring-2 ring-accent/30 shadow-[0_18px_56px_-20px_rgba(17,16,16,0.18)]"
+                  : "border border-hairline shadow-[0_1px_2px_rgba(17,16,16,0.04)]"
               )}
             >
               {/* Recommended badge */}
               {tier.recommended && (
-                <span className={cn(
-                  "absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-1",
-                  "text-[10px] font-semibold uppercase tracking-[0.16em]",
-                  tier.dark
-                    ? "bg-[#C9A882] text-[#2a1f14]"
-                    : "bg-[#111010] text-white"
-                )}>
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-1
+                                 text-[10px] font-semibold uppercase tracking-[0.16em] bg-accent text-white">
                   Recommended
                 </span>
               )}
 
               {/* Active indicator */}
               {isActive && (
-                <span className={cn(
-                  "absolute top-4 right-4 rounded-full px-2.5 py-0.5 text-[10px] font-medium",
-                  tier.dark
-                    ? "bg-white/10 text-white/60"
-                    : "bg-[#F7F6F3] text-[#7A7773]"
-                )}>
+                <span className="absolute top-4 right-4 rounded-full px-2.5 py-0.5 text-[10px] font-medium
+                                 bg-surface-raised text-ink-subtle">
                   Current plan
                 </span>
               )}
 
               <div>
-                <p className={cn(
-                  "text-[11px] font-medium uppercase tracking-[0.16em]",
-                  tier.dark ? "text-white/40" : "text-[#7A7773]"
-                )}>
+                <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink-subtle">
                   {tier.name}
                 </p>
 
                 <div className="mt-2 flex items-baseline gap-0.5">
                   {tier.price ? (
                     <>
-                      <span className={cn(
-                        "text-[0.9rem] font-medium",
-                        tier.dark ? "text-white/50" : "text-[#7A7773]"
-                      )}>€</span>
-                      <span className={cn(
-                        "font-serif text-[2.8rem] font-semibold leading-none tracking-tight tabular-nums",
-                        tier.dark ? "text-white" : "text-[#111010]"
-                      )}>
+                      <span className="text-[0.9rem] font-medium text-ink-subtle">€</span>
+                      <span className="font-serif text-[2.8rem] font-medium leading-none tracking-tight nums text-ink">
                         {tier.price}
                       </span>
-                      <span className={cn(
-                        "ml-1 self-end text-sm",
-                        tier.dark ? "text-white/40" : "text-[#7A7773]"
-                      )}>
+                      <span className="ml-1 self-end text-sm text-ink-subtle">
                         {tier.period}
                       </span>
                     </>
                   ) : (
-                    <span className={cn(
-                      "font-serif text-[2rem] font-semibold leading-none tracking-tight",
-                      tier.dark ? "text-white" : "text-[#111010]"
-                    )}>
+                    <span className="font-serif text-[2rem] font-medium leading-none tracking-tight text-ink">
                       Custom
                     </span>
                   )}
                 </div>
 
-                <p className={cn(
-                  "mt-3 text-[13px] leading-relaxed",
-                  tier.dark ? "text-white/50" : "text-[#6B6965]"
-                )}>
+                <p className="mt-3 text-[13px] leading-relaxed text-ink-muted">
                   {tier.tagline}
                 </p>
               </div>
 
               <ul className="mt-6 mb-8 space-y-2.5 flex-1">
                 {tier.features.map((f) => (
-                  <li key={f} className={cn(
-                    "flex items-start gap-2 text-[13px]",
-                    tier.dark ? "text-white/70" : "text-[#6B6965]"
-                  )}>
+                  <li key={f} className="flex items-start gap-2 text-[13px] text-ink-muted">
                     <Check />
                     {f}
                   </li>
@@ -318,11 +286,11 @@ export function ProPricingCards({
                 onClick={() => choosePlan(tier.id)}
                 disabled={loadingPlan === tier.id || (isActive && tier.id !== "enterprise")}
                 className={cn(
-                  "w-full rounded-xl py-3 text-sm font-medium transition-all duration-200",
+                  "w-full rounded-full py-3 text-sm font-medium text-white transition-all duration-200",
                   "disabled:opacity-50 disabled:cursor-not-allowed",
-                  tier.dark
-                    ? "bg-[#C9A882] text-[#111010] hover:bg-[#d4b48e]"
-                    : "bg-[#111010] text-white hover:bg-[#2a2a2a]"
+                  tier.recommended
+                    ? "bg-accent hover:bg-accent-bright"
+                    : "bg-ink hover:bg-[#2a2622]"
                 )}
               >
                 {loadingPlan === tier.id

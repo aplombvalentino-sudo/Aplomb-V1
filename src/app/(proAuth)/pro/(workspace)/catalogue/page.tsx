@@ -19,14 +19,14 @@ export default async function ProCataloguePage() {
   return (
     <div>
       <div className="mb-8">
-        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#7A7773]">
+        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink-subtle">
           Catalogue
         </p>
         <h1 className="mt-1 font-serif text-[1.8rem] font-semibold leading-tight
-                       tracking-[-0.025em] text-[#111010]">
-          Products
+                       tracking-[-0.025em] text-ink">
+          <em className="italic">Products</em><span className="text-accent">.</span>
         </h1>
-        <p className="mt-1 text-sm text-[#6B6965]">
+        <p className="mt-1 text-sm text-ink-muted">
           Manage your catalogue. Products drive the AI stylist outfit engine.
         </p>
       </div>

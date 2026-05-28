@@ -139,96 +139,67 @@ function PlanCard({ plan, i }: { plan: Plan; i: number }) {
     >
       <div
         className={`h-full rounded-[2rem] p-2 ring-1 transition-shadow duration-500
-                    group-hover:shadow-[0_16px_64px_-16px_rgba(0,0,0,0.18)]
+                    group-hover:shadow-[0_18px_56px_-20px_rgba(17,16,16,0.20)]
                     ${plan.highlight
-                      ? "bg-[#111010] ring-black/20"
-                      : "bg-black/[0.03] ring-black/[0.06]"
+                      ? "bg-[var(--accent-tint)] ring-accent/30"
+                      : "bg-ink/[0.02] ring-hairline"
                     }`}
       >
-        <div
-          className={`h-full rounded-[calc(2rem-0.5rem)] p-7 flex flex-col
-                      shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)]
-                      ${plan.highlight ? "bg-[#1a1a1a]" : "bg-white"}`}
-        >
+        <div className="h-full rounded-[calc(2rem-0.5rem)] p-7 flex flex-col bg-surface">
           <div className="flex items-center justify-between gap-3">
-            <span
-              className={`text-[10px] font-medium uppercase tracking-[0.18em]
-                          ${plan.highlight ? "text-white/50" : "text-[#7A7773]"}`}
-            >
+            <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-ink-subtle">
               {plan.name}
             </span>
             {plan.highlight && (
-              <span className="text-[10px] text-white/30 tracking-[0.1em] italic">
-                ← most chosen
+              <span className="font-serif text-[12px] italic tracking-[0.02em] text-accent">
+                most chosen
               </span>
             )}
           </div>
 
           <div className="mt-5 flex items-baseline gap-2 flex-wrap">
             {plan.price === "Custom" ? (
-              <span
-                className={`font-serif text-4xl font-semibold tracking-[-0.03em]
-                            ${plan.highlight ? "text-white" : "text-[#111010]"}`}
-              >
+              <span className="font-serif text-4xl font-medium tracking-[-0.02em] text-ink">
                 Custom
               </span>
             ) : plan.priceBadge ? (
               <>
                 {plan.originalPrice && (
-                  <span
-                    className={`font-serif text-[1.8rem] font-medium tracking-tight tabular-nums
-                                line-through decoration-[1.5px]
-                                ${plan.highlight
-                                  ? "text-white/30 decoration-white/40"
-                                  : "text-[#C9C5C0] decoration-[#C9C5C0]"}`}
-                  >
+                  <span className="font-serif text-[1.8rem] font-medium tracking-tight nums
+                                   line-through decoration-[1.5px] text-ink-subtle/60 decoration-ink-subtle/50">
                     €{plan.originalPrice}
                   </span>
                 )}
-                <span
-                  className={`font-serif text-[3.2rem] font-semibold leading-none tracking-[-0.04em]
-                              ${plan.highlight ? "text-white" : "text-[#346538]"}`}
-                >
+                <span className="font-serif text-[3.2rem] font-medium leading-none tracking-[-0.03em] text-[#346538]">
                   {plan.priceBadge}
                 </span>
               </>
             ) : (
               <>
-                <span
-                  className={`self-start mt-2 text-[1.1rem] font-medium tabular-nums
-                              ${plan.highlight ? "text-white/40" : "text-[#7A7773]"}`}
-                >
+                <span className="self-start mt-2 text-[1.1rem] font-medium nums text-ink-subtle">
                   €
                 </span>
-                <span
-                  className={`font-serif text-[3.5rem] font-semibold leading-none tracking-[-0.04em] tabular-nums
-                              ${plan.highlight ? "text-white" : "text-[#111010]"}`}
-                >
+                <span className="font-serif text-[3.5rem] font-medium leading-none tracking-[-0.03em] nums text-ink">
                   {plan.price}
                 </span>
-                <span
-                  className={`mb-1 self-end text-sm ${plan.highlight ? "text-white/40" : "text-[#7A7773]"}`}
-                >
+                <span className="mb-1 self-end text-sm text-ink-subtle">
                   {plan.period}
                 </span>
               </>
             )}
           </div>
 
-          <p
-            className={`mt-3 text-sm leading-relaxed
-                       ${plan.highlight ? "text-white/50" : "text-[#6B6965]"}`}
-          >
+          <p className="mt-3 text-sm leading-relaxed text-ink-muted">
             {plan.description}
           </p>
 
-          <div className={`my-6 h-px ${plan.highlight ? "bg-white/[0.08]" : "bg-black/[0.06]"}`} />
+          <div className="my-6 h-px bg-hairline" />
 
           <ul className="flex-1 space-y-3">
             {plan.features.map((f) => (
               <li key={f} className="flex items-start gap-2.5 text-sm">
                 <svg
-                  className={`mt-0.5 h-4 w-4 flex-shrink-0 ${plan.highlight ? "text-white/50" : "text-[#7A7773]"}`}
+                  className={`mt-0.5 h-4 w-4 flex-shrink-0 ${plan.highlight ? "text-accent" : "text-ink-subtle"}`}
                   viewBox="0 0 16 16"
                   fill="none"
                   aria-hidden
@@ -241,7 +212,7 @@ function PlanCard({ plan, i }: { plan: Plan; i: number }) {
                     strokeLinejoin="round"
                   />
                 </svg>
-                <span className={plan.highlight ? "text-white/80" : "text-[#6B6965]"}>{f}</span>
+                <span className="text-ink-muted">{f}</span>
               </li>
             ))}
           </ul>
@@ -250,11 +221,11 @@ function PlanCard({ plan, i }: { plan: Plan; i: number }) {
             <Link
               href={plan.href}
               className={`group/btn inline-flex w-full items-center justify-between
-                          rounded-full px-5 py-3 text-sm font-medium
+                          rounded-full px-5 py-3 text-sm font-medium text-white
                           transition-all duration-400 ease-[cubic-bezier(0.32,0.72,0,1)]
                           ${plan.highlight
-                            ? "bg-white text-[#111010] hover:bg-[#F7F6F3]"
-                            : "bg-[#111010] text-white hover:bg-[#2a2a2a]"
+                            ? "bg-accent hover:bg-accent-bright"
+                            : "bg-ink hover:bg-[#2a2622]"
                           }`}
             >
               {plan.cta}
@@ -262,12 +233,12 @@ function PlanCard({ plan, i }: { plan: Plan; i: number }) {
                 className={`flex h-7 w-7 items-center justify-center rounded-full
                             transition-all duration-400
                             group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5
-                            ${plan.highlight ? "bg-black/[0.06]" : "bg-white/[0.1]"}`}
+                            ${plan.highlight ? "bg-white/20" : "bg-accent aplomb-glow"}`}
               >
                 <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden>
                   <path
                     d="M2 8L8 2M8 2H3M8 2V7"
-                    stroke={plan.highlight ? "#111010" : "white"}
+                    stroke="white"
                     strokeWidth="1.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -291,8 +262,8 @@ export function PricingCards() {
   return (
     <div className="mt-12">
       {/* Toggle */}
-      <div className="mx-auto mb-12 flex w-fit items-center gap-1 rounded-full bg-black/[0.04]
-                      p-1 ring-1 ring-black/[0.06]">
+      <div className="mx-auto mb-12 flex w-fit items-center gap-1 rounded-full bg-ink/5
+                      p-1 ring-1 ring-hairline">
         {(["brand", "client"] as const).map((opt) => (
           <button
             key={opt}
@@ -303,11 +274,11 @@ export function PricingCards() {
             {audience === opt && (
               <motion.span
                 layoutId="audience-pill"
-                className="absolute inset-0 rounded-full bg-[#111010]"
+                className="absolute inset-0 rounded-full bg-ink"
                 transition={{ type: "spring", stiffness: 420, damping: 40 }}
               />
             )}
-            <span className={`relative z-10 ${audience === opt ? "text-white" : "text-[#6B6965]"}`}>
+            <span className={`relative z-10 ${audience === opt ? "text-white" : "text-ink-muted"}`}>
               {opt === "brand" ? "For brands" : "For shoppers"}
             </span>
           </button>

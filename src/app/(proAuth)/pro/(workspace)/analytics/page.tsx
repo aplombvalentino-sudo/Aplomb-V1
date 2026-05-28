@@ -68,19 +68,19 @@ export default async function ProAnalyticsPage() {
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#7A7773]">
+          <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink-subtle">
             Analytics
           </p>
           <h1 className="mt-1 font-serif text-[1.8rem] font-semibold leading-tight
-                         tracking-[-0.025em] text-[#111010]">
-            Shopper engagement
+                         tracking-[-0.025em] text-ink">
+            Shopper <em className="italic">engagement</em><span className="text-accent">.</span>
           </h1>
-          <p className="mt-1 text-sm text-[#6B6965]">
+          <p className="mt-1 text-sm text-ink-muted">
             Track how customers interact with your brand.
           </p>
         </div>
-        <span className="inline-flex items-center rounded-full border border-black/10 bg-white
-                         px-3 py-1 text-[10px] font-medium uppercase tracking-[0.14em] text-[#111010]">
+        <span className="inline-flex items-center rounded-full border border-hairline bg-surface
+                         px-3 py-1 text-[10px] font-medium uppercase tracking-[0.14em] text-ink">
           {plan.displayName}
         </span>
       </div>
@@ -97,9 +97,9 @@ export default async function ProAnalyticsPage() {
       </div>
 
       {/* ── Scan trend chart ───────────────────────────────────────────────── */}
-      <div className="rounded-2xl bg-white border border-black/[0.06]
+      <div className="rounded-2xl bg-surface border border-hairline
                       shadow-[0_2px_16px_rgba(0,0,0,0.04)] px-6 py-5 mb-6">
-        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#7A7773] mb-4">
+        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-subtle mb-4">
           Shopper scans — last 30 days
         </p>
         <OverviewCharts
@@ -114,25 +114,25 @@ export default async function ProAnalyticsPage() {
         <AdvancedCard title="Top performing products" locked={!hasAdvanced}>
           {hasAdvanced ? (
             topProductsWithCounts.length === 0 ? (
-              <p className="text-[13px] text-[#7A7773]">
+              <p className="text-[13px] text-ink-subtle">
                 No outfit data yet for this period.
               </p>
             ) : (
               <ul className="space-y-2">
                 {topProductsWithCounts.map((t, i) => (
                   <li key={t.productId} className="flex items-center gap-3">
-                    <span className="font-mono text-[11px] text-[#C9C5C0] w-4 tabular-nums">
+                    <span className="nums text-[11px] text-ink-subtle w-4">
                       {(i + 1).toString().padStart(2, "0")}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className="truncate text-[13px] font-medium text-[#111010]">
+                      <p className="truncate text-[13px] font-medium text-ink">
                         {t.product?.name ?? "Unknown product"}
                       </p>
                       {t.product?.category && (
-                        <p className="text-[11px] text-[#7A7773]">{t.product.category}</p>
+                        <p className="text-[11px] text-ink-subtle">{t.product.category}</p>
                       )}
                     </div>
-                    <span className="font-mono text-[12px] tabular-nums text-[#6B6965]">
+                    <span className="nums text-[12px] text-ink-muted">
                       {t._count.productId}
                     </span>
                   </li>
@@ -147,10 +147,10 @@ export default async function ProAnalyticsPage() {
         <AdvancedCard title="Save-to-wardrobe activity" locked={!hasAdvanced}>
           {hasAdvanced ? (
             <div>
-              <p className="font-serif text-[2rem] font-semibold leading-none text-[#111010] tabular-nums">
+              <p className="font-serif text-[2rem] font-semibold leading-none text-ink nums">
                 {engagement.saves30d.toLocaleString()}
               </p>
-              <p className="mt-2 text-[12px] text-[#7A7773]">
+              <p className="mt-2 text-[12px] text-ink-subtle">
                 Saves in the last 30 days. Detailed save events arrive with the
                 event tracking release.
               </p>
@@ -163,10 +163,10 @@ export default async function ProAnalyticsPage() {
         <AdvancedCard title="Product page clicks" locked={!hasAdvanced}>
           {hasAdvanced ? (
             <div>
-              <p className="font-serif text-[2rem] font-semibold leading-none text-[#111010] tabular-nums">
+              <p className="font-serif text-[2rem] font-semibold leading-none text-ink nums">
                 {engagement.productClicks30d.toLocaleString()}
               </p>
-              <p className="mt-2 text-[12px] text-[#7A7773]">
+              <p className="mt-2 text-[12px] text-ink-subtle">
                 Click-through events from outfit recommendations.
               </p>
             </div>
@@ -177,7 +177,7 @@ export default async function ProAnalyticsPage() {
 
         <AdvancedCard title="Conversion signals" locked={!hasAdvanced}>
           {hasAdvanced ? (
-            <p className="text-[13px] text-[#7A7773]">
+            <p className="text-[13px] text-ink-subtle">
               Conversion proxy events surface here once your widget reports
               add-to-cart and checkout events.
             </p>
@@ -188,17 +188,17 @@ export default async function ProAnalyticsPage() {
       </div>
 
       {!hasAdvanced && (
-        <div className="mt-6 rounded-2xl bg-[#111010] px-6 py-5 flex flex-wrap items-center justify-between gap-3">
+        <div className="mt-6 rounded-2xl bg-stone-deep px-6 py-5 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-[13px] font-semibold text-white">Unlock advanced analytics</p>
-            <p className="mt-0.5 text-[12px] text-white/60">
+            <p className="text-[13px] font-semibold text-ink">Unlock advanced analytics</p>
+            <p className="mt-0.5 text-[12px] text-ink-muted">
               Featured brings product performance, save tracking, and conversion insights.
             </p>
           </div>
           <Link
             href="/pro/billing"
-            className="rounded-full bg-white px-5 py-2 text-[12px] font-medium text-[#111010]
-                       hover:bg-[#F7F6F3] transition-colors duration-200"
+            className="rounded-full bg-ink px-5 py-2 text-[12px] font-medium text-white
+                       hover:bg-ink/90 transition-colors duration-200"
           >
             See plans →
           </Link>
@@ -218,12 +218,12 @@ function thirtyDaysAgo() {
 
 function MetricTile({ label, value }: { label: string; value: number | string }) {
   return (
-    <div className="rounded-2xl bg-white border border-black/[0.06]
+    <div className="rounded-2xl bg-surface border border-hairline
                     shadow-[0_2px_8px_rgba(0,0,0,0.03)] px-5 py-4">
-      <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-[#7A7773]">
+      <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-ink-subtle">
         {label}
       </p>
-      <p className="mt-1.5 font-serif text-[1.8rem] font-semibold leading-none tabular-nums text-[#111010]">
+      <p className="mt-1.5 font-serif text-[1.8rem] font-semibold leading-none nums text-ink">
         {typeof value === "number" ? value.toLocaleString() : value}
       </p>
     </div>
@@ -240,19 +240,19 @@ function AdvancedCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className={`relative rounded-2xl bg-white border px-6 py-5
+    <div className={`relative rounded-2xl bg-surface border px-6 py-5
                     ${locked
-                      ? "border-black/[0.06] overflow-hidden"
-                      : "border-black/[0.06] shadow-[0_2px_16px_rgba(0,0,0,0.04)]"
+                      ? "border-hairline overflow-hidden"
+                      : "border-hairline shadow-[0_2px_16px_rgba(0,0,0,0.04)]"
                     }`}>
       <div className="flex items-center justify-between mb-3">
-        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#7A7773]">
+        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-subtle">
           {title}
         </p>
         {locked && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-[#FDF8F3]
-                           border border-[#C9A882]/30 px-2 py-0.5 text-[9px]
-                           font-medium uppercase tracking-[0.12em] text-[#C9A882]">
+          <span className="inline-flex items-center gap-1 rounded-full bg-[var(--champagne-tint)]
+                           border border-champagne/30 px-2 py-0.5 text-[9px]
+                           font-medium uppercase tracking-[0.12em] text-champagne">
             Featured
           </span>
         )}
@@ -267,9 +267,9 @@ function AdvancedCard({
 function LockedHint() {
   return (
     <div className="space-y-2">
-      <div className="h-7 w-24 rounded-md bg-black/[0.06]" />
-      <div className="h-3 w-full rounded bg-black/[0.05]" />
-      <div className="h-3 w-3/4 rounded bg-black/[0.05]" />
+      <div className="h-7 w-24 rounded-md bg-ink/5" />
+      <div className="h-3 w-full rounded bg-ink/5" />
+      <div className="h-3 w-3/4 rounded bg-ink/5" />
     </div>
   );
 }

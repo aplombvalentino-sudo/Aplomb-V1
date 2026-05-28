@@ -132,10 +132,10 @@ export function SizeChartsClient({ brandId }: { brandId: string }) {
 
       <div className="mt-6">
         {loading ? (
-          <p className="text-sm text-gray-500">Loading…</p>
+          <p className="text-sm text-ink-muted">Loading…</p>
         ) : charts.length === 0 ? (
           <Card className="flex flex-col items-center py-16 text-center">
-            <p className="text-gray-500">No size charts yet.</p>
+            <p className="text-ink-muted">No size charts yet.</p>
             <Button onClick={openCreate} size="sm" className="mt-4">
               Create your first size chart
             </Button>
@@ -146,27 +146,27 @@ export function SizeChartsClient({ brandId }: { brandId: string }) {
               <Card key={c.id} className="relative">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="font-semibold text-gray-900">{c.category}</p>
+                    <p className="font-semibold text-ink">{c.category}</p>
                     {c.gender && (
-                      <p className="text-sm text-gray-500 capitalize">{c.gender}</p>
+                      <p className="text-sm text-ink-muted capitalize">{c.gender}</p>
                     )}
                   </div>
                   <div className="flex gap-1">
                     <button
                       onClick={() => openEdit(c)}
-                      className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                      className="rounded p-1 text-ink-subtle hover:bg-surface-raised hover:text-ink-muted"
                     >
                       <Pencil className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => handleDelete(c.id)}
-                      className="rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                      className="rounded p-1 text-ink-subtle hover:bg-red-50 hover:text-red-600"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
                 </div>
-                <p className="mt-2 text-xs text-gray-400">
+                <p className="mt-2 text-xs text-ink-subtle">
                   Updated {new Date(c.updatedAt).toLocaleDateString()}
                 </p>
               </Card>
@@ -176,7 +176,7 @@ export function SizeChartsClient({ brandId }: { brandId: string }) {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4">
           <div className="w-full max-w-2xl rounded-xl bg-white p-6 shadow-xl">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">
@@ -184,7 +184,7 @@ export function SizeChartsClient({ brandId }: { brandId: string }) {
               </h2>
               <button
                 onClick={() => setShowModal(false)}
-                className="rounded p-1 text-gray-400 hover:text-gray-700"
+                className="rounded p-1 text-ink-subtle hover:text-ink-muted"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -211,7 +211,7 @@ export function SizeChartsClient({ brandId }: { brandId: string }) {
                 placeholder="male, female, unisex"
               />
               <div className="sm:col-span-2">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-ink-muted">
                   Chart JSON
                 </label>
                 <textarea
@@ -221,7 +221,7 @@ export function SizeChartsClient({ brandId }: { brandId: string }) {
                     validateJson(e.target.value);
                   }}
                   rows={12}
-                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 font-mono text-xs shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black"
+                  className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 nums text-xs shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black"
                 />
                 {jsonError && <p className="mt-1 text-xs text-red-600">{jsonError}</p>}
               </div>

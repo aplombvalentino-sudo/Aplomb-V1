@@ -44,8 +44,11 @@ export default async function IntegrationPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900">Integration</h1>
-      <p className="mt-1 text-sm text-gray-500">
+      <h1 className="font-serif text-2xl font-semibold text-ink">
+        Your <em className="italic">integration</em>
+        <span className="text-accent">.</span>
+      </h1>
+      <p className="mt-1 text-sm text-ink-muted">
         Embed the Aplomb widget into your storefront in minutes.
       </p>
 
@@ -58,21 +61,21 @@ export default async function IntegrationPage() {
           <CardContent>
             <dl className="grid gap-3 sm:grid-cols-2">
               <div>
-                <dt className="text-xs font-medium uppercase tracking-wider text-gray-400">
+                <dt className="text-xs font-medium uppercase tracking-wider text-ink-subtle">
                   Brand slug
                 </dt>
                 <dd className="mt-1 flex items-center gap-2">
-                  <code className="rounded bg-gray-100 px-2 py-0.5 text-sm font-mono">
+                  <code className="rounded bg-surface-raised px-2 py-0.5 text-sm nums">
                     {brand.slug}
                   </code>
                   <CopyButton text={brand.slug} />
                 </dd>
               </div>
               <div>
-                <dt className="text-xs font-medium uppercase tracking-wider text-gray-400">
+                <dt className="text-xs font-medium uppercase tracking-wider text-ink-subtle">
                   Plan
                 </dt>
-                <dd className="mt-1 text-sm capitalize text-gray-900">{brand.plan}</dd>
+                <dd className="mt-1 text-sm capitalize text-ink">{brand.plan}</dd>
               </div>
             </dl>
           </CardContent>
@@ -84,10 +87,10 @@ export default async function IntegrationPage() {
             <CardTitle>Option 1 — Script tag (recommended)</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="mb-3 text-sm text-gray-600">
+            <p className="mb-3 text-sm text-ink-muted">
               Paste this snippet into your product page HTML, just before{" "}
-              <code className="rounded bg-gray-100 px-1 text-xs">&lt;/body&gt;</code>.
-              Replace <code className="rounded bg-gray-100 px-1 text-xs">{"{{product.id}}"}</code>{" "}
+              <code className="rounded bg-surface-raised px-1 text-xs">&lt;/body&gt;</code>.
+              Replace <code className="rounded bg-surface-raised px-1 text-xs">{"{{product.id}}"}</code>{" "}
               with your product&apos;s ID.
             </p>
             <div className="relative">
@@ -109,7 +112,7 @@ export default async function IntegrationPage() {
             <CardTitle>Option 2 — iframe</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="mb-3 text-sm text-gray-600">
+            <p className="mb-3 text-sm text-ink-muted">
               Use an iframe to embed the widget inline on your page.
             </p>
             <div className="relative">
@@ -131,13 +134,13 @@ export default async function IntegrationPage() {
             <CardTitle>API reference</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="mb-3 text-sm text-gray-600">
+            <p className="mb-3 text-sm text-ink-muted">
               You can call the Aplomb API directly from your backend if you prefer
               a fully custom integration.
             </p>
             <div className="space-y-4">
               <div>
-                <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-gray-500">
+                <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-ink-muted">
                   1. Get measurements
                 </p>
                 <div className="relative">
@@ -152,7 +155,7 @@ export default async function IntegrationPage() {
                 </div>
               </div>
               <div>
-                <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-gray-500">
+                <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-ink-muted">
                   2. Generate outfits
                 </p>
                 <pre className="overflow-x-auto rounded-lg bg-gray-900 p-4 text-xs text-gray-200">

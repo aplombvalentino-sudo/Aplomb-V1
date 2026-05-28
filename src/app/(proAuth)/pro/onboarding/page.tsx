@@ -40,17 +40,7 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[#F7F6F3] flex items-center justify-center px-4">
-      {/* Ambient glow */}
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 -z-10"
-        style={{
-          background:
-            "radial-gradient(ellipse 60% 50% at 50% 40%, rgba(210,190,170,0.18) 0%, transparent 70%)",
-        }}
-      />
-
+    <div className="min-h-[100dvh] bg-canvas flex items-center justify-center px-4">
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
@@ -58,16 +48,16 @@ export default function OnboardingPage() {
         className="w-full max-w-sm"
       >
         {/* Eyebrow */}
-        <span className="inline-flex items-center rounded-full border border-black/10 bg-white/60
-                         px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-[#6B6965]">
+        <span className="inline-flex items-center rounded-full border border-hairline bg-surface
+                         px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-ink-muted">
           Welcome to Aplomb
         </span>
 
         <h1 className="mt-5 font-serif text-[2rem] font-semibold leading-[1.1]
-                       tracking-[-0.025em] text-[#111010]">
-          Set up your brand.
+                       tracking-[-0.025em] text-ink">
+          Set up your <em className="italic">brand</em><span className="text-accent">.</span>
         </h1>
-        <p className="mt-2.5 text-sm leading-relaxed text-[#6B6965]">
+        <p className="mt-2.5 text-sm leading-relaxed text-ink-muted">
           Give your brand a name. You can change this later in settings.
         </p>
 

@@ -35,13 +35,13 @@ export default async function WidgetPage({ searchParams }: Props) {
 
   if (!brandSlug) {
     return (
-      <div className="flex min-h-[100dvh] items-center justify-center bg-[#F7F6F3] px-6 text-center">
+      <div className="flex min-h-[100dvh] items-center justify-center bg-canvas px-6 text-center">
         <div>
-          <p className="font-serif text-[1.4rem] font-semibold text-[#111010]">
+          <p className="font-serif text-[1.4rem] font-semibold text-ink">
             Configuration error
           </p>
-          <p className="mt-2 text-sm text-[#6B6965]">
-            The widget is missing the <code className="rounded bg-black/[0.05] px-1.5 py-0.5">data-brand</code> attribute.
+          <p className="mt-2 text-sm text-ink-muted">
+            The widget is missing the <code className="rounded bg-stone px-1.5 py-0.5 nums">data-brand</code> attribute.
           </p>
         </div>
       </div>
@@ -61,14 +61,14 @@ export default async function WidgetPage({ searchParams }: Props) {
 
   if (!brand) {
     return (
-      <div className="flex min-h-[100dvh] items-center justify-center bg-[#F7F6F3] px-6 text-center">
+      <div className="flex min-h-[100dvh] items-center justify-center bg-canvas px-6 text-center">
         <div>
-          <p className="font-serif text-[1.4rem] font-semibold text-[#111010]">
+          <p className="font-serif text-[1.4rem] font-semibold text-ink">
             Brand not configured
           </p>
-          <p className="mt-2 text-sm text-[#6B6965]">
+          <p className="mt-2 text-sm text-ink-muted">
             We couldn&apos;t find a brand with slug{" "}
-            <code className="rounded bg-black/[0.05] px-1.5 py-0.5">{brandSlug}</code>.
+            <code className="rounded bg-stone px-1.5 py-0.5 nums">{brandSlug}</code>.
           </p>
         </div>
       </div>

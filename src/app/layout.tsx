@@ -1,21 +1,20 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Playfair_Display } from "next/font/google";
+import { Geist, Fraunces } from "next/font/google";
 import "./globals.css";
 
+// Neutral grotesque for UI + body.
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+// The editorial voice: a modern variable serif with true italics and optical
+// sizing. The only display face in the system.
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
   subsets: ["latin"],
-});
-
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
+  axes: ["opsz", "SOFT", "WONK"],
 });
 
 const SITE_URL = process.env.NEXTAUTH_URL ??
@@ -68,7 +67,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${fraunces.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="grain-overlay min-h-full flex flex-col overflow-x-hidden" suppressHydrationWarning>

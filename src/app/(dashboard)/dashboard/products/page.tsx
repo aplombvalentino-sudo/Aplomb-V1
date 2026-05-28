@@ -17,8 +17,11 @@ export default async function ProductsPage() {
     <div>
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Products</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="font-serif text-2xl font-semibold text-ink">
+            Your <em className="italic">catalog</em>
+            <span className="text-accent">.</span>
+          </h1>
+          <p className="mt-1 text-sm text-ink-muted">
             Manage your catalog. Products are used by the AI stylist to build outfits.
           </p>
         </div>

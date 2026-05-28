@@ -7,11 +7,11 @@ import type { ClientPlan } from "@/lib/planLimits";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
-function Check({ dark }: { dark?: boolean }) {
+function Check({ accent }: { accent?: boolean }) {
   return (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="shrink-0 mt-0.5">
-      <circle cx="7" cy="7" r="6.5" stroke="currentColor"
-              strokeOpacity={dark ? 0.3 : 0.2}/>
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"
+         className={cn("shrink-0 mt-0.5", accent ? "text-accent" : "text-ink-subtle")}>
+      <circle cx="7" cy="7" r="6.5" stroke="currentColor" strokeOpacity={0.3}/>
       <path d="M4.5 7l2 2 3-3" stroke="currentColor" strokeWidth="1.5"
             strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
@@ -128,39 +128,29 @@ export function ClientPricingCards({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: i * 0.07, ease }}
             className={cn(
-              "relative flex flex-col rounded-2xl p-6 transition-shadow duration-300",
-              tier.dark
-                ? "bg-[#111010] text-white ring-1 ring-white/10 shadow-[0_8px_48px_-8px_rgba(0,0,0,0.35)]"
-                : "bg-white border border-black/[0.06] shadow-[0_2px_16px_rgba(0,0,0,0.04)]",
-              tier.recommended && !tier.dark && "ring-2 ring-[#C9A882]"
+              "relative flex flex-col rounded-2xl p-6 bg-surface transition-shadow duration-300",
+              tier.recommended
+                ? "ring-2 ring-accent/30 shadow-[0_18px_56px_-20px_rgba(17,16,16,0.18)]"
+                : "border border-hairline shadow-[0_1px_2px_rgba(17,16,16,0.04)]"
             )}
           >
             {tier.recommended && (
-              <span className={cn(
-                "absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-1",
-                "text-[10px] font-semibold uppercase tracking-[0.16em] whitespace-nowrap",
-                tier.dark
-                  ? "bg-[#C9A882] text-[#2a1f14]"
-                  : "bg-[#111010] text-white"
-              )}>
+              <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-1
+                               text-[10px] font-semibold uppercase tracking-[0.16em] whitespace-nowrap
+                               bg-accent text-white">
                 Most popular
               </span>
             )}
 
             {isActive && (
-              <span className={cn(
-                "absolute top-4 right-4 rounded-full px-2.5 py-0.5 text-[10px] font-medium",
-                tier.dark ? "bg-white/10 text-white/60" : "bg-[#F7F6F3] text-[#7A7773]"
-              )}>
+              <span className="absolute top-4 right-4 rounded-full px-2.5 py-0.5 text-[10px] font-medium
+                               bg-surface-raised text-ink-subtle">
                 Your plan
               </span>
             )}
 
             <div>
-              <p className={cn(
-                "text-[11px] font-medium uppercase tracking-[0.16em]",
-                tier.dark ? "text-white/40" : "text-[#7A7773]"
-              )}>
+              <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink-subtle">
                 {tier.name}
               </p>
 
@@ -169,58 +159,38 @@ export function ClientPricingCards({
                   <>
                     {/* Crossed-out original price */}
                     {tier.originalPrice && (
-                      <span className={cn(
-                        "font-serif text-[1.6rem] font-medium tracking-tight tabular-nums line-through decoration-[1.5px]",
-                        tier.dark ? "text-white/30 decoration-white/40" : "text-[#C9C5C0] decoration-[#C9C5C0]"
-                      )}>
+                      <span className="font-serif text-[1.6rem] font-medium tracking-tight nums line-through
+                                       decoration-[1.5px] text-ink-subtle/60 decoration-ink-subtle/50">
                         €{tier.originalPrice}
                       </span>
                     )}
                     {/* Promo "FREE" badge */}
-                    <span className={cn(
-                      "font-serif text-[2.6rem] font-semibold leading-none tracking-tight",
-                      tier.dark ? "text-white" : "text-[#346538]"
-                    )}>
+                    <span className="font-serif text-[2.6rem] font-medium leading-none tracking-tight text-[#346538]">
                       {tier.priceBadge}
                     </span>
                   </>
                 ) : (
                   <>
-                    <span className={cn(
-                      "text-[0.9rem] font-medium",
-                      tier.dark ? "text-white/50" : "text-[#7A7773]"
-                    )}>€</span>
-                    <span className={cn(
-                      "font-serif text-[2.8rem] font-semibold leading-none tracking-tight tabular-nums",
-                      tier.dark ? "text-white" : "text-[#111010]"
-                    )}>
+                    <span className="text-[0.9rem] font-medium text-ink-subtle">€</span>
+                    <span className="font-serif text-[2.8rem] font-medium leading-none tracking-tight nums text-ink">
                       {tier.price}
                     </span>
-                    <span className={cn(
-                      "ml-1 self-end text-sm",
-                      tier.dark ? "text-white/40" : "text-[#7A7773]"
-                    )}>
+                    <span className="ml-1 self-end text-sm text-ink-subtle">
                       {tier.period}
                     </span>
                   </>
                 )}
               </div>
 
-              <p className={cn(
-                "mt-3 text-[13px] leading-relaxed",
-                tier.dark ? "text-white/50" : "text-[#6B6965]"
-              )}>
+              <p className="mt-3 text-[13px] leading-relaxed text-ink-muted">
                 {tier.tagline}
               </p>
             </div>
 
             <ul className="mt-6 mb-8 space-y-2.5 flex-1">
               {tier.features.map((f) => (
-                <li key={f} className={cn(
-                  "flex items-start gap-2 text-[13px]",
-                  tier.dark ? "text-white/70" : "text-[#6B6965]"
-                )}>
-                  <Check dark={tier.dark} />
+                <li key={f} className="flex items-start gap-2 text-[13px] text-ink-muted">
+                  <Check accent={tier.recommended} />
                   {f}
                 </li>
               ))}
@@ -230,11 +200,11 @@ export function ClientPricingCards({
               onClick={() => choosePlan(tier.id)}
               disabled={loadingPlan === tier.id || isActive}
               className={cn(
-                "w-full rounded-xl py-3 text-sm font-medium transition-all duration-200",
+                "w-full rounded-full py-3 text-sm font-medium text-white transition-all duration-200",
                 "disabled:opacity-50 disabled:cursor-not-allowed",
-                tier.dark
-                  ? "bg-[#C9A882] text-[#111010] hover:bg-[#d4b48e]"
-                  : "bg-[#111010] text-white hover:bg-[#2a2a2a]"
+                tier.recommended
+                  ? "bg-accent hover:bg-accent-bright"
+                  : "bg-ink hover:bg-[#2a2622]"
               )}
             >
               {loadingPlan === tier.id ? "Updating…" : isActive ? "Your plan" : tier.cta}

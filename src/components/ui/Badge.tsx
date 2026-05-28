@@ -1,17 +1,19 @@
 import { cn } from "@/lib/cn";
 
-type BadgeVariant = "default" | "success" | "warning" | "danger" | "info";
+type BadgeVariant = "default" | "accent" | "champagne" | "success" | "warning" | "danger" | "info";
 
 type BadgeProps = React.HTMLAttributes<HTMLSpanElement> & {
   variant?: BadgeVariant;
 };
 
 const variantClasses: Record<BadgeVariant, string> = {
-  default: "bg-gray-100 text-gray-700",
-  success: "bg-green-100 text-green-700",
-  warning: "bg-amber-100 text-amber-700",
-  danger: "bg-red-100 text-red-700",
-  info: "bg-blue-100 text-blue-700",
+  default: "bg-ink/[0.06] text-ink-muted",
+  accent: "bg-[var(--accent-tint)] text-accent-deep",
+  champagne: "bg-[var(--champagne-tint)] text-champagne-deep",
+  success: "bg-emerald-50 text-emerald-700",
+  warning: "bg-amber-50 text-amber-700",
+  danger: "bg-red-50 text-red-700",
+  info: "bg-sky-50 text-sky-700",
 };
 
 export function Badge({ className, variant = "default", children, ...props }: BadgeProps) {
@@ -20,7 +22,7 @@ export function Badge({ className, variant = "default", children, ...props }: Ba
       className={cn(
         "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
         variantClasses[variant],
-        className
+        className,
       )}
       {...props}
     >

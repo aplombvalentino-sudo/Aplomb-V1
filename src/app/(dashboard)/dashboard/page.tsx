@@ -42,8 +42,11 @@ export default async function DashboardOverviewPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900">Overview</h1>
-      <p className="mt-1 text-sm text-gray-500">
+      <h1 className="font-serif text-2xl font-semibold text-ink">
+        Your <em className="italic">overview</em>
+        <span className="text-accent">.</span>
+      </h1>
+      <p className="mt-1 text-sm text-ink-muted">
         Welcome back, {session.user.name ?? session.user.email}
       </p>
 
@@ -54,7 +57,7 @@ export default async function DashboardOverviewPage() {
               <CardTitle>{s.label}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-4xl font-bold text-gray-900">{s.value}</p>
+              <p className="text-4xl font-bold text-ink nums">{s.value}</p>
             </CardContent>
           </Card>
         ))}

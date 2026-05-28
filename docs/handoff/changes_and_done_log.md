@@ -96,6 +96,32 @@
   respects reduced motion. `src/app/icon.svg` favicon (glowing dot).
 - Wordmark swapped in every header/footer/sidebar.
 
+## Phase 10 — Art Direction remake (2026-05-28, don't revert)
+Full visual/motion remake to the "Direction Artistique". Logic/routes/data
+untouched — presentation only.
+- **Palette**: warm surfaces (canvas `#F6F3EE`, surface `#FFFFFF`, raised
+  `#FBFAF7`, new stone `#ECE6DC`/`#E3DCD0`); ink `#111010` demoted to text/
+  buttons/accents (no black surfaces). Signature accent changed orange `#D9542C`
+  → **terracotta `#C9653B`**; champagne kept as second warm accent. All
+  decorative gradients/glows removed. Tokens centralized in `globals.css`
+  `@theme` (`bg-canvas`, `bg-stone`, `text-ink`, `text-accent`, `border-hairline`…);
+  old hex migrated repo-wide.
+- **Type**: Playfair → **Fraunces** (variable italic serif) + Geist; **Geist Mono
+  removed** (numbers use `.nums` tabular utility). `layout.tsx` updated.
+- **Logo**: period is a solid terracotta dot with a glowing, pulsing `box-shadow`
+  halo on every dot (`.aplomb-dot`); pulse freezes to a static glow under
+  reduced-motion. Favicon (`icon.svg`) glows via SVG blur. (Glow/pulse restored
+  at user request 2026-05-28 — earlier crisp version was reverted.)
+- **Motion**: new `src/lib/motion.ts` (durations/easings/variants),
+  `components/motion/{PageTransition,Reveal}.tsx`, route-group `template.tsx`
+  page transitions, distinct button vocabulary (primary press-in + terracotta
+  bar), card hover lift, layout-animated nav pills.
+- **Surfaces re-skinned**: primitives (Button/Card/Input/Badge/Logo), shells
+  (PublicHeader de-glassed, auth panel → warm stone, footer key bug fixed),
+  marketing (hero/features/cta/pricing — dark cards → stone, featured plan →
+  terracotta-ringed light card), auth pages, pro workspace, client/shopper area,
+  legacy admin, widget, checkout (last four via parallel passes).
+
 ## Outstanding (user actions, not code)
 - Rotate Supabase DB password, `NEXTAUTH_SECRET`, `GEMINI_API_KEY`, `FAL_KEY`
   (pasted in chat / once committed).

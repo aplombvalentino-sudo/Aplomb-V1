@@ -104,9 +104,9 @@ function LoginForm() {
         transition={{ duration: 0.4, delay: 0.5 }}
       >
         <div className="mt-5 flex items-center gap-3">
-          <div className="h-px flex-1 bg-black/[0.08]" />
-          <span className="text-[12px] text-[#7A7773]">or</span>
-          <div className="h-px flex-1 bg-black/[0.08]" />
+          <div className="h-px flex-1 bg-hairline" />
+          <span className="text-[12px] text-ink-subtle">or</span>
+          <div className="h-px flex-1 bg-hairline" />
         </div>
 
         <motion.button
@@ -114,9 +114,9 @@ function LoginForm() {
           onClick={() => signIn("google", { callbackUrl })}
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.98 }}
-          className="mt-4 flex w-full items-center justify-center gap-2.5 rounded-xl border
-                     border-black/[0.08] bg-white px-4 py-2.5 text-sm font-medium text-[#111010]
-                     hover:bg-[#F7F6F3] transition-colors duration-200"
+          className="mt-4 flex w-full items-center justify-center gap-2.5 rounded-full border
+                     border-hairline-strong bg-surface px-4 py-2.5 text-sm font-medium text-ink
+                     hover:bg-surface-raised transition-colors duration-200"
         >
           <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden>
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -144,10 +144,10 @@ export default function LoginPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.08, ease }}
       >
-        <h1 className="font-serif text-[2rem] font-semibold leading-[1.1] tracking-[-0.025em] text-[#111010]">
-          Welcome back
+        <h1 className="font-serif italic text-[2.2rem] font-medium leading-[1.05] tracking-[-0.02em] text-ink">
+          Welcome back<span className="not-italic text-accent">.</span>
         </h1>
-        <p className="mt-2 text-sm text-[#6B6965]">
+        <p className="mt-2 text-sm text-ink-muted">
           Sign in to your Aplomb brand account.
         </p>
       </motion.div>
@@ -160,18 +160,18 @@ export default function LoginPage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4, delay: 0.55 }}
-        className="mt-7 space-y-3 text-sm text-[#6B6965]"
+        className="mt-7 space-y-3 text-sm text-ink-muted"
       >
         <p>
           Don&apos;t have an account?{" "}
-          <Link href="/signup" className="font-medium text-[#111010] hover:underline underline-offset-2">
+          <Link href="/signup" className="font-medium text-ink hover:underline underline-offset-2">
             Sign up free
           </Link>
         </p>
-        <div className="border-t border-black/[0.06] pt-3">
-          <p className="text-[12px] text-[#7A7773]">
+        <div className="border-t border-hairline pt-3">
+          <p className="text-[12px] text-ink-subtle">
             Shopping with Aplomb?{" "}
-            <Link href="/app" className="font-medium text-[#C9A882] hover:underline underline-offset-2">
+            <Link href="/app" className="font-medium text-champagne-deep hover:underline underline-offset-2">
               Browse brands →
             </Link>
           </p>

@@ -46,19 +46,19 @@ export function ProSideNav({
       initial={{ opacity: 0, x: -16 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.5, ease }}
-      className="flex h-full w-[220px] flex-col border-r border-black/[0.07] bg-[#F9F8F6] shrink-0"
+      className="flex h-full w-[220px] flex-col border-r border-hairline bg-[#FBFAF7] shrink-0"
     >
       {/* Wordmark */}
-      <div className="flex h-14 items-center border-b border-black/[0.07] px-5">
+      <div className="flex h-14 items-center border-b border-hairline px-5">
         <Link
           href="/"
           aria-label="Aplomb — home"
-          className="text-[16px] text-[#111010] hover:opacity-60 transition-opacity duration-200"
+          className="text-[16px] text-ink hover:opacity-60 transition-opacity duration-200"
         >
           <Logo />
         </Link>
-        <ChevronRight strokeWidth={1.5} className="ml-1 h-3 w-3 text-[#C9C5C0]" />
-        <span className="ml-1 text-[13px] text-[#7A7773] font-medium">Pro</span>
+        <ChevronRight strokeWidth={1.5} className="ml-1 h-3 w-3 text-ink-subtle" />
+        <span className="ml-1 text-[13px] text-ink-subtle font-medium">Pro</span>
       </div>
 
       {/* Brand identity */}
@@ -66,7 +66,7 @@ export function ProSideNav({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.1, duration: 0.4 }}
-        className="flex items-center gap-2.5 border-b border-black/[0.07] px-5 py-3.5"
+        className="flex items-center gap-2.5 border-b border-hairline px-5 py-3.5"
       >
         {/* Logo or initial */}
         <div
@@ -83,11 +83,11 @@ export function ProSideNav({
           )}
         </div>
         <div className="min-w-0">
-          <p className="truncate text-[13px] font-medium text-[#111010] leading-tight">
+          <p className="truncate text-[13px] font-medium text-ink leading-tight">
             {brandName}
           </p>
           {plan && (
-            <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-[#7A7773]">
+            <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-ink-subtle">
               {plan}
             </p>
           )}
@@ -114,7 +114,7 @@ export function ProSideNav({
                     "relative flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[13px] font-medium transition-colors duration-200",
                     active
                       ? "text-white"
-                      : "text-[#6B6965] hover:text-[#111010] hover:bg-black/[0.04]"
+                      : "text-ink-muted hover:text-ink hover:bg-ink/5"
                   )}
                 >
                   {active && (
@@ -134,11 +134,11 @@ export function ProSideNav({
       </nav>
 
       {/* Footer */}
-      <div className="border-t border-black/[0.07] px-3 py-3 space-y-0.5">
+      <div className="border-t border-hairline px-3 py-3 space-y-0.5">
         <Link
           href="/app"
           className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-[12px]
-                     font-medium text-[#7A7773] hover:text-[#111010] hover:bg-black/[0.04]
+                     font-medium text-ink-subtle hover:text-ink hover:bg-ink/5
                      transition-colors duration-200"
         >
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="shrink-0">
@@ -151,7 +151,7 @@ export function ProSideNav({
         <button
           onClick={() => signOut({ callbackUrl: "/" })}
           className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-[12px]
-                     font-medium text-[#7A7773] hover:text-[#111010] hover:bg-black/[0.04]
+                     font-medium text-ink-subtle hover:text-ink hover:bg-ink/5
                      transition-colors duration-200"
         >
           <LogOut strokeWidth={1.5} className="h-3.5 w-3.5 shrink-0" />

@@ -15,17 +15,7 @@ export function HeroSection() {
   const enter = (value: Record<string, number>) => (reduce ? false : value);
 
   return (
-    <section className="relative min-h-[100dvh] flex items-center bg-[#F7F6F3] overflow-hidden px-4 sm:px-6 lg:px-8">
-      {/* Ambient radial glow — fixed, pointer-events-none */}
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 -z-10"
-        style={{
-          background:
-            "radial-gradient(ellipse 70% 60% at 60% 40%, rgba(210,190,170,0.18) 0%, transparent 70%)",
-        }}
-      />
-
+    <section className="relative min-h-[100dvh] flex items-center bg-canvas overflow-hidden px-4 sm:px-6 lg:px-8">
       <div className="mx-auto w-full max-w-7xl pt-28 pb-20 md:pt-36 md:pb-32">
         <div className="grid grid-cols-1 gap-16 md:grid-cols-[1fr_1fr] md:gap-12 lg:grid-cols-[5fr_4fr] lg:gap-20 items-center">
 
@@ -37,23 +27,21 @@ export function HeroSection() {
               initial={enter({ opacity: 0, y: 16 })}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, ease }}
-              className="inline-flex self-start items-center rounded-full border border-black/10 bg-white/60
-                         px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-[#6B6965]"
+              className="inline-flex self-start items-center rounded-full border border-hairline bg-surface/60
+                         px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-ink-muted"
             >
               AI Fitting Room
             </motion.span>
 
-            {/* H1 — serif editorial */}
+            {/* H1 — Fraunces editorial, italic emphasis, terracotta signature period */}
             <motion.h1
               initial={enter({ opacity: 0, y: 32 })}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.08, ease }}
-              className="mt-5 font-serif text-[clamp(2.6rem,5vw,4.5rem)] font-semibold leading-[1.08]
-                         tracking-[-0.03em] text-[#111010]"
+              className="mt-5 font-serif text-[clamp(2.6rem,5.2vw,4.6rem)] font-medium leading-[1.06]
+                         tracking-[-0.02em] text-ink"
             >
-              Your shoppers find{" "}
-              <em className="not-italic text-[#4a3f35]">the perfect fit,</em>
-              {" "}every time.
+              Your shoppers find <em className="italic">the perfect fit</em>, every time<span className="text-accent">.</span>
             </motion.h1>
 
             {/* Description */}
@@ -61,7 +49,7 @@ export function HeroSection() {
               initial={enter({ opacity: 0, y: 20 })}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.2, ease }}
-              className="mt-7 max-w-[42ch] text-[17px] leading-[1.65] text-[#6B6965]"
+              className="mt-7 max-w-[42ch] text-[17px] leading-[1.65] text-ink-muted"
             >
               Aplomb embeds an AI fitting room into your product pages.
               Shoppers get accurate size recommendations and complete outfit
@@ -79,15 +67,15 @@ export function HeroSection() {
               <motion.div whileHover={reduce ? undefined : { scale: 1.02 }} whileTap={reduce ? undefined : { scale: 0.97 }}>
                 <Link
                   href="/signup"
-                  className="group inline-flex items-center gap-2.5 rounded-full bg-[#111010]
+                  className="group inline-flex items-center gap-2.5 rounded-full bg-ink
                              pl-6 pr-2.5 py-3 text-sm font-medium text-white
                              transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
-                             hover:bg-[#2a2a2a]
-                             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111010] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F7F6F3]"
+                             hover:bg-[#2a2622]
+                             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
                 >
                   Start for free
                   <span className="flex h-7 w-7 items-center justify-center rounded-full
-                                   bg-white/[0.12] transition-all duration-500
+                                   bg-accent aplomb-glow transition-all duration-500
                                    ease-[cubic-bezier(0.32,0.72,0,1)]
                                    group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:scale-105">
                     <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true">
@@ -101,10 +89,10 @@ export function HeroSection() {
               <motion.div whileHover={reduce ? undefined : { scale: 1.02 }} whileTap={reduce ? undefined : { scale: 0.97 }}>
                 <Link
                   href="/pricing"
-                  className="inline-flex items-center gap-2 rounded-full border border-black/[0.12]
-                             bg-white/70 px-6 py-3 text-sm font-medium text-[#111010]
-                             hover:bg-white transition-all duration-300
-                             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111010] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F7F6F3]"
+                  className="inline-flex items-center gap-2 rounded-full border border-hairline-strong
+                             bg-surface/70 px-6 py-3 text-sm font-medium text-ink
+                             hover:bg-surface transition-all duration-300
+                             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
                 >
                   View pricing
                 </Link>
@@ -128,7 +116,7 @@ export function HeroSection() {
                 ].map(({ bg, initials }, i) => (
                   <div
                     key={i}
-                    className="h-7 w-7 rounded-full ring-2 ring-[#F7F6F3] flex items-center justify-center"
+                    className="h-7 w-7 rounded-full ring-2 ring-[#F6F3EE] flex items-center justify-center"
                     style={{ background: bg }}
                   >
                     <span className="text-[8px] font-semibold text-white/90 tracking-tight">{initials}</span>
@@ -195,7 +183,7 @@ export function HeroSection() {
                     ].map((m) => (
                       <div
                         key={m.label}
-                        className="rounded-xl bg-[#F7F6F3] px-3.5 py-3"
+                        className="rounded-xl bg-[#F6F3EE] px-3.5 py-3"
                       >
                         <p className="text-[10px] text-[#6B6965] mb-0.5">{m.label}</p>
                         <p className="text-[14px] font-semibold text-[#111010]">{m.value}</p>
@@ -204,7 +192,7 @@ export function HeroSection() {
                   </div>
 
                   {/* Outfit recommendation */}
-                  <div className="rounded-xl border border-black/[0.06] bg-[#F9F8F6] p-3.5">
+                  <div className="rounded-xl border border-black/[0.06] bg-[#FBFAF7] p-3.5">
                     <p className="text-[10px] font-medium uppercase tracking-[0.15em] text-[#6B6965] mb-2.5">
                       Recommended outfit
                     </p>

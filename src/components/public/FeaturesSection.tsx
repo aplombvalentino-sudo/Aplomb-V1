@@ -91,7 +91,7 @@ const entranceMap: Record<number, { x: number; y: number }> = {
 
 export function FeaturesSection() {
   return (
-    <section id="features" className="bg-[#F7F6F3] py-32 px-4 sm:px-6 lg:px-8">
+    <section id="features" className="bg-canvas py-32 px-4 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
 
         {/* Section header */}
@@ -102,15 +102,15 @@ export function FeaturesSection() {
           transition={{ duration: 0.65, ease }}
           className="max-w-2xl"
         >
-          <span className="inline-flex items-center rounded-full border border-black/10 bg-white/60
-                           px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-[#7A7773]">
+          <span className="inline-flex items-center rounded-full border border-hairline bg-surface/60
+                           px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-ink-subtle">
             Platform
           </span>
-          <h2 className="mt-5 font-serif text-[clamp(2rem,3.5vw,2.8rem)] font-semibold leading-[1.1]
-                         tracking-[-0.025em] text-[#111010] [text-wrap:balance]">
-            Everything your brand needs to nail fit
+          <h2 className="mt-5 font-serif text-[clamp(2rem,3.5vw,2.8rem)] font-medium leading-[1.1]
+                         tracking-[-0.02em] text-ink [text-wrap:balance]">
+            Everything your brand needs to nail <em className="italic">fit</em>
           </h2>
-          <p className="mt-4 text-[17px] leading-[1.65] text-[#6B6965]">
+          <p className="mt-4 text-[17px] leading-[1.65] text-ink-muted">
             One platform. Zero friction for your shoppers.
           </p>
         </motion.div>
@@ -133,45 +133,45 @@ export function FeaturesSection() {
                 <div
                   className={`h-full rounded-[1.5rem] p-1.5 ring-1
                               transition-shadow duration-300
-                              group-hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.12)]
+                              group-hover:shadow-[0_10px_34px_-12px_rgba(17,16,16,0.16)]
                               ${f.dark
-                                ? "bg-[#0d0c0b] ring-black/40"
-                                : "bg-black/[0.025] ring-black/[0.06]"}`}
+                                ? "bg-stone-deep ring-hairline-strong"
+                                : "bg-ink/[0.02] ring-hairline"}`}
                 >
                   {/* Inner core */}
                   <div
                     className={`h-full rounded-[calc(1.5rem-0.375rem)] p-7 flex flex-col gap-5
-                                ${f.dark ? "bg-[#111010]" : "bg-[#F9F8F6]"}`}
+                                ${f.dark ? "bg-stone" : "bg-surface-raised"}`}
                   >
                     {f.dark ? (
-                      /* ── Dark card — large serif stat + body ── */
+                      /* ── Focal stone card — large serif stat + body ── */
                       <>
                         <div className="inline-flex h-9 w-9 items-center justify-center rounded-xl
-                                        bg-white/[0.06] text-white/50">
+                                        bg-surface ring-1 ring-hairline text-accent">
                           {f.icon}
                         </div>
                         <div className="flex-1 flex flex-col justify-between">
                           <div>
-                            <p className="font-serif text-[clamp(2.6rem,5vw,3.8rem)] font-semibold
-                                          leading-[1] tracking-[-0.04em] text-white [text-wrap:balance]">
+                            <p className="font-serif text-[clamp(2.6rem,5vw,3.8rem)] font-medium
+                                          leading-[1] tracking-[-0.03em] text-ink [text-wrap:balance]">
                               15+
                             </p>
-                            <p className="mt-2 text-[13px] font-medium text-white/40 uppercase tracking-[0.12em]">
+                            <p className="mt-2 text-[13px] font-medium text-ink-subtle uppercase tracking-[0.12em]">
                               measurements extracted
                             </p>
                           </div>
-                          <p className="mt-6 max-w-[44ch] text-[14px] leading-[1.65] text-white/50">
+                          <p className="mt-6 max-w-[44ch] text-[14px] leading-[1.65] text-ink-muted">
                             {f.body}
                           </p>
                         </div>
-                        {/* Animated scan line — visual life */}
-                        <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-white/[0.06]">
+                        {/* Animated scan line — terracotta signature */}
+                        <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-ink/[0.06]">
                           <motion.div
                             initial={{ width: "0%" }}
                             whileInView={{ width: "94%" }}
                             viewport={{ once: true }}
                             transition={{ duration: 1.6, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                            className="absolute inset-y-0 left-0 rounded-full bg-white/30"
+                            className="absolute inset-y-0 left-0 rounded-full bg-accent"
                           />
                         </div>
                       </>
@@ -179,14 +179,14 @@ export function FeaturesSection() {
                       /* ── Light card — standard layout ── */
                       <>
                         <div className="inline-flex h-9 w-9 items-center justify-center rounded-xl
-                                        bg-white ring-1 ring-black/[0.07] text-[#6B6965]">
+                                        bg-surface ring-1 ring-hairline text-ink-subtle">
                           {f.icon}
                         </div>
                         <h3 className="text-[18px] font-semibold leading-[1.25] tracking-[-0.02em]
-                                       text-[#111010] [text-wrap:balance]">
+                                       text-ink [text-wrap:balance]">
                           {f.heading}
                         </h3>
-                        <p className="text-[14px] leading-[1.65] text-[#6B6965]">
+                        <p className="text-[14px] leading-[1.65] text-ink-muted">
                           {f.body}
                         </p>
                       </>

@@ -27,7 +27,8 @@ catalog, exposure quota, analytics, featured visibility). `/app/*` = shoppers
 |---|---|
 | Framework | Next.js 16 (App Router, Turbopack) |
 | Language | TypeScript (strict), React 19 |
-| Styling | Tailwind CSS 4 · `motion` · `lucide-react` |
+| Styling | Tailwind CSS 4 (tokens in `globals.css`) · `motion` (centralized in `lib/motion.ts`) · `lucide-react` |
+| Fonts | Fraunces (variable italic serif, `font-serif`) + Geist (sans). No mono — use `nums`. Never Inter |
 | Database | PostgreSQL via Prisma **6.19.3** (versioned migrations) |
 | Auth | NextAuth v5 (JWT) → Supabase Auth + Google OAuth |
 | Storage | Supabase private `body-scans` bucket |
@@ -84,15 +85,39 @@ prisma/  schema.prisma · migrations/ · rls.sql
 - Multi-tenancy: resolve `brandId` from session (`BrandUser`), never trust the
   request body for writes.
 
-**Design (anti-AI-slop)**
-- Off-black `#111010`, canvas `#F7F6F3`. Accents: champagne `#C9A882`, brand
-  orange `#D9542C` (logo dot). No purple/cyan gradients, no glassmorphism on
-  scroll, no neon.
-- Fonts: Playfair serif (display/logo), Geist sans (body), Geist Mono (numbers).
-  Never Inter.
-- Muted text `#7A7773` (AA); never `#9C9894`.
-- All animation respects `useReducedMotion()`; decorative `aria-hidden`;
-  interactive `focus-visible` rings.
+**Design (anti-AI-slop) — "Direction Artistique" (current)**
+- **Surfaces are warm, never black.** Canvas `#F6F3EE`, surface `#FFFFFF`,
+  raised `#FBFAF7`, stone `#ECE6DC` / stone-deep `#E3DCD0` for editorial blocks.
+  Ink `#111010` is for text, buttons, and small accents — NOT for page surfaces.
+- **Terracotta `#C9653B` is THE signature accent** (`--accent`), used ≤5%:
+  primary-CTA arrow, active states, key links, and the logo period. Champagne
+  `#C9A882` is a quiet second warm accent. **No background gradients, anywhere**
+  (decorative radial/linear glows removed; only the marquee edge-mask remains).
+  No glassmorphism, no neon. (The logo dot's glow is a `box-shadow` halo, not a
+  background gradient — see below.)
+- **Two type families only.** `font-serif` = **Fraunces** (variable italic
+  editorial serif — headlines/brand voice, often italic with a terracotta
+  signature period). Body/UI = **Geist** sans. Mono is REMOVED — use the `nums`
+  utility (tabular figures) for numeric/data text. Never Inter.
+- **Tokens, not hex.** Use Tailwind classes mapped in `globals.css`: `bg-canvas`,
+  `bg-surface`, `bg-stone`/`bg-stone-deep`, `text-ink`/`text-ink-muted`/
+  `text-ink-subtle`, `text-accent`/`bg-accent`, `text-champagne`, `border-hairline`.
+- **Terracotta circles glow and pulse.** The reusable `.aplomb-glow` class
+  (`globals.css`) adds a soft terracotta `box-shadow` halo + slow pulse; it's on
+  the logo period (`.aplomb-dot`) AND every round terracotta circle (CTA arrow
+  buttons, etc. — add `aplomb-glow` to any new `bg-accent` circle). The pulse
+  freezes to a static glow under `prefers-reduced-motion`. **Exception:** the
+  terracotta punctuation signatures (the `.` / `?` in headlines) are plain text
+  and must NOT glow. Favicon (`icon.svg`) carries the glow via SVG blur (no pulse).
+- Muted text `#7A7773`/`#6B6965` (AA); never `#9C9894`.
+- **Intentional color exception:** the "FREE" price badge on the Essential plan
+  is green `#346538` (semantic = no cost) in `PricingCards.tsx` +
+  `ClientPricingCards.tsx`. Keep it — don't "correct" it to ink.
+- **Motion is centralized** in `src/lib/motion.ts` (durations 180/280/340ms,
+  shared easings + variants). Page transitions via route-group `template.tsx`
+  + `<PageTransition>`; scroll entrances via `<Reveal>`/`<Stagger>`. All motion
+  respects `useReducedMotion()`; decorative `aria-hidden`; interactive
+  `focus-visible` rings.
 - Honest AI UX: show confidence levels. No fabricated stats/testimonials (FTC) —
   see `CLAIMS.md`.
 

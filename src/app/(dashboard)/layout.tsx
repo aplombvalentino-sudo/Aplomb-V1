@@ -20,7 +20,7 @@ export default async function DashboardLayout({
   if (!membership) redirect("/onboarding");
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-canvas">
       <DashboardNav brandName={membership.brand.name} />
       <div className="flex flex-1 flex-col overflow-hidden">
         <main className="flex-1 overflow-y-auto p-8">{children}</main>

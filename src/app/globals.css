@@ -1,36 +1,113 @@
 @import "tailwindcss";
 
+/* ───────────────────────────────────────────────────────────────────────────
+ * Aplomb — Direction Artistique tokens
+ *
+ *  Restrained, almost monastic. ~80% neutral surfaces, ~15% ink/grey for text
+ *  and detail, ~5% terracotta — never more. Champagne is a quiet second warm
+ *  accent. No gradients, anywhere. Two type families only: Fraunces (italic
+ *  editorial serif) + Geist (neutral UI sans).
+ * ─────────────────────────────────────────────────────────────────────────── */
 :root {
-  --canvas: #F7F6F3;
-  --ink: #111010;
-  --ink-muted: #6B6965;
-  --ink-subtle: #7A7773;
-  --border: rgba(0, 0, 0, 0.07);
-  --surface: #FFFFFF;
-  --surface-raised: #F9F8F6;
-  /* Brand accent — the glowing dot of the aplomb logomark */
-  --accent: #D9542C;
-  --accent-bright: #E86A3C;
-  --accent-deep: #B23E1C;
+  /* Surfaces (the ~80%) */
+  --canvas: #F6F3EE;          /* primary surface — warm paper */
+  --surface: #FFFFFF;         /* cards, panels */
+  --surface-raised: #FBFAF7;  /* faintly raised fills */
+  --stone: #ECE6DC;           /* soft secondary neutral — editorial blocks */
+  --stone-deep: #E3DCD0;      /* a touch deeper, for layering on stone */
+
+  /* Ink + greys (the ~15% — text & detail) */
+  --ink: #111010;             /* near-black, never pure black */
+  --ink-muted: #6B6965;       /* secondary text (AA) */
+  --ink-subtle: #7A7773;      /* tertiary text (AA on canvas) */
+  --border: rgba(17, 16, 16, 0.08); /* hairline */
+  --border-strong: rgba(17, 16, 16, 0.14);
+
+  /* Terracotta — the signature accent (the ~5%, used sparingly) */
+  --accent: #C9653B;
+  --accent-bright: #D2774E;   /* hover */
+  --accent-deep: #A84E2A;     /* pressed / active */
+  --accent-tint: rgba(201, 101, 59, 0.10); /* faint wash behind active states */
+
+  /* Champagne — quiet second warm accent */
+  --champagne: #C9A882;
+  --champagne-deep: #B6926A;
+  --champagne-tint: rgba(201, 168, 130, 0.14);
 }
 
+/* Map tokens to Tailwind utilities (bg-canvas, text-ink, text-accent, …) */
 @theme inline {
   --color-background: var(--canvas);
   --color-foreground: var(--ink);
+
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-stone: var(--stone);
+  --color-stone-deep: var(--stone-deep);
+
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-subtle: var(--ink-subtle);
+
+  --color-accent: var(--accent);
+  --color-accent-bright: var(--accent-bright);
+  --color-accent-deep: var(--accent-deep);
+
+  --color-champagne: var(--champagne);
+  --color-champagne-deep: var(--champagne-deep);
+
+  --color-hairline: var(--border);
+  --color-hairline-strong: var(--border-strong);
+
   --font-sans: var(--font-geist-sans), system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), monospace;
-  --font-serif: var(--font-playfair), Georgia, serif;
+  --font-serif: var(--font-fraunces), Georgia, "Times New Roman", serif;
 }
 
 html {
   scroll-behavior: smooth;
 }
 
+body {
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Editorial voice: Fraunces, italic, optical-size tuned for display. */
+.font-serif {
+  font-optical-sizing: auto;
+  font-variation-settings: "opsz" 96, "SOFT" 0, "WONK" 0;
+  letter-spacing: -0.01em;
+}
+
+h1, h2, h3 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+/* Tabular figures replace the retired mono family for numeric/data contexts. */
+.nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+}
+
+/* Accessible focus ring — consistent across all interactive elements */
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
 /*
  * Reduced-motion support (WCAG 2.3.3).
  * Catch-all for CSS transitions / keyframe animations / smooth scroll.
- * JS-driven motion (motion/react) is handled per-component via
- * useReducedMotion() in HeroSection, FadeUp, PublicHeader, etc.
+ * JS-driven motion (motion/react) is handled per-component via useReducedMotion().
  */
 @media (prefers-reduced-motion: reduce) {
   html {
@@ -49,54 +126,34 @@ html {
   }
 }
 
-body {
-  background: var(--canvas);
-  color: var(--ink);
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
-}
-
-h1, h2, h3 {
-  text-wrap: balance;
-}
-
-p {
-  text-wrap: pretty;
-}
-
-/* Accessible focus ring — consistent across all interactive elements */
-:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: 3px;
-  border-radius: 4px;
-}
-
-/* ─── Logo: the glowing accent dot ──────────────────────────────────────────
- * Shared by the wordmark (the period after "aplomb") and the standalone mark.
- * The static glow is always present; the pulse only runs when motion is allowed
- * (the global prefers-reduced-motion block below neutralises the animation).
+/* ─── Logo dot + glowing terracotta affordances ──────────────────────────────
+ * `.aplomb-dot` is the solid terracotta fill (logo period + standalone mark).
+ * `.aplomb-glow` adds the pulsing glow halo — used by the logo dot AND every
+ * round terracotta circle (CTA arrow buttons, etc.). Punctuation signatures
+ * (the "." / "?" in headlines) are plain text and never get the glow.
+ * The prefers-reduced-motion block above freezes the pulse to a static glow.
  */
 .aplomb-dot {
-  background: radial-gradient(circle at 38% 35%, var(--accent-bright) 0%, var(--accent) 55%, var(--accent-deep) 100%);
-  box-shadow:
-    0 0 6px 1px rgba(217, 84, 44, 0.55),
-    0 0 13px 3px rgba(217, 84, 44, 0.30);
+  background: var(--accent);
 }
 
-.aplomb-dot--animated {
+.aplomb-glow {
+  box-shadow:
+    0 0 6px 1px rgba(201, 101, 59, 0.55),
+    0 0 13px 3px rgba(201, 101, 59, 0.30);
   animation: aplomb-dot-pulse 3.4s ease-in-out infinite;
 }
 
 @keyframes aplomb-dot-pulse {
   0%, 100% {
     box-shadow:
-      0 0 5px 1px rgba(217, 84, 44, 0.45),
-      0 0 11px 2px rgba(217, 84, 44, 0.25);
+      0 0 5px 1px rgba(201, 101, 59, 0.45),
+      0 0 11px 2px rgba(201, 101, 59, 0.25);
   }
   50% {
     box-shadow:
-      0 0 9px 2px rgba(217, 84, 44, 0.80),
-      0 0 22px 6px rgba(217, 84, 44, 0.42);
+      0 0 10px 2px rgba(201, 101, 59, 0.85),
+      0 0 22px 6px rgba(201, 101, 59, 0.45);
   }
 }
 

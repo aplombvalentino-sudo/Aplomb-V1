@@ -34,14 +34,14 @@ export default async function ProSettingsPage() {
   return (
     <div>
       <div className="mb-8">
-        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#7A7773]">
+        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink-subtle">
           Settings
         </p>
         <h1 className="mt-1 font-serif text-[1.8rem] font-semibold leading-tight
-                       tracking-[-0.025em] text-[#111010]">
-          Brand settings
+                       tracking-[-0.025em] text-ink">
+          Brand <em className="italic">settings</em><span className="text-accent">.</span>
         </h1>
-        <p className="mt-1 text-sm text-[#6B6965]">
+        <p className="mt-1 text-sm text-ink-muted">
           Manage your brand profile, appearance and widget integration.
         </p>
       </div>
@@ -60,16 +60,16 @@ export default async function ProSettingsPage() {
         />
 
         {/* Read-only info */}
-        <section className="rounded-2xl bg-white border border-black/[0.06]
+        <section className="rounded-2xl bg-surface border border-hairline
                              shadow-[0_2px_16px_rgba(0,0,0,0.04)] p-6">
-          <h2 className="text-[13px] font-semibold text-[#111010] mb-4">Plan</h2>
+          <h2 className="text-[13px] font-semibold text-ink mb-4">Plan</h2>
           <div className="flex items-center gap-3">
-            <span className="inline-flex items-center rounded-full border border-black/10
-                             bg-[#F7F6F3] px-3 py-1 text-[11px] font-medium uppercase
-                             tracking-[0.14em] text-[#6B6965]">
+            <span className="inline-flex items-center rounded-full border border-hairline
+                             bg-canvas px-3 py-1 text-[11px] font-medium uppercase
+                             tracking-[0.14em] text-ink-muted">
               {brand.plan}
             </span>
-            <span className="text-sm text-[#7A7773]">
+            <span className="text-sm text-ink-subtle">
               {brand.plan === "free"
                 ? "Up to 100 sessions/month"
                 : brand.plan === "pro"
@@ -80,12 +80,12 @@ export default async function ProSettingsPage() {
         </section>
 
         {/* Widget embed */}
-        <section className="rounded-2xl bg-white border border-black/[0.06]
+        <section className="rounded-2xl bg-surface border border-hairline
                              shadow-[0_2px_16px_rgba(0,0,0,0.04)] p-6">
-          <h2 className="text-[13px] font-semibold text-[#111010] mb-1">Widget embed</h2>
-          <p className="text-sm text-[#6B6965] mb-4">
+          <h2 className="text-[13px] font-semibold text-ink mb-1">Widget embed</h2>
+          <p className="text-sm text-ink-muted mb-4">
             Paste this into your product page HTML just before{" "}
-            <code className="rounded bg-[#F7F6F3] px-1 text-[12px]">&lt;/body&gt;</code>.
+            <code className="rounded bg-canvas px-1 text-[12px]">&lt;/body&gt;</code>.
           </p>
           <div className="relative">
             <pre className="overflow-x-auto rounded-xl bg-[#111010] p-4 text-[12px]
@@ -97,15 +97,15 @@ export default async function ProSettingsPage() {
         </section>
 
         {/* Client link */}
-        <section className="rounded-2xl bg-white border border-black/[0.06]
+        <section className="rounded-2xl bg-surface border border-hairline
                              shadow-[0_2px_16px_rgba(0,0,0,0.04)] p-6">
-          <h2 className="text-[13px] font-semibold text-[#111010] mb-1">Client fit link</h2>
-          <p className="text-sm text-[#6B6965] mb-4">
+          <h2 className="text-[13px] font-semibold text-ink mb-1">Client fit link</h2>
+          <p className="text-sm text-ink-muted mb-4">
             Share this URL directly with your customers for a standalone fit experience.
           </p>
           <div className="flex items-center gap-2">
-            <code className="flex-1 rounded-xl bg-[#F7F6F3] px-4 py-2.5 text-[13px]
-                             text-[#4a3f35] truncate">
+            <code className="flex-1 rounded-xl bg-canvas px-4 py-2.5 text-[13px]
+                             text-ink truncate">
               {baseUrl}/app/{brand.slug}
             </code>
             <CopyButton text={`${baseUrl}/app/${brand.slug}`} />

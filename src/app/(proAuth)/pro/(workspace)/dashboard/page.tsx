@@ -71,12 +71,12 @@ export default async function ProDashboardPage() {
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#7A7773]">
+          <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink-subtle">
             Brand overview
           </p>
           <h1 className="mt-1 font-serif text-[1.8rem] font-semibold leading-tight
-                         tracking-[-0.025em] text-[#111010]">
-            {brand.name}
+                         tracking-[-0.025em] text-ink">
+            {brand.name}<span className="text-accent">.</span>
           </h1>
           <div className="mt-2 flex items-center gap-2">
             <PlanBadge label={plan.displayName} />
@@ -85,8 +85,8 @@ export default async function ProDashboardPage() {
         </div>
         <Link
           href="/pro/discovery"
-          className="rounded-full border border-black/[0.12] bg-white px-4 py-2 text-[12px]
-                     font-medium text-[#6B6965] hover:text-[#111010] hover:border-black/20
+          className="rounded-full border border-hairline-strong bg-surface px-4 py-2 text-[12px]
+                     font-medium text-ink-muted hover:text-ink hover:border-hairline
                      transition-all duration-200"
         >
           View discovery console →
@@ -99,36 +99,36 @@ export default async function ProDashboardPage() {
         <Card>
           <CardLabel>Monthly shopper scans</CardLabel>
           <div className="mt-2 flex items-baseline gap-1">
-            <span className="font-serif text-[2.2rem] font-semibold tabular-nums text-[#111010] leading-none">
+            <span className="font-serif text-[2.2rem] font-semibold nums text-ink leading-none">
               {exposure.used.toLocaleString()}
             </span>
             {exposure.quota !== Infinity && (
-              <span className="text-[13px] text-[#7A7773] tabular-nums">
+              <span className="text-[13px] text-ink-subtle nums">
                 / {exposure.quota.toLocaleString()}
               </span>
             )}
           </div>
           {exposure.quota !== Infinity ? (
             <>
-              <div className="mt-3 h-1.5 rounded-full bg-black/[0.06] overflow-hidden">
+              <div className="mt-3 h-1.5 rounded-full bg-ink/5 overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all duration-500
                               ${exposure.isExhausted
-                                ? "bg-[#C97A6A]"
+                                ? "bg-accent"
                                 : exposure.pctUsed > 80
-                                ? "bg-[#C9A882]"
-                                : "bg-[#111010]"}`}
+                                ? "bg-champagne"
+                                : "bg-ink"}`}
                   style={{ width: `${Math.max(2, exposure.pctUsed)}%` }}
                 />
               </div>
-              <p className="mt-2 text-[11px] text-[#7A7773]">
+              <p className="mt-2 text-[11px] text-ink-subtle">
                 {exposure.isExhausted
                   ? "Quota reached — brand stays live, featured boost paused."
                   : `${exposure.remaining.toLocaleString()} scans left this month`}
               </p>
             </>
           ) : (
-            <p className="mt-3 text-[11px] text-[#7A7773]">Unlimited exposure on {plan.displayName}.</p>
+            <p className="mt-3 text-[11px] text-ink-subtle">Unlimited exposure on {plan.displayName}.</p>
           )}
         </Card>
 
@@ -136,23 +136,23 @@ export default async function ProDashboardPage() {
         <Card>
           <CardLabel>Brand completeness</CardLabel>
           <div className="mt-2 flex items-baseline gap-1.5">
-            <span className="font-serif text-[2.2rem] font-semibold tabular-nums text-[#111010] leading-none">
+            <span className="font-serif text-[2.2rem] font-semibold nums text-ink leading-none">
               {completeness.score}
             </span>
-            <span className="text-[14px] text-[#7A7773]">/ 100</span>
-            <span className="ml-auto rounded-full bg-[#F7F6F3] border border-black/[0.06]
+            <span className="text-[14px] text-ink-subtle">/ 100</span>
+            <span className="ml-auto rounded-full bg-canvas border border-hairline
                              px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.12em]
-                             text-[#6B6965]">
+                             text-ink-muted">
               {completeness.level}
             </span>
           </div>
-          <div className="mt-3 h-1.5 rounded-full bg-black/[0.06] overflow-hidden">
+          <div className="mt-3 h-1.5 rounded-full bg-ink/5 overflow-hidden">
             <div
-              className="h-full rounded-full bg-[#C9A882] transition-all duration-500"
+              className="h-full rounded-full bg-champagne transition-all duration-500"
               style={{ width: `${Math.max(2, completeness.score)}%` }}
             />
           </div>
-          <p className="mt-2 text-[11px] text-[#7A7773]">
+          <p className="mt-2 text-[11px] text-ink-subtle">
             {completeness.missing.length === 0
               ? "Profile fully optimized."
               : `${completeness.missing.length} improvement${completeness.missing.length === 1 ? "" : "s"} suggested`}
@@ -163,18 +163,18 @@ export default async function ProDashboardPage() {
         <Card>
           <CardLabel>Discovery score</CardLabel>
           <div className="mt-2 flex items-baseline gap-1.5">
-            <span className="font-serif text-[2.2rem] font-semibold tabular-nums text-[#111010] leading-none">
+            <span className="font-serif text-[2.2rem] font-semibold nums text-ink leading-none">
               {discoveryScore}
             </span>
-            <span className="text-[14px] text-[#7A7773]">/ 100</span>
+            <span className="text-[14px] text-ink-subtle">/ 100</span>
           </div>
-          <div className="mt-3 h-1.5 rounded-full bg-black/[0.06] overflow-hidden">
+          <div className="mt-3 h-1.5 rounded-full bg-ink/5 overflow-hidden">
             <div
-              className="h-full rounded-full bg-[#111010] transition-all duration-500"
+              className="h-full rounded-full bg-ink transition-all duration-500"
               style={{ width: `${Math.max(2, discoveryScore)}%` }}
             />
           </div>
-          <p className="mt-2 text-[11px] text-[#7A7773]">
+          <p className="mt-2 text-[11px] text-ink-subtle">
             How prominently you rank in marketplace listings.
           </p>
         </Card>
@@ -189,15 +189,15 @@ export default async function ProDashboardPage() {
       </div>
 
       {/* ── Scan trend ─────────────────────────────────────────────────────── */}
-      <div className="rounded-2xl bg-white border border-black/[0.06]
+      <div className="rounded-2xl bg-surface border border-hairline
                       shadow-[0_2px_16px_rgba(0,0,0,0.04)] px-6 py-5 mb-6">
         <div className="flex items-center justify-between mb-4">
-          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#7A7773]">
+          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-subtle">
             Shopper scans — last 14 days
           </p>
           <Link
             href="/pro/analytics"
-            className="text-[11px] text-[#6B6965] hover:text-[#111010] transition-colors"
+            className="text-[11px] text-ink-muted hover:text-ink transition-colors"
           >
             Full analytics →
           </Link>
@@ -211,22 +211,22 @@ export default async function ProDashboardPage() {
 
       {/* ── Suggestions ────────────────────────────────────────────────────── */}
       {completeness.missing.length > 0 && (
-        <div className="rounded-2xl bg-[#FDF8F3] border border-[#C9A882]/30 px-6 py-5">
+        <div className="rounded-2xl bg-[var(--champagne-tint)] border border-champagne/30 px-6 py-5">
           <div className="flex items-start gap-3">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="shrink-0 mt-0.5">
               <path d="M10 2l2.5 6.5H19l-5 4 2 6L10 14l-6 4.5 2-6L1 8.5h6.5L10 2z"
                     stroke="#C9A882" strokeWidth="1.4" strokeLinejoin="round" />
             </svg>
             <div className="flex-1">
-              <p className="text-[13px] font-semibold text-[#4a3f35]">
+              <p className="text-[13px] font-semibold text-ink">
                 Improve your marketplace presence
               </p>
-              <p className="mt-0.5 text-[12px] text-[#6B6965]">
+              <p className="mt-0.5 text-[12px] text-ink-muted">
                 Completing these steps boosts your discovery score and featured eligibility.
               </p>
               <ul className="mt-3 space-y-1.5">
                 {completeness.missing.slice(0, 4).map((m) => (
-                  <li key={m} className="flex items-center gap-2 text-[13px] text-[#3a3632]">
+                  <li key={m} className="flex items-center gap-2 text-[13px] text-ink">
                     <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
                       <circle cx="5" cy="5" r="3" stroke="#C9A882" strokeWidth="1.3" />
                     </svg>
@@ -246,7 +246,7 @@ export default async function ProDashboardPage() {
 
 function Card({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl bg-white border border-black/[0.06]
+    <div className="rounded-2xl bg-surface border border-hairline
                     shadow-[0_2px_16px_rgba(0,0,0,0.04)] px-5 py-4.5">
       {children}
     </div>
@@ -255,7 +255,7 @@ function Card({ children }: { children: React.ReactNode }) {
 
 function CardLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#7A7773]">
+    <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-subtle">
       {children}
     </p>
   );
@@ -263,23 +263,23 @@ function CardLabel({ children }: { children: React.ReactNode }) {
 
 function StatTile({ label, value, note }: { label: string; value: number; note?: string }) {
   return (
-    <div className="rounded-2xl bg-white border border-black/[0.06]
+    <div className="rounded-2xl bg-surface border border-hairline
                     shadow-[0_2px_8px_rgba(0,0,0,0.03)] px-4 py-3.5">
-      <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-[#7A7773]">
+      <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-ink-subtle">
         {label}
       </p>
-      <p className="mt-1.5 font-serif text-[1.6rem] font-semibold leading-none tabular-nums text-[#111010]">
+      <p className="mt-1.5 font-serif text-[1.6rem] font-semibold leading-none nums text-ink">
         {value.toLocaleString()}
       </p>
-      {note && <p className="mt-1 text-[10px] text-[#C9C5C0]">{note}</p>}
+      {note && <p className="mt-1 text-[10px] text-ink-subtle">{note}</p>}
     </div>
   );
 }
 
 function PlanBadge({ label }: { label: string }) {
   return (
-    <span className="inline-flex items-center rounded-full border border-black/10 bg-white
-                     px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.14em] text-[#111010]">
+    <span className="inline-flex items-center rounded-full border border-hairline bg-surface
+                     px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.14em] text-ink">
       {label}
     </span>
   );
@@ -288,16 +288,16 @@ function PlanBadge({ label }: { label: string }) {
 function VisibilityBadge({ status }: { status: "Featured" | "Standard" | "Dormant" }) {
   const styles =
     status === "Featured"
-      ? "bg-[#111010] text-white border-black"
+      ? "bg-ink text-white border-ink"
       : status === "Standard"
-      ? "bg-[#F7F6F3] text-[#6B6965] border-black/10"
-      : "bg-white text-[#C9C5C0] border-black/10";
+      ? "bg-canvas text-ink-muted border-hairline"
+      : "bg-surface text-ink-subtle border-hairline";
   return (
     <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5
                       text-[10px] font-medium uppercase tracking-[0.14em] ${styles}`}>
       <span className={`h-1.5 w-1.5 rounded-full ${
-        status === "Featured" ? "bg-[#C9A882]" :
-        status === "Standard" ? "bg-[#7A7773]" : "bg-[#C9C5C0]"
+        status === "Featured" ? "bg-champagne" :
+        status === "Standard" ? "bg-ink-subtle" : "bg-ink-subtle"
       }`} />
       {status}
     </span>

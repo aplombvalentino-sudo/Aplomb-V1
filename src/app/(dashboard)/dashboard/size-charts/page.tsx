@@ -15,8 +15,11 @@ export default async function SizeChartsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900">Size Charts</h1>
-      <p className="mt-1 text-sm text-gray-500">
+      <h1 className="font-serif text-2xl font-semibold text-ink">
+        Size <em className="italic">charts</em>
+        <span className="text-accent">.</span>
+      </h1>
+      <p className="mt-1 text-sm text-ink-muted">
         Define measurement-to-size mappings per garment category and gender.
       </p>
       <SizeChartsClient brandId={membership.brand.id} />

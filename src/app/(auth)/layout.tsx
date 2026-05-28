@@ -58,7 +58,6 @@ type PanelContent = {
   subhead: string;
   stats: { n: string; l: string }[];
   testimonials: { quote: string; author: string; brand: string }[];
-  glow: string;
 };
 
 const BRAND_PANEL: PanelContent = {
@@ -68,7 +67,6 @@ const BRAND_PANEL: PanelContent = {
     "AI body measurements, personalized outfit recommendations, and zero friction for your shoppers.",
   stats: brandStats,
   testimonials: brandTestimonials,
-  glow: "rgba(160,120,80,0.15)",
 };
 
 const CLIENT_PANEL: PanelContent = {
@@ -78,7 +76,6 @@ const CLIENT_PANEL: PanelContent = {
     "One body scan. Every brand. Save the looks you love and shop with confidence — no more returns.",
   stats: clientStats,
   testimonials: clientTestimonials,
-  glow: "rgba(201,168,130,0.22)",
 };
 
 // ─── Layout ─────────────────────────────────────────────────────────────────
@@ -89,19 +86,10 @@ function AuthLayoutContent({ children }: { children: React.ReactNode }) {
   const panel = audience === "client" ? CLIENT_PANEL : BRAND_PANEL;
 
   return (
-    <div className="flex min-h-[100dvh] bg-[#F7F6F3]">
+    <div className="flex min-h-[100dvh] bg-[#F6F3EE]">
       {/* ── LEFT: editorial panel (desktop only) ── */}
       <div className="relative hidden lg:flex lg:w-[44%] xl:w-[40%] flex-col justify-between
-                      bg-[#111010] px-12 py-12 overflow-hidden">
-        {/* Ambient glow */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background: `radial-gradient(ellipse 80% 60% at 10% 80%, ${panel.glow} 0%, transparent 65%)`,
-          }}
-        />
-
+                      border-r border-hairline bg-stone px-12 py-12 overflow-hidden">
         {/* Logo */}
         <motion.div
           initial={{ opacity: 0, y: -12 }}
@@ -111,7 +99,7 @@ function AuthLayoutContent({ children }: { children: React.ReactNode }) {
           <Link
             href="/"
             aria-label="Aplomb — home"
-            className="text-[18px] text-white hover:opacity-70 transition-opacity"
+            className="text-[18px] text-ink hover:opacity-70 transition-opacity"
           >
             <Logo />
           </Link>
@@ -125,14 +113,14 @@ function AuthLayoutContent({ children }: { children: React.ReactNode }) {
           transition={{ duration: 0.8, delay: 0.15, ease }}
           className="relative"
         >
-          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-white/40 mb-5">
+          <p className="mb-5 text-[10px] font-medium uppercase tracking-[0.2em] text-accent">
             {panel.eyebrow}
           </p>
-          <h2 className="font-serif text-[clamp(2rem,2.8vw,2.6rem)] font-semibold leading-[1.1]
-                         tracking-[-0.03em] text-white">
+          <h2 className="font-serif italic text-[clamp(2.1rem,3vw,2.9rem)] font-medium leading-[1.08]
+                         tracking-[-0.02em] text-ink">
             {panel.headline}
           </h2>
-          <p className="mt-5 text-[15px] leading-[1.65] text-white/50 max-w-[36ch]">
+          <p className="mt-5 max-w-[36ch] text-[15px] leading-[1.65] text-ink-muted">
             {panel.subhead}
           </p>
 
@@ -140,10 +128,10 @@ function AuthLayoutContent({ children }: { children: React.ReactNode }) {
           <div className="mt-10 grid grid-cols-3 gap-6">
             {panel.stats.map((s) => (
               <div key={s.l}>
-                <p className="text-[1.6rem] font-semibold tracking-[-0.03em] text-white leading-none">
+                <p className="nums text-[1.6rem] font-semibold tracking-[-0.03em] text-ink leading-none">
                   {s.n}
                 </p>
-                <p className="mt-1 text-[11px] text-white/40">{s.l}</p>
+                <p className="mt-1 text-[11px] text-ink-subtle">{s.l}</p>
               </div>
             ))}
           </div>
@@ -160,13 +148,13 @@ function AuthLayoutContent({ children }: { children: React.ReactNode }) {
           {panel.testimonials.map((t) => (
             <div
               key={t.author}
-              className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-5"
+              className="rounded-2xl border border-hairline bg-surface/70 p-5"
             >
-              <p className="text-[13px] leading-[1.6] text-white/70 italic">
+              <p className="font-serif text-[14px] italic leading-[1.6] text-ink/80">
                 &ldquo;{t.quote}&rdquo;
               </p>
-              <p className="mt-3 text-[11px] text-white/40">
-                {t.author} — <span className="text-white/30">{t.brand}</span>
+              <p className="mt-3 text-[11px] text-ink-subtle">
+                {t.author} — <span className="text-ink-subtle/70">{t.brand}</span>
               </p>
             </div>
           ))}
@@ -192,7 +180,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-[100dvh] items-center justify-center bg-[#F7F6F3]">
+        <div className="flex min-h-[100dvh] items-center justify-center bg-[#F6F3EE]">
           <p className="text-sm text-[#7A7773]">Loading…</p>
         </div>
       }

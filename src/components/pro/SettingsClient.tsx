@@ -55,9 +55,9 @@ export function SettingsClient({ brand }: { brand: BrandFields }) {
   }
 
   return (
-    <section className="rounded-2xl bg-white border border-black/[0.06]
+    <section className="rounded-2xl bg-white border border-hairline
                          shadow-[0_2px_16px_rgba(0,0,0,0.04)] p-6">
-      <h2 className="text-[13px] font-semibold text-[#111010] mb-5">Brand profile</h2>
+      <h2 className="text-[13px] font-semibold text-ink mb-5">Brand profile</h2>
 
       {error && (
         <div className="mb-4 rounded-xl bg-red-50 border border-red-100 px-4 py-3
@@ -104,7 +104,7 @@ export function SettingsClient({ brand }: { brand: BrandFields }) {
 
         <div className="flex items-end gap-4">
           <div className="flex flex-col gap-1.5">
-            <label className="text-[12px] font-medium text-[#6B6965]">Brand colour</label>
+            <label className="text-[12px] font-medium text-ink-muted">Brand colour</label>
             <input
               type="color"
               value={fields.primaryColor}

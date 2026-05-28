@@ -112,27 +112,27 @@ export default async function ProDiscoveryPage() {
     <div>
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="mb-8">
-        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#7A7773]">
+        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink-subtle">
           Marketplace
         </p>
         <h1 className="mt-1 font-serif text-[1.8rem] font-semibold leading-tight
-                       tracking-[-0.025em] text-[#111010]">
-          Discovery console
+                       tracking-[-0.025em] text-ink">
+          Discovery <em className="italic">console</em><span className="text-accent">.</span>
         </h1>
-        <p className="mt-1 text-sm text-[#6B6965]">
+        <p className="mt-1 text-sm text-ink-muted">
           How your brand surfaces in front of shoppers.
         </p>
       </div>
 
       {/* ── Visibility + scores summary ────────────────────────────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className={`rounded-2xl px-5 py-5 border ${
+        <div className={`rounded-2xl px-5 py-5 text-ink ${
           visibilityStatus === "Featured"
-            ? "bg-[#111010] border-black text-white"
-            : "bg-white border-black/[0.06] text-[#111010]"
+            ? "bg-[var(--accent-tint)] ring-1 ring-accent/30"
+            : "bg-surface border border-hairline"
         }`}>
           <p className={`text-[10px] font-medium uppercase tracking-[0.14em] ${
-            visibilityStatus === "Featured" ? "text-white/50" : "text-[#7A7773]"
+            visibilityStatus === "Featured" ? "text-accent-deep" : "text-ink-subtle"
           }`}>
             Current visibility
           </p>
@@ -140,7 +140,7 @@ export default async function ProDiscoveryPage() {
             {visibilityStatus}
           </p>
           <p className={`mt-2 text-[12px] leading-relaxed ${
-            visibilityStatus === "Featured" ? "text-white/60" : "text-[#6B6965]"
+            visibilityStatus === "Featured" ? "text-ink-muted" : "text-ink-muted"
           }`}>
             {visibilityStatus === "Featured"
               ? "Your brand appears in Top Brands and featured carousels."
@@ -151,59 +151,59 @@ export default async function ProDiscoveryPage() {
         </div>
 
         <Card>
-          <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[#7A7773]">
+          <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-ink-subtle">
             Discovery score
           </p>
-          <p className="mt-2 font-serif text-[2rem] font-semibold tabular-nums leading-none text-[#111010]">
+          <p className="mt-2 font-serif text-[2rem] font-semibold nums leading-none text-ink">
             {discoveryScore}
-            <span className="text-[14px] text-[#7A7773] ml-1">/100</span>
+            <span className="text-[14px] text-ink-subtle ml-1">/100</span>
           </p>
-          <div className="mt-3 h-1.5 rounded-full bg-black/[0.06] overflow-hidden">
+          <div className="mt-3 h-1.5 rounded-full bg-ink/5 overflow-hidden">
             <div
-              className="h-full rounded-full bg-[#111010] transition-all duration-500"
+              className="h-full rounded-full bg-ink transition-all duration-500"
               style={{ width: `${Math.max(2, discoveryScore)}%` }}
             />
           </div>
         </Card>
 
         <Card>
-          <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[#7A7773]">
+          <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-ink-subtle">
             Exposure this month
           </p>
-          <p className="mt-2 font-serif text-[2rem] font-semibold tabular-nums leading-none text-[#111010]">
+          <p className="mt-2 font-serif text-[2rem] font-semibold nums leading-none text-ink">
             {exposure.used.toLocaleString()}
             {plan.monthlyExposureQuota !== Infinity && (
-              <span className="text-[14px] text-[#7A7773] ml-1">
+              <span className="text-[14px] text-ink-subtle ml-1">
                 / {plan.monthlyExposureQuota.toLocaleString()}
               </span>
             )}
           </p>
-          <p className="mt-2 text-[12px] text-[#6B6965]">
+          <p className="mt-2 text-[12px] text-ink-muted">
             Resets {exposure.resetsAt.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
           </p>
         </Card>
       </div>
 
       {/* ── Signal breakdown ───────────────────────────────────────────────── */}
-      <div className="mb-8 rounded-2xl bg-white border border-black/[0.06]
+      <div className="mb-8 rounded-2xl bg-surface border border-hairline
                       shadow-[0_2px_16px_rgba(0,0,0,0.04)]">
-        <div className="px-6 py-5 border-b border-black/[0.06]">
-          <p className="text-[13px] font-semibold text-[#111010]">What drives your ranking</p>
-          <p className="mt-0.5 text-[12px] text-[#7A7773]">
+        <div className="px-6 py-5 border-b border-hairline">
+          <p className="text-[13px] font-semibold text-ink">What drives your ranking</p>
+          <p className="mt-0.5 text-[12px] text-ink-subtle">
             Each signal feeds into your discovery score with balanced weighting.
           </p>
         </div>
-        <ul className="divide-y divide-black/[0.05]">
+        <ul className="divide-y divide-hairline">
           {signals.map((s) => (
             <li key={s.label} className="flex items-center gap-4 px-6 py-4">
               <span className={`h-2 w-2 rounded-full shrink-0 ${
-                s.good ? "bg-[#6B9F6B]" : "bg-[#C9A882]"
+                s.good ? "bg-[#6B9F6B]" : "bg-champagne"
               }`} />
               <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-medium text-[#111010]">{s.label}</p>
-                <p className="mt-0.5 text-[12px] text-[#6B6965]">{s.hint}</p>
+                <p className="text-[13px] font-medium text-ink">{s.label}</p>
+                <p className="mt-0.5 text-[12px] text-ink-muted">{s.hint}</p>
               </div>
-              <span className="shrink-0 font-mono text-[12px] text-[#3a3632] tabular-nums">
+              <span className="shrink-0 nums text-[12px] text-ink">
                 {s.value}
               </span>
             </li>
@@ -212,21 +212,21 @@ export default async function ProDiscoveryPage() {
       </div>
 
       {/* ── Suggestions ────────────────────────────────────────────────────── */}
-      <div className="rounded-2xl bg-[#FDF8F3] border border-[#C9A882]/30 px-6 py-5">
-        <p className="text-[13px] font-semibold text-[#4a3f35]">Boost your visibility</p>
-        <p className="mt-0.5 text-[12px] text-[#6B6965]">
+      <div className="rounded-2xl bg-[var(--champagne-tint)] border border-champagne/30 px-6 py-5">
+        <p className="text-[13px] font-semibold text-ink">Boost your visibility</p>
+        <p className="mt-0.5 text-[12px] text-ink-muted">
           High-impact actions you can take this week.
         </p>
         {completeness.missing.length === 0 ? (
-          <p className="mt-4 text-[13px] text-[#3a3632]">
+          <p className="mt-4 text-[13px] text-ink">
             Your profile is fully optimized — nice work.
           </p>
         ) : (
           <ul className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2.5">
             {completeness.missing.map((m) => (
               <li key={m}
-                  className="flex items-start gap-2 rounded-xl bg-white px-3 py-2.5
-                             border border-black/[0.05] text-[13px] text-[#3a3632]">
+                  className="flex items-start gap-2 rounded-xl bg-surface px-3 py-2.5
+                             border border-hairline text-[13px] text-ink">
                 <svg width="11" height="11" viewBox="0 0 11 11" fill="none" className="mt-1 shrink-0">
                   <path d="M2.5 5.5L4.5 7.5 8.5 3.5" stroke="#C9A882" strokeWidth="1.5"
                         strokeLinecap="round" strokeLinejoin="round" />
@@ -239,11 +239,11 @@ export default async function ProDiscoveryPage() {
         {!plan.featuredEligibility && (
           <Link
             href="/pro/billing"
-            className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#111010] pl-5 pr-2 py-2
-                       text-[12px] font-medium text-white hover:bg-[#2a2a2a] transition-colors"
+            className="mt-5 inline-flex items-center gap-2 rounded-full bg-ink pl-5 pr-2 py-2
+                       text-[12px] font-medium text-white hover:bg-ink/90 transition-colors"
           >
             Upgrade to Featured for top placement
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/[0.12]">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent aplomb-glow">
               <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
                 <path d="M2 8L8 2M8 2H3M8 2V7" stroke="white" strokeWidth="1.5"
                       strokeLinecap="round" strokeLinejoin="round"/>
@@ -258,7 +258,7 @@ export default async function ProDiscoveryPage() {
 
 function Card({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl bg-white border border-black/[0.06]
+    <div className="rounded-2xl bg-surface border border-hairline
                     shadow-[0_2px_16px_rgba(0,0,0,0.04)] px-5 py-5">
       {children}
     </div>
