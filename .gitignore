@@ -56,4 +56,5 @@ set-secrets.mjs
 
 # Internal docs not needed in repo
 AGENTS.md
-CLAUDE.md
+# CLAUDE.md is committed — it's the project contract auto-loaded by Claude Code
+# (contains only rules + pointers, no secrets).
