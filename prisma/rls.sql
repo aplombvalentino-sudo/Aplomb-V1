@@ -29,6 +29,7 @@ ALTER TABLE "RecommendationSession" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "Outfit"                ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "OutfitItem"            ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "TryOnResult"           ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "legal_acceptances"     ENABLE ROW LEVEL SECURITY;
 
 -- ─── 2. User-scoped tables ─────────────────────────────────────────────────
 
@@ -81,6 +82,12 @@ CREATE POLICY "tryon_read_owner" ON "TryOnResult"
         AND bp."userId" = auth.uid()::text
     )
   );
+
+-- Legal acceptances: append-only audit. Owner may read; writes are service-role
+-- only (no INSERT/UPDATE/DELETE policy → anon/auth roles get zero write access).
+DROP POLICY IF EXISTS "legalacceptance_read_owner" ON "legal_acceptances";
+CREATE POLICY "legalacceptance_read_owner" ON "legal_acceptances"
+  FOR SELECT USING (auth.uid()::text = "user_id");
 
 -- ─── 3. Brand-scoped tables ────────────────────────────────────────────────
 

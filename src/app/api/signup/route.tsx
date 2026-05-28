@@ -10,6 +10,7 @@ import {
   tooManyRequests,
   clientIp,
 } from "@/lib/rateLimit-upstash";
+import { CURRENT_TERMS_VERSION, CURRENT_PRIVACY_VERSION } from "@/lib/legal/legalVersions";
 
 const signupSchema = z
   .object({
@@ -18,6 +19,10 @@ const signupSchema = z
     brandName: z.string().min(1).max(100).optional(),
     email: z.string().email().max(200),
     password: z.string().min(8).max(100),
+    // Clickwrap acceptance — must be literally true. The accepted *version* is
+    // chosen server-side (never trusted from the client) when the row is written.
+    acceptTerms: z.boolean(),
+    acceptPrivacy: z.boolean(),
   })
   .strict();
 
@@ -31,12 +36,24 @@ function slugify(str: string): string {
 export async function POST(req: NextRequest) {
   const parsed = await parseJsonBody(req, signupSchema);
   if (!parsed.ok) return parsed.response;
-  const { name, brandName, email, password } = parsed.data;
+  const { name, brandName, email, password, acceptTerms, acceptPrivacy } = parsed.data;
+
+  // Clickwrap gate — both must be explicitly accepted. Enforced here on the
+  // server regardless of any client-side checkbox state. No account is created
+  // (Supabase Auth or Prisma) unless this passes.
+  if (acceptTerms !== true || acceptPrivacy !== true) {
+    return err(
+      "LEGAL_NOT_ACCEPTED",
+      "You must accept the Terms of Use and acknowledge the Privacy Policy to create an account.",
+      400,
+    );
+  }
 
   // Two-tier rate limit against account-farming:
   //   1) IP+email pair — slows targeted attempts to one slot per 5 min.
   //   2) IP alone, daily — hard cap on the number of signups from one IP/day.
   const ip = clientIp(req);
+  const userAgent = req.headers.get("user-agent")?.slice(0, 1000) ?? null;
   const emailLower = email.toLowerCase();
   const guard = await enforceLimits(`${ip}:${emailLower}`, [
     LIMITS.signup_daily,
@@ -83,6 +100,27 @@ export async function POST(req: NextRequest) {
         where: { id: supabaseUserId },
         create: { id: supabaseUserId, name, email },
         update: { name, email },
+      });
+
+      // Store immutable proof of clickwrap acceptance. Versions are taken from
+      // the server-side config (not the request) so the record is trustworthy.
+      await tx.legalAcceptance.createMany({
+        data: [
+          {
+            userId: user.id,
+            documentType: "terms",
+            documentVersion: CURRENT_TERMS_VERSION,
+            ipAddress: ip,
+            userAgent,
+          },
+          {
+            userId: user.id,
+            documentType: "privacy",
+            documentVersion: CURRENT_PRIVACY_VERSION,
+            ipAddress: ip,
+            userAgent,
+          },
+        ],
       });
 
       if (brandName) {

@@ -15,7 +15,7 @@ const companyLinks = [
 
 const legalLinks = [
   { label: "Privacy", href: "/privacy" },
-  { label: "Terms", href: "/terms" },
+  { label: "Terms", href: "/cgu" },
   { label: "Cookie policy", href: "#" },
 ];
 

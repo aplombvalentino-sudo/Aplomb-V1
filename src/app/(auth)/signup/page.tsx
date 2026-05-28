@@ -213,6 +213,8 @@ function SignupForm({
   const [brandName, setBrandName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [acceptPrivacy, setAcceptPrivacy] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -222,7 +224,13 @@ function SignupForm({
     setLoading(true);
 
     try {
-      const payload: Record<string, string> = { name, email, password };
+      const payload: Record<string, unknown> = {
+        name,
+        email,
+        password,
+        acceptTerms,
+        acceptPrivacy,
+      };
       if (kind === "brand") payload.brandName = brandName;
 
       const res = await fetch("/api/signup", {
@@ -385,10 +393,61 @@ function SignupForm({
           />
         </FormField>
 
+        {/* Clickwrap acceptance — unchecked by default, required, server-validated */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, delay: 0.46, ease }}
+          transition={{ duration: 0.45, delay: 0.43, ease }}
+          className="mt-1 space-y-2.5"
+        >
+          <label className="flex items-start gap-2.5 cursor-pointer text-[13px] leading-snug text-ink-muted">
+            <input
+              type="checkbox"
+              required
+              checked={acceptTerms}
+              onChange={(e) => setAcceptTerms(e.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 rounded accent-[#C9653B]"
+            />
+            <span>
+              I accept the{" "}
+              <Link
+                href="/cgu"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-ink underline underline-offset-2 hover:text-accent"
+              >
+                Terms of Use
+              </Link>
+              .
+            </span>
+          </label>
+          <label className="flex items-start gap-2.5 cursor-pointer text-[13px] leading-snug text-ink-muted">
+            <input
+              type="checkbox"
+              required
+              checked={acceptPrivacy}
+              onChange={(e) => setAcceptPrivacy(e.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 rounded accent-[#C9653B]"
+            />
+            <span>
+              I acknowledge the{" "}
+              <Link
+                href="/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-ink underline underline-offset-2 hover:text-accent"
+              >
+                Privacy Policy
+              </Link>
+              .
+            </span>
+          </label>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.48, ease }}
         >
           <Button type="submit" loading={loading} className="mt-1 w-full">
             {plan ? "Continue to checkout" : isBrand ? "Create brand account" : "Create account"}

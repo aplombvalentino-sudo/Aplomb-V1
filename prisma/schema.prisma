@@ -62,6 +62,32 @@ model User {
   brandUsers   BrandUser[]
   bodyProfiles BodyProfile[]
   recommendationSessions RecommendationSession[]
+  legalAcceptances LegalAcceptance[]
+}
+
+// ─── Legal / compliance ──────────────────────────────────────────────────────
+
+enum LegalDocumentType {
+  terms
+  privacy
+}
+
+/// Immutable, append-only proof of clickwrap acceptance. One row per document
+/// accepted per event; the server records the version in force at accept time.
+model LegalAcceptance {
+  id              String            @id @default(cuid())
+  userId          String            @map("user_id")
+  documentType    LegalDocumentType @map("document_type")
+  documentVersion String            @map("document_version")
+  acceptedAt      DateTime          @default(now()) @map("accepted_at")
+  ipAddress       String?           @map("ip_address")
+  userAgent       String?           @map("user_agent")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, documentType])
+  @@map("legal_acceptances")
 }
 
 enum BrandPlan {
