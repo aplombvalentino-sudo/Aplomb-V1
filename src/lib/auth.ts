@@ -6,6 +6,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { supabase } from "@/lib/supabase";
 import { LIMITS, enforceLimits } from "@/lib/rateLimit-upstash";
+import { verifyTurnstileToken, TURNSTILE_PROTECT_LOGIN } from "@/lib/security/turnstile";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -36,15 +37,28 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        turnstileToken: { label: "Turnstile", type: "text" },
       },
       async authorize(credentials, request) {
         const parsed = loginSchema.safeParse(credentials);
         if (!parsed.success) return null;
 
+        const ip = ipFromRequest(request as Request | undefined);
+
+        // Bot protection (toggle via TURNSTILE_PROTECT_LOGIN). Verified before
+        // the password check. Returning null keeps the failure generic.
+        if (TURNSTILE_PROTECT_LOGIN) {
+          const token =
+            typeof credentials?.turnstileToken === "string"
+              ? credentials.turnstileToken
+              : null;
+          const captcha = await verifyTurnstileToken(token, ip);
+          if (!captcha.success) return null;
+        }
+
         // Anti-credential-stuffing: cap attempts per (IP, email) pair.
         // Returning null on rate-limit makes the error indistinguishable from
         // "wrong password" — important so attackers can't probe the limiter.
-        const ip = ipFromRequest(request as Request | undefined);
         const guard = await enforceLimits(
           `${ip}:${parsed.data.email.toLowerCase()}`,
           [LIMITS.login_window],

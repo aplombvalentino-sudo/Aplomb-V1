@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useState, Suspense } from "react";
+import { useState, Suspense, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { motion, AnimatePresence } from "motion/react";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { TurnstileField, type TurnstileFieldHandle } from "@/components/security/TurnstileField";
+import { TURNSTILE_ENABLED } from "@/components/security/TurnstileWidget";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
@@ -17,6 +19,8 @@ function LoginForm() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileFieldHandle>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -28,6 +32,7 @@ function LoginForm() {
     const result = await signIn("credentials", {
       email,
       password,
+      turnstileToken: turnstileToken ?? "",
       redirect: false,
     });
 
@@ -35,6 +40,8 @@ function LoginForm() {
 
     if (result?.error) {
       setError("Invalid email or password.");
+      // Single-use token — refresh so the next attempt has a fresh challenge.
+      turnstileRef.current?.reset();
     } else {
       router.push(callbackUrl);
     }
@@ -87,12 +94,27 @@ function LoginForm() {
           />
         </motion.div>
 
+        {TURNSTILE_ENABLED && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.36, ease }}
+          >
+            <TurnstileField ref={turnstileRef} onChange={setTurnstileToken} />
+          </motion.div>
+        )}
+
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, delay: 0.38, ease }}
+          transition={{ duration: 0.45, delay: 0.4, ease }}
         >
-          <Button type="submit" loading={loading} className="mt-1 w-full">
+          <Button
+            type="submit"
+            loading={loading}
+            disabled={TURNSTILE_ENABLED && !turnstileToken}
+            className="mt-1 w-full"
+          >
             Sign in
           </Button>
         </motion.div>

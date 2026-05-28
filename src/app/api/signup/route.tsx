@@ -11,6 +11,7 @@ import {
   clientIp,
 } from "@/lib/rateLimit-upstash";
 import { CURRENT_TERMS_VERSION, CURRENT_PRIVACY_VERSION } from "@/lib/legal/legalVersions";
+import { verifyTurnstileToken } from "@/lib/security/turnstile";
 
 const signupSchema = z
   .object({
@@ -23,6 +24,9 @@ const signupSchema = z
     // chosen server-side (never trusted from the client) when the row is written.
     acceptTerms: z.boolean(),
     acceptPrivacy: z.boolean(),
+    // Cloudflare Turnstile token. Optional in the schema (absent when Turnstile
+    // isn't configured); the server enforces it whenever a secret key is set.
+    turnstileToken: z.string().min(1).max(4000).optional(),
   })
   .strict();
 
@@ -36,7 +40,8 @@ function slugify(str: string): string {
 export async function POST(req: NextRequest) {
   const parsed = await parseJsonBody(req, signupSchema);
   if (!parsed.ok) return parsed.response;
-  const { name, brandName, email, password, acceptTerms, acceptPrivacy } = parsed.data;
+  const { name, brandName, email, password, acceptTerms, acceptPrivacy, turnstileToken } =
+    parsed.data;
 
   // Clickwrap gate — both must be explicitly accepted. Enforced here on the
   // server regardless of any client-side checkbox state. No account is created
@@ -62,6 +67,17 @@ export async function POST(req: NextRequest) {
   if (!guard.allowed) return tooManyRequests(guard.retryAfterSeconds);
   const ipGuard = await enforceLimits(`ip:${ip}`, [LIMITS.signup_daily]);
   if (!ipGuard.allowed) return tooManyRequests(ipGuard.retryAfterSeconds);
+
+  // Bot protection — must pass before we create anything. Enforced whenever a
+  // secret key is configured; skipped (with a warning) only when it isn't.
+  const captcha = await verifyTurnstileToken(turnstileToken, ip);
+  if (!captcha.success) {
+    return err(
+      "TURNSTILE_FAILED",
+      "Verification failed. Please complete the challenge and try again.",
+      403,
+    );
+  }
 
   // 1. Create the user in Supabase Auth
   const { data: authData, error: authError } = await supabase.auth.signUp({

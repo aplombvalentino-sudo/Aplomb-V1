@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { motion, AnimatePresence } from "motion/react";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { TurnstileField, type TurnstileFieldHandle } from "@/components/security/TurnstileField";
+import { TURNSTILE_ENABLED } from "@/components/security/TurnstileWidget";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
@@ -215,6 +217,8 @@ function SignupForm({
   const [password, setPassword] = useState("");
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [acceptPrivacy, setAcceptPrivacy] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileFieldHandle>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -232,6 +236,7 @@ function SignupForm({
         acceptPrivacy,
       };
       if (kind === "brand") payload.brandName = brandName;
+      if (turnstileToken) payload.turnstileToken = turnstileToken;
 
       const res = await fetch("/api/signup", {
         method: "POST",
@@ -242,6 +247,8 @@ function SignupForm({
 
       if (!json.success) {
         setError(json.error?.message ?? "Signup failed.");
+        // Turnstile tokens are single-use — refresh so the user can retry.
+        turnstileRef.current?.reset();
         setLoading(false);
         return;
       }
@@ -270,6 +277,7 @@ function SignupForm({
       }
     } catch {
       setError("An unexpected error occurred.");
+      turnstileRef.current?.reset();
     }
 
     setLoading(false);
@@ -444,12 +452,27 @@ function SignupForm({
           </label>
         </motion.div>
 
+        {TURNSTILE_ENABLED && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.46, ease }}
+          >
+            <TurnstileField ref={turnstileRef} onChange={setTurnstileToken} />
+          </motion.div>
+        )}
+
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, delay: 0.48, ease }}
+          transition={{ duration: 0.45, delay: 0.5, ease }}
         >
-          <Button type="submit" loading={loading} className="mt-1 w-full">
+          <Button
+            type="submit"
+            loading={loading}
+            disabled={TURNSTILE_ENABLED && !turnstileToken}
+            className="mt-1 w-full"
+          >
             {plan ? "Continue to checkout" : isBrand ? "Create brand account" : "Create account"}
           </Button>
         </motion.div>
