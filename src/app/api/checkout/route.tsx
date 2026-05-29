@@ -31,11 +31,11 @@ export async function POST(req: NextRequest) {
   if (!guard.allowed) return tooManyRequests(guard.retryAfterSeconds);
 
   if (!isStripeConfigured()) {
-    return err("BILLING_UNAVAILABLE", "Billing is not configured.", 503);
+    return err("BILLING_UNAVAILABLE", "Billing is not configured (STRIPE_SECRET_KEY missing).", 503);
   }
   const priceId = priceIdForPlan(plan);
   if (!priceId) {
-    return err("PRICE_NOT_CONFIGURED", `No Stripe price configured for "${plan}".`, 503);
+    return err("PRICE_NOT_CONFIGURED", `No Stripe price configured for "${plan}" (set ${PLAN_CATALOG[plan].priceEnv}).`, 503);
   }
 
   const def = PLAN_CATALOG[plan];
@@ -60,45 +60,49 @@ export async function POST(req: NextRequest) {
     if (!membership?.brand) {
       return err("FORBIDDEN", "You must be a brand owner or admin to manage billing.", 403);
     }
-    const brand = membership.brand;
-    metadata.brandId = brand.id;
-    customerId = brand.stripeCustomerId;
-    if (!customerId) {
-      const customer = await stripe.customers.create({
-        email: user.email ?? undefined,
-        name: brand.name,
-        metadata: { aplomb_brand_id: brand.id },
-      });
-      customerId = customer.id;
-      await db.brand.update({ where: { id: brand.id }, data: { stripeCustomerId: customerId } });
-    }
+    metadata.brandId = membership.brand.id;
+    customerId = membership.brand.stripeCustomerId;
   } else {
-    // Shopper subscription tied to the user.
     customerId = user.stripeCustomerId;
-    if (!customerId) {
-      const customer = await stripe.customers.create({
-        email: user.email ?? undefined,
-        name: user.name ?? undefined,
-        metadata: { aplomb_user_id: userId },
-      });
-      customerId = customer.id;
-      await db.user.update({ where: { id: userId }, data: { stripeCustomerId: customerId } });
-    }
   }
 
-  const checkout = await stripe.checkout.sessions.create({
-    mode: "subscription",
-    customer: customerId,
-    line_items: [{ price: priceId, quantity: 1 }],
-    allow_promotion_codes: true,
-    success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${origin}/pricing`,
-    metadata,
-    // Mirror metadata onto the subscription so the webhook can resolve it even
-    // for events that don't carry the original Checkout Session.
-    subscription_data: { metadata },
-  });
+  // All Stripe API calls are wrapped so the real failure reason (bad/insufficient
+  // key, wrong mode, missing price, etc.) is surfaced instead of an opaque 500.
+  // Stripe error messages don't contain the secret, so they're safe to return.
+  try {
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: user.email ?? undefined,
+        name: def.side === "brand" ? metadata.brandId : (user.name ?? undefined),
+        metadata:
+          def.side === "brand"
+            ? { aplomb_brand_id: metadata.brandId }
+            : { aplomb_user_id: userId },
+      });
+      customerId = customer.id;
+      if (def.side === "brand") {
+        await db.brand.update({ where: { id: metadata.brandId }, data: { stripeCustomerId: customerId } });
+      } else {
+        await db.user.update({ where: { id: userId }, data: { stripeCustomerId: customerId } });
+      }
+    }
 
-  if (!checkout.url) return err("CHECKOUT_ERROR", "Could not start checkout.", 500);
-  return ok({ url: checkout.url });
+    const checkout = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      customer: customerId,
+      line_items: [{ price: priceId, quantity: 1 }],
+      allow_promotion_codes: true,
+      success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/pricing`,
+      metadata,
+      subscription_data: { metadata },
+    });
+
+    if (!checkout.url) return err("CHECKOUT_ERROR", "Stripe did not return a checkout URL.", 502);
+    return ok({ url: checkout.url });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Unknown Stripe error";
+    console.error("[checkout] Stripe error:", msg);
+    return err("STRIPE_ERROR", `Could not start checkout — ${msg}`.slice(0, 300), 502);
+  }
 }
