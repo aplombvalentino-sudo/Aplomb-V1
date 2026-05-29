@@ -57,12 +57,18 @@ model User {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
+  // Billing (Stripe). clientPlan is the durable source of truth for a shopper's
+  // plan (webhook-maintained); the cookie is just a fast-path for UX.
+  stripeCustomerId String? @unique @map("stripe_customer_id")
+  clientPlan       String  @default("essential") @map("client_plan")
+
   accounts     Account[]
   sessions     Session[]
   brandUsers   BrandUser[]
   bodyProfiles BodyProfile[]
   recommendationSessions RecommendationSession[]
   legalAcceptances LegalAcceptance[]
+  subscription Subscription?
 }
 
 // ─── Legal / compliance ──────────────────────────────────────────────────────
@@ -90,6 +96,43 @@ model LegalAcceptance {
   @@map("legal_acceptances")
 }
 
+// ─── Billing (Stripe subscriptions) ──────────────────────────────────────────
+
+enum SubscriptionStatus {
+  active
+  trialing
+  past_due
+  canceled
+  incomplete
+  incomplete_expired
+  unpaid
+  paused
+}
+
+/// One active subscription per shopper (userId) OR per brand (brandId) — never
+/// both on the same row. Maintained by the Stripe webhook; the app reads
+/// Brand.plan / User.clientPlan, which the webhook keeps in sync.
+model Subscription {
+  id                   String             @id @default(cuid())
+  userId               String?            @unique @map("user_id")
+  brandId              String?            @unique @map("brand_id")
+  stripeCustomerId     String             @map("stripe_customer_id")
+  stripeSubscriptionId String             @unique @map("stripe_subscription_id")
+  stripePriceId        String             @map("stripe_price_id")
+  plan                 String
+  status               SubscriptionStatus
+  currentPeriodEnd     DateTime?          @map("current_period_end")
+  cancelAtPeriodEnd    Boolean            @default(false) @map("cancel_at_period_end")
+  createdAt            DateTime           @default(now()) @map("created_at")
+  updatedAt            DateTime           @updatedAt @map("updated_at")
+
+  user  User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  brand Brand? @relation(fields: [brandId], references: [id], onDelete: Cascade)
+
+  @@index([stripeCustomerId])
+  @@map("subscriptions")
+}
+
 enum BrandPlan {
   free
   pro
@@ -104,6 +147,7 @@ model Brand {
   primaryColor String    @default("#000000")
   plan         BrandPlan @default(free)
   configuration Json     @default("{}")
+  stripeCustomerId String? @unique @map("stripe_customer_id")
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
@@ -112,6 +156,7 @@ model Brand {
   sizeCharts   SizeChart[]
   bodyProfiles BodyProfile[]
   recommendationSessions RecommendationSession[]
+  subscription Subscription?
 }
 
 enum BrandUserRole {

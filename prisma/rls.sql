@@ -30,6 +30,7 @@ ALTER TABLE "Outfit"                ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "OutfitItem"            ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "TryOnResult"           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "legal_acceptances"     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "subscriptions"         ENABLE ROW LEVEL SECURITY;
 
 -- ─── 2. User-scoped tables ─────────────────────────────────────────────────
 
@@ -88,6 +89,19 @@ CREATE POLICY "tryon_read_owner" ON "TryOnResult"
 DROP POLICY IF EXISTS "legalacceptance_read_owner" ON "legal_acceptances";
 CREATE POLICY "legalacceptance_read_owner" ON "legal_acceptances"
   FOR SELECT USING (auth.uid()::text = "user_id");
+
+-- Subscriptions: shopper reads own; brand members read theirs; writes are
+-- service-role only (webhook). No INSERT/UPDATE/DELETE policy for anon/auth.
+DROP POLICY IF EXISTS "subscription_read_owner" ON "subscriptions";
+CREATE POLICY "subscription_read_owner" ON "subscriptions"
+  FOR SELECT USING (
+    auth.uid()::text = "user_id"
+    OR EXISTS (
+      SELECT 1 FROM "BrandUser" bu
+      WHERE bu."brandId" = "subscriptions"."brand_id"
+        AND bu."userId" = auth.uid()::text
+    )
+  );
 
 -- ─── 3. Brand-scoped tables ────────────────────────────────────────────────
 
