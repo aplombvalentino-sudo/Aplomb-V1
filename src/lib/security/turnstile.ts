@@ -8,18 +8,20 @@ import "server-only";
  * is a build error.
  *
  * Behaviour:
- *  - Secret configured → verify against Cloudflare; reject on failure (fail-closed).
- *  - Secret NOT configured → skip verification and log a warning, so local dev
- *    and preview work without keys. Production sets the key, so it's enforced.
+ *  - Secret configured → verify against Cloudflare; reject on failure.
+ *  - Secret NOT configured → skip verification (logs a warning), so the app
+ *    keeps working before keys are set. Set the key in production to enforce.
  *
  * We never log the secret or the raw token — only Cloudflare's diagnostic codes.
  */
 
 const VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 
-/** Whether login (in addition to signup) should require Turnstile. Flip to
- *  `false` to disable login protection without touching the rest of the code. */
-export const TURNSTILE_PROTECT_LOGIN = true;
+/** Whether login should require Turnstile. OFF: the post-signup auto-login is a
+ *  programmatic signIn() that carries no token, so gating login would reject it
+ *  and bounce brand-new users to /login. Signup stays protected; login keeps
+ *  its rate-limiter (anti credential-stuffing). */
+export const TURNSTILE_PROTECT_LOGIN = false;
 
 export type TurnstileResult =
   | { success: true; skipped?: boolean }
@@ -38,8 +40,7 @@ export async function verifyTurnstileToken(
 
   if (!secret) {
     console.warn(
-      "[turnstile] TURNSTILE_SECRET_KEY not set — skipping bot verification. " +
-        "Set it in production to enforce.",
+      "[turnstile] TURNSTILE_SECRET_KEY not set — skipping bot verification.",
     );
     return { success: true, skipped: true };
   }
