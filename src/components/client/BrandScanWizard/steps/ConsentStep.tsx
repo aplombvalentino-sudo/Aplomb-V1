@@ -46,11 +46,13 @@ export function ConsentStep({
         </li>
         <li className="flex gap-2.5">
           <Dot />
-          We only keep derived measurements after the scan completes.
+          Side photo is deleted immediately after measurement; front photo
+          is kept only for try-on rendering.
         </li>
         <li className="flex gap-2.5">
           <Dot />
-          You control retention — delete from your wardrobe at any time.
+          You control retention — with an account, you can export or erase
+          all your data from <span className="font-medium">Account → Your data</span>.
         </li>
       </ul>
 

@@ -40,6 +40,12 @@ export default async function ClientDiscoveryPage() {
           >
             Plans
           </Link>
+          <Link
+            href="/app/account"
+            className="text-[12px] text-ink-subtle hover:text-ink transition-colors duration-200"
+          >
+            Account
+          </Link>
           <span aria-hidden className="h-3 w-px bg-hairline-strong" />
           <ClientSignOutLink />
         </div>
