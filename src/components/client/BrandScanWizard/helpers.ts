@@ -1,8 +1,12 @@
 import type { SizeRec } from "./types";
 
 /**
- * Pure rendering helpers — no React, no DOM, no state. Tested in helpers.test.ts.
+ * Pure rendering helpers + shared animation config — no React, no DOM, no
+ * state. Tested in helpers.test.ts.
  */
+
+/** Shared cubic-bezier ease for step transitions (Framer Motion). */
+export const ease = [0.16, 1, 0.3, 1] as const;
 
 /**
  * Honest, conservative color palette for size-confidence dots.

@@ -18,11 +18,13 @@
  *   - Photos held only in private storage; never displayed back to the user.
  *
  * Module layout:
- *   index.tsx     — this file (state, handlers, step switch, modals)
- *   types.ts      — API DTOs
- *   helpers.ts    — pure rendering helpers (confidence dot/label)
- *   ui.tsx       — presentational primitives (StepDots, ModeCard, NumField,
- *                   PhotoField, Dot, Arrow)
+ *   index.tsx       — this file: state, handlers, step switch, header, modals
+ *   types.ts        — API DTOs
+ *   helpers.ts      — pure helpers (confidenceDot/Label, ease)
+ *   ui.tsx          — presentational primitives (StepDots, ModeCard, NumField, …)
+ *   wizardApi.ts    — typed POSTs to /api/measurements, /api/outfits, /api/tryon
+ *   wardrobeStorage.ts — try/catch-wrapped localStorage for wardrobe + scan count
+ *   steps/<X>Step.tsx — one component per wizard step
  */
 
 import { useEffect, useMemo, useState } from "react";
@@ -41,8 +43,8 @@ import type {
   OutfitDTO,
   MeasurementMode,
 } from "./types";
-import { confidenceDot, confidenceLabel } from "./helpers";
-import { StepDots, ModeCard, NumField, PhotoField, Dot, Arrow } from "./ui";
+import { ease } from "./helpers";
+import { StepDots } from "./ui";
 import { postMeasurements, postOutfits, postTryOn } from "./wizardApi";
 import {
   loadWardrobe,
@@ -51,7 +53,12 @@ import {
   setScanCount as persistScanCount,
 } from "./wardrobeStorage";
 
-const ease = [0.16, 1, 0.3, 1] as const;
+import { ConsentStep } from "./steps/ConsentStep";
+import { ModeStep } from "./steps/ModeStep";
+import { MeasurementsStep } from "./steps/MeasurementsStep";
+import { ProcessingStep } from "./steps/ProcessingStep";
+import { SizeResultStep } from "./steps/SizeResultStep";
+import { OutfitsStep } from "./steps/OutfitsStep";
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -256,6 +263,15 @@ export function BrandScanWizard({
     setSavedIds((s) => new Set([...s, outfit.id]));
   }
 
+  function startOver() {
+    setStep(0);
+    setResult(null);
+    setOutfits([]);
+    setSavedIds(new Set());
+    setFrontPhoto(null);
+    setSidePhoto(null);
+  }
+
   // ─── Render ────────────────────────────────────────────────────────────────
 
   return (
@@ -303,616 +319,74 @@ export function BrandScanWizard({
 
       <main className="mx-auto max-w-2xl px-6 py-12">
         <AnimatePresence mode="wait">
-          {/* ── 0  Consent ─────────────────────────────────────────────── */}
           {step === 0 && (
-            <motion.section
+            <ConsentStep
               key="s0"
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.45, ease }}
-            >
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-ink-subtle">
-                Step 1 of 6
-              </p>
-              <h1 className="mt-3 font-serif text-[2rem] font-semibold leading-[1.1] tracking-[-0.025em] text-ink">
-                Before we start.
-              </h1>
-              <p className="mt-3 text-[14px] leading-[1.6] text-ink-muted max-w-[52ch]">
-                We&apos;ll take two photos to estimate your body measurements. Photos are
-                stored privately, used once for measurement and try-on, and never shared
-                with third parties or shown publicly. You can delete your scan at any time.
-              </p>
-
-              <ul className="mt-6 space-y-2 text-[13px] text-ink">
-                <li className="flex gap-2.5">
-                  <Dot />
-                  Photos go to a private storage bucket — never indexed or public.
-                </li>
-                <li className="flex gap-2.5">
-                  <Dot />
-                  We only keep derived measurements after the scan completes.
-                </li>
-                <li className="flex gap-2.5">
-                  <Dot />
-                  You control retention — delete from your wardrobe at any time.
-                </li>
-              </ul>
-
-              <label className="mt-7 flex items-start gap-2.5 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={consentAccepted}
-                  onChange={(e) => setConsentAccepted(e.target.checked)}
-                  className="mt-1 h-4 w-4 accent-[#111010]"
-                />
-                <span className="text-[13px] text-ink leading-[1.5]">
-                  I agree to the body-scan privacy terms above.
-                </span>
-              </label>
-
-              <div className="mt-8">
-                <button
-                  onClick={() => setStep(1)}
-                  disabled={!consentAccepted || totalProducts === 0}
-                  className="inline-flex items-center gap-2.5 rounded-full bg-[#111010]
-                             pl-6 pr-2.5 py-3 text-sm font-medium text-white
-                             hover:bg-[#2a2622] transition-all duration-300
-                             disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  Start
-                  <Arrow />
-                </button>
-              </div>
-            </motion.section>
+              consentAccepted={consentAccepted}
+              setConsentAccepted={setConsentAccepted}
+              totalProducts={totalProducts}
+              onNext={() => setStep(1)}
+            />
           )}
 
-          {/* ── 1  Mode select ─────────────────────────────────────────── */}
           {step === 1 && (
-            <motion.section
+            <ModeStep
               key="s1"
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.45, ease }}
-            >
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-ink-subtle">
-                Step 2 of 6
-              </p>
-              <h2 className="mt-3 font-serif text-[2rem] font-semibold leading-[1.1] tracking-[-0.025em] text-ink">
-                Choose your measurement mode.
-              </h2>
-              <p className="mt-3 text-[14px] text-ink-muted">
-                You can switch later in your wardrobe.
-              </p>
-
-              <div className="mt-7 grid gap-3">
-                <ModeCard
-                  active={mode === "easy"}
-                  onClick={() => setMode("easy")}
-                  title="Easy"
-                  body="Fast estimate using your height, weight, and 2 photos."
-                  tags={["Faster", "Recommended for most users"]}
-                />
-                <ModeCard
-                  active={mode === "advanced"}
-                  onClick={() => setMode("advanced")}
-                  title="Advanced"
-                  body="More precise result using your height, weight, 2 photos, plus chest/waist/hips."
-                  tags={["More precise", "Best fit accuracy"]}
-                />
-              </div>
-
-              <div className="mt-8 flex items-center gap-3">
-                <button
-                  onClick={() => setStep(0)}
-                  className="rounded-full border border-hairline-strong bg-white px-5 py-2.5
-                             text-sm font-medium text-ink-muted hover:bg-white/80 transition-all duration-200"
-                >
-                  Back
-                </button>
-                <button
-                  onClick={() => setStep(2)}
-                  className="inline-flex items-center gap-2.5 rounded-full bg-[#111010] pl-6 pr-2.5 py-3
-                             text-sm font-medium text-white hover:bg-[#2a2622] transition-all duration-300"
-                >
-                  Continue with {mode === "easy" ? "Easy" : "Advanced"}
-                  <Arrow />
-                </button>
-              </div>
-            </motion.section>
+              mode={mode}
+              setMode={setMode}
+              onBack={() => setStep(0)}
+              onNext={() => setStep(2)}
+            />
           )}
 
-          {/* ── 2  Form + photos ───────────────────────────────────────── */}
           {step === 2 && (
-            <motion.section
+            <MeasurementsStep
               key="s2"
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.45, ease }}
-            >
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-ink-subtle">
-                Step 3 of 6 · {mode === "easy" ? "Easy" : "Advanced"} mode
-              </p>
-              <h2 className="mt-3 font-serif text-[2rem] font-semibold leading-[1.1] tracking-[-0.025em] text-ink">
-                Your measurements.
-              </h2>
-              <p className="mt-3 text-[14px] text-ink-muted">
-                We&apos;ll combine your inputs with the photos to estimate your size.
-              </p>
-
-              {/* Basic fields */}
-              <div className="mt-7 grid grid-cols-2 gap-3">
-                <NumField label="Height (cm)" value={heightCm} onChange={setHeightCm} min={120} max={230} />
-                <NumField label="Weight (kg)" value={weightKg} onChange={setWeightKg} min={30} max={250} />
-              </div>
-
-              {/* Gender (optional, improves heuristic) */}
-              <div className="mt-3">
-                <label className="block text-[11px] font-medium text-ink-muted mb-1.5">
-                  Gender (optional, improves accuracy)
-                </label>
-                <div className="flex gap-2">
-                  {(["female", "male", "other"] as const).map((g) => (
-                    <button
-                      key={g}
-                      type="button"
-                      onClick={() => setGender(gender === g ? "" : g)}
-                      className={`rounded-full px-4 py-2 text-[13px] font-medium capitalize border transition-all duration-200 ${
-                        gender === g
-                          ? "bg-[#111010] text-white border-[#111010]"
-                          : "bg-white text-ink-muted border-black/[0.1] hover:border-black/20"
-                      }`}
-                    >
-                      {g}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Advanced fields */}
-              {mode === "advanced" && (
-                <div className="mt-5 grid grid-cols-3 gap-3">
-                  <NumField label="Chest (cm)" value={chestCm} onChange={setChestCm} min={60} max={180}
-                    help="Around the fullest part of your chest." />
-                  <NumField label="Waist (cm)" value={waistCm} onChange={setWaistCm} min={45} max={180}
-                    help="Around the narrowest part." />
-                  <NumField label="Hips (cm)" value={hipsCm} onChange={setHipsCm} min={70} max={200}
-                    help="Around the fullest part of your hips." />
-                </div>
-              )}
-
-              {/* Photos */}
-              <div className="mt-7 grid grid-cols-2 gap-3">
-                <PhotoField
-                  label="Front photo"
-                  file={frontPhoto}
-                  onChange={setFrontPhoto}
-                  guidance="Stand straight, arms slightly out, facing the camera."
-                />
-                <PhotoField
-                  label="Side photo"
-                  file={sidePhoto}
-                  onChange={setSidePhoto}
-                  guidance="Turn 90°. Same pose, side profile to camera."
-                />
-              </div>
-
-              {/* Style / occasion (drives outfit step downstream) */}
-              <div className="mt-7 space-y-4">
-                <div>
-                  <label className="block text-[11px] font-medium text-ink-muted mb-1.5">Style</label>
-                  <div className="flex gap-2">
-                    {(["casual", "formal", "sport"] as const).map((s) => (
-                      <button
-                        key={s}
-                        type="button"
-                        onClick={() => setStylePreference(stylePreference === s ? "" : s)}
-                        className={`rounded-full px-4 py-2 text-[13px] font-medium capitalize border transition-all duration-200 ${
-                          stylePreference === s
-                            ? "bg-[#111010] text-white border-[#111010]"
-                            : "bg-white text-ink-muted border-black/[0.1] hover:border-black/20"
-                        }`}
-                      >
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-medium text-ink-muted mb-1.5">
-                    Occasion (optional)
-                  </label>
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {planLimits.occasionPresets.map((o) => (
-                      <button
-                        key={o}
-                        type="button"
-                        onClick={() => setOccasion(occasion === o ? "" : o)}
-                        className={`rounded-full px-3 py-1.5 text-[12px] font-medium border transition-all duration-200 ${
-                          occasion === o
-                            ? "bg-[#111010] text-white border-[#111010]"
-                            : "bg-white text-ink-muted border-black/[0.1] hover:border-black/20"
-                        }`}
-                      >
-                        {o}
-                      </button>
-                    ))}
-                  </div>
-                  {planLimits.customOccasion && (
-                    <input
-                      type="text"
-                      value={occasion}
-                      onChange={(e) => setOccasion(e.target.value)}
-                      placeholder="Or type a custom occasion…"
-                      className="w-full rounded-xl border border-black/[0.1] bg-white px-4 py-3 text-sm
-                                 text-ink placeholder:text-ink-subtle
-                                 focus:outline-none focus:ring-2 focus:ring-[#111010]/10"
-                    />
-                  )}
-                </div>
-              </div>
-
-              {/* Quota counter */}
-              {planLimits.maxScansPerMonth !== Infinity && (
-                <div className="mt-6 rounded-xl bg-white border border-hairline px-4 py-3
-                                 flex items-center justify-between">
-                  <span className="text-[12px] text-ink-muted">Scans used this month</span>
-                  <span className="text-[13px] font-semibold text-ink tabular-nums">
-                    {scanCount} / {planLimits.maxScansPerMonth}
-                  </span>
-                </div>
-              )}
-              {scanLimitReached && (
-                <div className="mt-3">
-                  <UpgradePrompt
-                    reason={`You've used all ${planLimits.maxScansPerMonth} scans this month.`}
-                    targetPlan={planLimits.nextPlan ?? "model"}
-                    variant="inline"
-                  />
-                </div>
-              )}
-
-              {error && (
-                <div className="mt-4 rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">
-                  {error}
-                </div>
-              )}
-
-              <div className="mt-8 flex items-center gap-3">
-                <button
-                  onClick={() => setStep(1)}
-                  className="rounded-full border border-hairline-strong bg-white px-5 py-2.5 text-sm
-                             font-medium text-ink-muted hover:bg-white/80 transition-all duration-200"
-                >
-                  Back
-                </button>
-                <button
-                  onClick={submitMeasurements}
-                  disabled={loading || scanLimitReached}
-                  className="inline-flex items-center gap-2.5 rounded-full bg-[#111010] pl-6 pr-2.5 py-3
-                             text-sm font-medium text-white hover:bg-[#2a2622] transition-all duration-300
-                             disabled:opacity-50 disabled:cursor-wait"
-                >
-                  {loading ? "Sending…" : scanLimitReached ? "Limit reached" : "Get my fit"}
-                  <Arrow />
-                </button>
-              </div>
-            </motion.section>
+              mode={mode}
+              heightCm={heightCm} setHeightCm={setHeightCm}
+              weightKg={weightKg} setWeightKg={setWeightKg}
+              chestCm={chestCm} setChestCm={setChestCm}
+              waistCm={waistCm} setWaistCm={setWaistCm}
+              hipsCm={hipsCm} setHipsCm={setHipsCm}
+              gender={gender} setGender={setGender}
+              frontPhoto={frontPhoto} setFrontPhoto={setFrontPhoto}
+              sidePhoto={sidePhoto} setSidePhoto={setSidePhoto}
+              stylePreference={stylePreference} setStylePreference={setStylePreference}
+              occasion={occasion} setOccasion={setOccasion}
+              planLimits={planLimits}
+              scanCount={scanCount}
+              scanLimitReached={scanLimitReached}
+              error={error}
+              loading={loading}
+              onBack={() => setStep(1)}
+              onSubmit={submitMeasurements}
+            />
           )}
 
-          {/* ── 3  Processing ──────────────────────────────────────────── */}
-          {step === 3 && (
-            <motion.section
-              key="s3"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.5, ease }}
-            >
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-ink-subtle">
-                Step 4 of 6
-              </p>
-              <h2 className="mt-3 font-serif text-[2rem] font-semibold leading-[1.1] tracking-[-0.025em] text-ink">
-                Reading your shape.
-              </h2>
+          {step === 3 && <ProcessingStep key="s3" processingStage={processingStage} />}
 
-              <ul className="mt-7 space-y-3.5">
-                {[
-                  "Analysing your photos",
-                  "Matching the size charts",
-                  "Building outfit ideas",
-                ].map((label, i) => (
-                  <li key={label} className="flex items-center gap-3">
-                    <span
-                      className={`h-2 w-2 rounded-full transition-colors duration-300 ${
-                        i < processingStage
-                          ? "bg-[#346538]"
-                          : i === processingStage
-                          ? "bg-[#C9A882] animate-pulse"
-                          : "bg-black/10"
-                      }`}
-                    />
-                    <span
-                      className={`text-[14px] ${
-                        i <= processingStage ? "text-ink" : "text-ink-subtle"
-                      }`}
-                    >
-                      {label}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-
-              {/* Subtle skeleton */}
-              <div className="mt-10 space-y-3">
-                {[1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className="h-[60px] rounded-2xl bg-ink/5 animate-pulse"
-                    style={{ animationDelay: `${i * 80}ms` }}
-                  />
-                ))}
-              </div>
-            </motion.section>
-          )}
-
-          {/* ── 4  Size results ────────────────────────────────────────── */}
           {step === 4 && result && (
-            <motion.section
+            <SizeResultStep
               key="s4"
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.5, ease }}
-            >
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-ink-subtle">
-                Step 5 of 6
-              </p>
-              <h2 className="mt-3 font-serif text-[2rem] font-semibold leading-[1.1] tracking-[-0.025em] text-ink">
-                Here&apos;s your fit.
-              </h2>
-              <p className="mt-2 text-[13px] text-ink-subtle">
-                Estimated with{" "}
-                <span className="font-medium text-ink-muted">
-                  {result.measurements.measurementMode === "advanced" ? "Advanced" : "Easy"}
-                </span>{" "}
-                mode.
-              </p>
-
-              {/* Body measurements */}
-              <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {[
-                  ["height", result.measurements.heightCm],
-                  ["chest", result.measurements.chestCm],
-                  ["waist", result.measurements.waistCm],
-                  ["hips", result.measurements.hipsCm],
-                  ["shoulders", result.measurements.shouldersCm],
-                  ["inseam", result.measurements.inseamCm],
-                ]
-                  .filter(([, v]) => typeof v === "number")
-                  .map(([k, v]) => {
-                    const source = result.measurements.sourceConfidence[k as string] ?? "ai";
-                    return (
-                      <div
-                        key={k as string}
-                        className="rounded-xl bg-white border border-hairline px-4 py-3.5"
-                      >
-                        <p className="text-[10px] uppercase tracking-[0.1em] text-ink-subtle capitalize mb-0.5">
-                          {k as string}
-                        </p>
-                        <p className="font-serif text-[1.4rem] font-semibold text-ink leading-none tabular-nums">
-                          {Math.round(v as number)}
-                          <span className="text-[12px] font-normal text-ink-subtle ml-1">cm</span>
-                        </p>
-                        <p className="mt-1 text-[10px] text-ink-subtle">
-                          {source === "manual" ? "you provided" : "estimated"}
-                        </p>
-                      </div>
-                    );
-                  })}
-              </div>
-
-              {/* Sizes per category */}
-              {result.sizeRecommendations.length > 0 && (
-                <div className="mt-6 rounded-2xl border border-hairline bg-stone-deep px-6 py-5">
-                  <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink-subtle mb-4">
-                    Recommended sizes
-                  </p>
-                  <ul className="divide-y divide-hairline">
-                    {result.sizeRecommendations.map((r) => (
-                      <li key={r.category} className="flex items-start justify-between gap-3 py-3 first:pt-0 last:pb-0">
-                        <div className="min-w-0">
-                          <p className="text-[13px] text-ink capitalize">{r.category}</p>
-                          <div className="mt-1 flex items-center gap-1.5">
-                            <span
-                              className="h-1.5 w-1.5 rounded-full"
-                              style={{ background: confidenceDot(r.confidence) }}
-                            />
-                            <span className="text-[10px] uppercase tracking-[0.12em] text-ink-subtle">
-                              {confidenceLabel(r.confidence)}
-                            </span>
-                          </div>
-                          <p className="mt-2 text-[12px] text-ink-muted leading-[1.5]">{r.explanation}</p>
-                        </div>
-                        <span className="shrink-0 font-serif text-[1.6rem] font-medium text-ink leading-none nums">
-                          {r.recommendedSize}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {error && (
-                <div className="mt-4 rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">
-                  {error}
-                </div>
-              )}
-
-              <div className="mt-8 flex items-center gap-3">
-                <button
-                  onClick={generateOutfits}
-                  disabled={loading}
-                  className="inline-flex items-center gap-2.5 rounded-full bg-[#111010] pl-6 pr-2.5 py-3
-                             text-sm font-medium text-white hover:bg-[#2a2622] transition-all duration-300
-                             disabled:opacity-50 disabled:cursor-wait"
-                >
-                  {loading ? "Building outfits…" : "See outfit ideas"}
-                  <Arrow />
-                </button>
-              </div>
-            </motion.section>
+              result={result}
+              error={error}
+              loading={loading}
+              onGenerate={generateOutfits}
+            />
           )}
 
-          {/* ── 5  Outfits + try-on ────────────────────────────────────── */}
           {step === 5 && (
-            <motion.section
+            <OutfitsStep
               key="s5"
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.5, ease }}
-            >
-              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-ink-subtle">
-                Step 6 of 6
-              </p>
-              <h2 className="mt-3 font-serif text-[2rem] font-semibold leading-[1.1] tracking-[-0.025em] text-ink">
-                {outfits.length > 0
-                  ? `${outfits.length} look${outfits.length === 1 ? "" : "s"} picked for you.`
-                  : "No outfits available yet."}
-              </h2>
-
-              {outfits.length === 0 ? (
-                <div className="mt-8 rounded-2xl border border-hairline bg-white py-12 text-center">
-                  <p className="text-ink-muted">Not enough products to build an outfit yet.</p>
-                </div>
-              ) : (
-                <div className="mt-6 space-y-4">
-                  {outfits.map((outfit, i) => (
-                    <article
-                      key={outfit.id}
-                      className="rounded-2xl bg-white border border-hairline shadow-[0_2px_16px_rgba(0,0,0,0.04)] p-5"
-                    >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="min-w-0">
-                          <p className="text-[11px] text-ink-subtle uppercase tracking-[0.12em] font-medium mb-0.5">
-                            Look {i + 1}
-                          </p>
-                          <p className="text-[15px] font-semibold text-ink">{outfit.title}</p>
-                          {outfit.description && (
-                            <p className="mt-0.5 text-[12px] text-ink-subtle">{outfit.description}</p>
-                          )}
-                        </div>
-                      </div>
-
-                      <ul className="divide-y divide-black/[0.05]">
-                        {outfit.items.map((item) => {
-                          const t = tryOnByItem[item.id];
-                          return (
-                            <li key={item.id} className="flex items-center gap-3 py-3 first:pt-0">
-                              {/* Product thumbnail */}
-                              <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-[#F6F3EE]">
-                                {item.product.imageUrl ? (
-                                  <Image
-                                    src={item.product.imageUrl}
-                                    alt={item.product.name}
-                                    fill
-                                    sizes="56px"
-                                    className="object-cover"
-                                    unoptimized
-                                  />
-                                ) : (
-                                  <div className="h-full w-full" style={{ background: brand.primaryColor + "22" }} />
-                                )}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="truncate text-[13px] font-medium text-ink">
-                                  {item.product.name}
-                                </p>
-                                <p className="text-[10px] uppercase tracking-[0.1em] text-ink-subtle">
-                                  {item.position}
-                                </p>
-                              </div>
-                              <button
-                                onClick={() => runTryOn(item.id)}
-                                disabled={t?.loading}
-                                className="shrink-0 rounded-full border border-hairline-strong bg-white px-3.5 py-1.5 text-[12px] font-medium
-                                           text-ink hover:border-black/30 transition-all duration-200
-                                           disabled:opacity-50 disabled:cursor-wait"
-                              >
-                                {t?.loading
-                                  ? "Generating…"
-                                  : t?.url
-                                  ? "View try-on"
-                                  : "Try on"}
-                              </button>
-                            </li>
-                          );
-                        })}
-                      </ul>
-
-                      {outfit.rationale && (
-                        <p className="mt-3 text-[12px] text-ink-subtle leading-[1.6] border-t border-black/[0.05] pt-3">
-                          {outfit.rationale}
-                        </p>
-                      )}
-
-                      <div className="mt-3 flex items-center justify-end">
-                        {savedIds.has(outfit.id) ? (
-                          <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-[#346538]">
-                            Saved to wardrobe
-                          </span>
-                        ) : (
-                          <button
-                            onClick={() => saveToWardrobe(outfit)}
-                            className="text-[12px] font-medium text-[#C9A882] hover:text-[#b8956e] transition-colors duration-200"
-                          >
-                            Save to wardrobe
-                          </button>
-                        )}
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              )}
-
-              <div className="mt-8 flex flex-wrap items-center gap-3">
-                <button
-                  onClick={() => {
-                    setStep(0);
-                    setResult(null);
-                    setOutfits([]);
-                    setSavedIds(new Set());
-                    setFrontPhoto(null);
-                    setSidePhoto(null);
-                  }}
-                  className="rounded-full border border-hairline-strong bg-white px-5 py-2.5 text-sm font-medium
-                             text-ink-muted hover:bg-white/80 transition-all duration-200"
-                >
-                  Start over
-                </button>
-                {!widgetMode && (
-                  <Link
-                    href="/app"
-                    className="rounded-full border border-hairline-strong bg-white px-5 py-2.5 text-sm font-medium
-                               text-ink-muted hover:bg-white/80 transition-all duration-200"
-                  >
-                    Browse more brands
-                  </Link>
-                )}
-                {!widgetMode && savedIds.size > 0 && (
-                  <Link
-                    href="/app/wardrobe"
-                    className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#C9A882] hover:text-[#b8956e] transition-colors duration-200"
-                  >
-                    View wardrobe ({savedIds.size})
-                  </Link>
-                )}
-              </div>
-            </motion.section>
+              brand={brand}
+              outfits={outfits}
+              tryOnByItem={tryOnByItem}
+              savedIds={savedIds}
+              widgetMode={widgetMode}
+              onTryOn={runTryOn}
+              onSave={saveToWardrobe}
+              onStartOver={startOver}
+            />
           )}
         </AnimatePresence>
       </main>
