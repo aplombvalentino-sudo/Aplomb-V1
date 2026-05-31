@@ -105,6 +105,14 @@ export function BrandScanWizard({
   const [tryOnByItem, setTryOnByItem] = useState<Record<string, { url?: string; loading?: boolean; error?: string }>>({});
   const [activeTryOn, setActiveTryOn] = useState<string | null>(null);
 
+  // ── Try-on consent (GDPR Art 9 §2.a explicit consent — separable from the
+  // general CGU/privacy clickwrap). The user's front photo is signed and
+  // sent to fal.ai (US) to render the try-on imagery; this needs its OWN
+  // affirmative consent. We gate the first runTryOn call behind a modal;
+  // subsequent calls in the same session reuse the granted consent.
+  const [tryOnConsent, setTryOnConsent] = useState(false);
+  const [pendingTryOnItemId, setPendingTryOnItemId] = useState<string | null>(null);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [processingStage, setProcessingStage] = useState(0); // 0..2
@@ -207,7 +215,19 @@ export function BrandScanWizard({
   }
 
   // ── Try-on ────────────────────────────────────────────────────────────────
+  // Gated by explicit consent (Art 9 §2.a). Public entry point — defers to
+  // executeTryOn() only after consent is granted; otherwise stages the
+  // request for the modal to confirm.
   async function runTryOn(itemId: string) {
+    if (!result) return;
+    if (!tryOnConsent) {
+      setPendingTryOnItemId(itemId);
+      return;
+    }
+    await executeTryOn(itemId);
+  }
+
+  async function executeTryOn(itemId: string) {
     if (!result) return;
     setTryOnByItem((s) => ({ ...s, [itemId]: { loading: true } }));
     try {
@@ -225,6 +245,15 @@ export function BrandScanWizard({
     } catch {
       setTryOnByItem((s) => ({ ...s, [itemId]: { error: "Try-on failed." } }));
     }
+  }
+
+  // Confirm handler invoked by the modal when the user grants try-on consent
+  // for the first time. Stores the consent flag and executes the deferred call.
+  async function confirmTryOnConsent() {
+    const pending = pendingTryOnItemId;
+    setTryOnConsent(true);
+    setPendingTryOnItemId(null);
+    if (pending) await executeTryOn(pending);
   }
 
   // ── Save outfit to wardrobe ──────────────────────────────────────────────
@@ -400,6 +429,66 @@ export function BrandScanWizard({
             variant="modal"
             onDismiss={() => setShowUpgrade(false)}
           />
+        )}
+      </AnimatePresence>
+
+      {/* Try-on explicit consent modal (GDPR Art 9 §2.a — separable consent).
+          Shown the first time the user clicks "Try on" in this session. */}
+      <AnimatePresence>
+        {pendingTryOnItemId && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setPendingTryOnItemId(null)}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-ink/70 backdrop-blur-sm p-4"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96 }}
+              transition={{ duration: 0.3, ease }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl p-7"
+            >
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-ink-subtle">
+                Try-on consent
+              </p>
+              <h3 className="mt-3 font-serif text-[1.5rem] font-medium leading-[1.15] tracking-[-0.02em] text-ink">
+                Before we render the try-on
+              </h3>
+              <p className="mt-3 text-[13px] leading-[1.55] text-ink-muted">
+                To generate this look on you, we&apos;ll share your front photo with{" "}
+                <span className="font-medium text-ink">fal.ai</span>, our virtual
+                try-on partner (servers in the United States). They generate the
+                image and return it to Aplomb. We do not give them any other data,
+                and we do not retain their generated images beyond what you save
+                to your wardrobe.
+              </p>
+              <ul className="mt-4 space-y-1.5 text-[12px] text-ink leading-[1.5]">
+                <li className="flex gap-2"><span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-[#C9A882]" />What&apos;s sent: your front photo (signed URL, 30-minute lifetime)</li>
+                <li className="flex gap-2"><span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-[#C9A882]" />Legal basis: Article 9 §2.a — your explicit consent</li>
+                <li className="flex gap-2"><span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-[#C9A882]" />Withdraw anytime: <span className="font-medium">Account → Delete</span> erases everything</li>
+              </ul>
+              <div className="mt-6 flex items-center justify-end gap-3">
+                <button
+                  onClick={() => setPendingTryOnItemId(null)}
+                  className="rounded-full px-4 py-2 text-[13px] font-medium text-ink-muted
+                             hover:bg-ink/5 transition-colors duration-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmTryOnConsent}
+                  className="inline-flex items-center gap-2 rounded-full bg-[#111010] px-5 py-2
+                             text-[13px] font-medium text-white hover:bg-[#2a2622]
+                             transition-colors duration-200"
+                >
+                  I consent — render the try-on
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
 
