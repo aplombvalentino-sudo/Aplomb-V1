@@ -13,12 +13,12 @@
 
 export const LEGAL_DOCS = {
   terms: {
-    version: "2026-05-28",
+    version: "2026-05-31",
     path: "/cgu",
     label: "Terms of Use",
   },
   privacy: {
-    version: "2026-05-28",
+    version: "2026-05-31",
     path: "/privacy",
     label: "Privacy Policy",
   },
