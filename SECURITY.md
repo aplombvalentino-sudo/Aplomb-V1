@@ -76,9 +76,46 @@ This adds a `pre-commit` hook that scans your staged diff before every commit.
 The hook configuration lives at `.gitleaks.toml` (committed) and the hook
 script at `.git/hooks/pre-commit` (local).
 
+## Defence-in-depth — RLS posture
+
+Aplomb's Supabase tables ship with Row-Level Security policies (see
+`prisma/migrations/*/migration.sql`). These policies use `auth.uid()` and
+therefore only take effect when a request goes through Supabase's PostgREST/SDK
+with a Supabase JWT.
+
+The current Aplomb architecture uses **NextAuth v5 with JWT strategy** and
+connects to Postgres via **Prisma + the Supabase service-role connection**,
+which **bypasses RLS entirely**. The RLS layer is therefore defence-in-depth
+only — the real ownership gatekeeper is application code in
+`src/lib/ownership.ts` (`authorizeBodyProfile`, `authorizeSession`,
+`requireBrandRole`), tested in `*.test.ts` files alongside the routes.
+
+We keep the RLS in place because:
+1. It catches future code that accidentally uses the Supabase anon client (e.g.
+   if we ever add a client-side write path through PostgREST).
+2. It's the documented intent — anyone reading the schema understands what
+   the access boundaries are.
+
+**Do not assume RLS protects you.** Every API route must go through
+`authorize*` helpers from `lib/ownership.ts` before touching user data.
+
+## Incident response
+
+See [`docs/INCIDENT_RESPONSE.md`](./docs/INCIDENT_RESPONSE.md) for the 72-hour
+GDPR-breach runbook (CNIL notification, user notice templates, common-scenario
+playbooks).
+
+## Privacy compliance
+
+See [`docs/GDPR_AUDIT.md`](./docs/GDPR_AUDIT.md) for the audit history,
+[`docs/DPIA.md`](./docs/DPIA.md) for the Data Protection Impact Assessment,
+[`docs/RETENTION.md`](./docs/RETENTION.md) for per-category retention durations,
+[`docs/SUBPROCESSORS.md`](./docs/SUBPROCESSORS.md) for the named third-party
+list + transfer mechanisms.
+
 ## Reporting a vulnerability
 
-Email **security@aplomb.ai** or open a private GitHub Security Advisory:
+Email **security@aplomb-app.com** or open a private GitHub Security Advisory:
 https://github.com/aplombvalentino-sudo/Aplomb-V1/security/advisories/new
 
 Do **not** open a public issue for security problems.
