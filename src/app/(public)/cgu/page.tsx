@@ -52,11 +52,14 @@ export default function TermsPage() {
         </p>
       </Section>
 
-      <Section title="3. Accounts">
+      <Section title="3. Accounts and age requirement">
         <p>
           You are responsible for the accuracy of the information you provide and for
-          keeping your credentials secure. You must be at least the age of majority in
-          your jurisdiction to create an account.
+          keeping your credentials secure. You must be at least <strong>15 years
+          old</strong> to create an account (French Loi Informatique et Libertés
+          article 7-1). If you are under 15, a parent or legal guardian must create
+          and operate the account on your behalf. Aplomb does not knowingly process
+          body-scan photos of minors under 15.
         </p>
       </Section>
 

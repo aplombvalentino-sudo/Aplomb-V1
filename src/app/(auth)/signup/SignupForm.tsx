@@ -36,6 +36,7 @@ export function SignupForm({
   const [password, setPassword] = useState("");
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [acceptPrivacy, setAcceptPrivacy] = useState(false);
+  const [confirmAge, setConfirmAge] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const turnstileRef = useRef<TurnstileFieldHandle>(null);
   const [error, setError] = useState("");
@@ -53,6 +54,7 @@ export function SignupForm({
         password,
         acceptTerms,
         acceptPrivacy,
+        confirmAge,
       };
       if (kind === "brand") payload.brandName = brandName;
       if (turnstileToken) payload.turnstileToken = turnstileToken;
@@ -268,6 +270,17 @@ export function SignupForm({
               </Link>
               .
             </span>
+          </label>
+          {/* Age gate — French LIL art. 7-1: digital consent age = 15. */}
+          <label className="flex items-start gap-2.5 cursor-pointer text-[13px] leading-snug text-ink-muted">
+            <input
+              type="checkbox"
+              required
+              checked={confirmAge}
+              onChange={(e) => setConfirmAge(e.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 rounded accent-[#C9653B]"
+            />
+            <span>I confirm I am 15 years old or older.</span>
           </label>
         </motion.div>
 

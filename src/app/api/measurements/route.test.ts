@@ -39,6 +39,7 @@ vi.mock("@/lib/ai/storage", () => ({
   buildScanPath: vi.fn((sid: string, side: string, mime: string) =>
     `private/${sid}/${side}.${mime.split("/")[1]}`,
   ),
+  deleteBodyScan: vi.fn(),
 }));
 
 vi.mock("@/lib/sessionToken", () => ({
@@ -59,7 +60,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { enforceLimits } from "@/lib/rateLimit-upstash";
 import { runMeasurement } from "@/lib/ai/measurementProvider";
-import { uploadBodyScan } from "@/lib/ai/storage";
+import { uploadBodyScan, deleteBodyScan } from "@/lib/ai/storage";
 import { newSessionToken } from "@/lib/sessionToken";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -238,6 +239,38 @@ describe("POST /api/measurements — privacy", () => {
     const json = await res.json();
     expect(json.data.measurements.rawProviderResponse).toBeUndefined();
     expect(JSON.stringify(json)).not.toMatch(/this-must-NOT-leak/);
+  });
+
+  it("DATA MINIMIZATION: side photo is deleted immediately after measurement (Art 5 §1.c)", async () => {
+    // The side photo is only needed to derive measurements. Once the
+    // provider returns, the route must delete it from the private bucket.
+    // This test locks that contract.
+    const res = await POST(makeReq(validForm()));
+    expect(res.status).toBe(200);
+    const deleteCalls = vi.mocked(deleteBodyScan).mock.calls.map((c) => c[0]);
+    const sideDeleted = deleteCalls.some((p) => /\/side\./.test(p));
+    expect(sideDeleted).toBe(true);
+  });
+
+  it("DATA MINIMIZATION: front photo is NOT deleted (still needed for try-on)", async () => {
+    await POST(makeReq(validForm()));
+    const deleteCalls = vi.mocked(deleteBodyScan).mock.calls.map((c) => c[0]);
+    const frontDeleted = deleteCalls.some((p) => /\/front\./.test(p));
+    expect(frontDeleted).toBe(false);
+  });
+
+  it("DATA MINIMIZATION: sideImagePath is persisted as null (record of deletion)", async () => {
+    await POST(makeReq(validForm()));
+    // Pull the tx callback and run it against an instrumented mock
+    const txCb = vi.mocked(db.$transaction).mock.calls[0]![0] as (tx: unknown) => Promise<unknown>;
+    const txMock = {
+      bodyProfile: { create: vi.fn().mockResolvedValue({ id: "bp" }) },
+      recommendationSession: { create: vi.fn().mockResolvedValue({ id: "rs" }) },
+    };
+    await txCb(txMock);
+    const bpData = txMock.bodyProfile.create.mock.calls[0]![0]!.data;
+    expect(bpData.sideImagePath).toBeNull();
+    expect(bpData.frontImagePath).toBeTruthy();
   });
 });
 

@@ -62,6 +62,7 @@ function validBody(overrides: Record<string, unknown> = {}) {
     password: "supersecret",
     acceptTerms: true,
     acceptPrivacy: true,
+    confirmAge: true,
     ...overrides,
   };
 }
@@ -104,6 +105,15 @@ describe("POST /api/signup — clickwrap gate (runs BEFORE any I/O)", () => {
     expect(res.status).toBe(400);
     const json = await res.json();
     expect(json.error.code).toBe("LEGAL_NOT_ACCEPTED");
+  });
+
+  it("rejects with 400 AGE_NOT_CONFIRMED when confirmAge is false (LIL art. 7-1)", async () => {
+    const res = await POST(makeReq(validBody({ confirmAge: false })));
+    expect(res.status).toBe(400);
+    const json = await res.json();
+    expect(json.error.code).toBe("AGE_NOT_CONFIRMED");
+    expect(vi.mocked(supabase.auth.signUp)).not.toHaveBeenCalled();
+    expect(vi.mocked(db.$transaction)).not.toHaveBeenCalled();
   });
 });
 

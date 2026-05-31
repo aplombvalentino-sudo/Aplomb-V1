@@ -26,6 +26,7 @@ import {
   uploadBodyScan,
   getSignedBodyScanUrl,
   buildScanPath,
+  deleteBodyScan,
 } from "@/lib/ai/storage";
 import {
   newSessionToken,
@@ -164,6 +165,13 @@ export async function POST(req: NextRequest) {
     // skip this — ownership is proven by userId.
     const anonToken = userId === null ? newSessionToken() : null;
 
+    // Data-minimization (GDPR Art 5 §1.c): the side photo is only needed
+    // to derive measurements. Once `runMeasurement()` returns, we delete it
+    // from the private bucket immediately and persist `sideImagePath: null`.
+    // The front photo is kept (try-on still needs it); a separate retention
+    // sweep handles its eventual deletion.
+    await deleteBodyScan(sidePath);
+
     // Persist BodyProfile + RecommendationSession atomically
     const [bodyProfile, recommendationSession] = await db.$transaction(async (tx) => {
       const bp = await tx.bodyProfile.create({
@@ -175,7 +183,7 @@ export async function POST(req: NextRequest) {
           provider: measurements.providerName === "stub" ? "stub" : "custom",
           measurementMode: fields.measurementMode,
           frontImagePath: frontPath,
-          sideImagePath: sidePath,
+          sideImagePath: null, // deleted post-measurement (line above)
         },
       });
       const rs = await tx.recommendationSession.create({

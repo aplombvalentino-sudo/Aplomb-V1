@@ -24,6 +24,10 @@ const signupSchema = z
     // chosen server-side (never trusted from the client) when the row is written.
     acceptTerms: z.boolean(),
     acceptPrivacy: z.boolean(),
+    // Age gate — French LIL art. 7-1 sets digital-consent age at 15. Below 15
+    // requires parental consent (not implemented). Self-attested at signup,
+    // enforced server-side.
+    confirmAge: z.boolean(),
     // Cloudflare Turnstile token. Optional in the schema (absent when Turnstile
     // isn't configured); the server enforces it whenever a secret key is set.
     turnstileToken: z.string().min(1).max(4000).optional(),
@@ -40,16 +44,26 @@ function slugify(str: string): string {
 export async function POST(req: NextRequest) {
   const parsed = await parseJsonBody(req, signupSchema);
   if (!parsed.ok) return parsed.response;
-  const { name, brandName, email, password, acceptTerms, acceptPrivacy, turnstileToken } =
-    parsed.data;
+  const {
+    name, brandName, email, password,
+    acceptTerms, acceptPrivacy, confirmAge,
+    turnstileToken,
+  } = parsed.data;
 
-  // Clickwrap gate — both must be explicitly accepted. Enforced here on the
-  // server regardless of any client-side checkbox state. No account is created
-  // (Supabase Auth or Prisma) unless this passes.
+  // Clickwrap + age gate — all three must be explicitly true. Enforced here
+  // on the server regardless of any client-side checkbox state. No account
+  // is created (Supabase Auth or Prisma) unless this passes.
   if (acceptTerms !== true || acceptPrivacy !== true) {
     return err(
       "LEGAL_NOT_ACCEPTED",
       "You must accept the Terms of Use and acknowledge the Privacy Policy to create an account.",
+      400,
+    );
+  }
+  if (confirmAge !== true) {
+    return err(
+      "AGE_NOT_CONFIRMED",
+      "You must confirm you are 15 years or older to create an account.",
       400,
     );
   }
