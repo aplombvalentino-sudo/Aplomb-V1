@@ -31,11 +31,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
 import { UpgradePrompt } from "@/components/client/UpgradePrompt";
 import { ClientSignOutLink } from "@/components/client/ClientSignOutLink";
-import {
-  type ClientPlan,
-  getClientPlanLimits,
-  SCAN_COUNT_KEY,
-} from "@/lib/planLimits";
+import { type ClientPlan, getClientPlanLimits } from "@/lib/planLimits";
 import type { WardrobeOutfit } from "@/components/client/WardrobeClient";
 
 import type {
@@ -47,8 +43,14 @@ import type {
 } from "./types";
 import { confidenceDot, confidenceLabel } from "./helpers";
 import { StepDots, ModeCard, NumField, PhotoField, Dot, Arrow } from "./ui";
+import { postMeasurements, postOutfits, postTryOn } from "./wizardApi";
+import {
+  loadWardrobe,
+  saveWardrobe,
+  getScanCount as readScanCount,
+  setScanCount as persistScanCount,
+} from "./wardrobeStorage";
 
-const WARDROBE_KEY = "aplomb_wardrobe";
 const ease = [0.16, 1, 0.3, 1] as const;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -106,10 +108,7 @@ export function BrandScanWizard({
   );
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(SCAN_COUNT_KEY);
-      setScanCount(stored ? parseInt(stored, 10) : 0);
-    } catch {}
+    setScanCount(readScanCount());
   }, []);
 
   const scanLimitReached =
@@ -138,22 +137,18 @@ export function BrandScanWizard({
     const stages = setInterval(() => setProcessingStage((s) => Math.min(s + 1, 2)), 1200);
 
     try {
-      const form = new FormData();
-      form.set("brandSlug", brand.slug);
-      form.set("measurementMode", mode);
-      form.set("heightCm", String(heightCm));
-      form.set("weightKg", String(weightKg));
-      if (mode === "advanced") {
-        form.set("chestCm", String(chestCm));
-        form.set("waistCm", String(waistCm));
-        form.set("hipsCm", String(hipsCm));
-      }
-      if (gender) form.set("gender", gender);
-      form.set("frontImage", frontPhoto);
-      form.set("sideImage", sidePhoto);
-
-      const res = await fetch("/api/measurements", { method: "POST", body: form });
-      const json = await res.json();
+      const json = await postMeasurements({
+        brandSlug: brand.slug,
+        mode,
+        heightCm,
+        weightKg,
+        chestCm: typeof chestCm === "number" ? chestCm : undefined,
+        waistCm: typeof waistCm === "number" ? waistCm : undefined,
+        hipsCm: typeof hipsCm === "number" ? hipsCm : undefined,
+        gender: gender || undefined,
+        frontImage: frontPhoto,
+        sideImage: sidePhoto,
+      });
 
       if (!json.success) {
         setError(json.error?.message ?? "Measurement failed.");
@@ -164,11 +159,9 @@ export function BrandScanWizard({
       }
 
       setResult(json.data);
-      try {
-        const next = scanCount + 1;
-        localStorage.setItem(SCAN_COUNT_KEY, String(next));
-        setScanCount(next);
-      } catch {}
+      const next = scanCount + 1;
+      persistScanCount(next);
+      setScanCount(next);
       clearInterval(stages);
       setStep(4);
     } catch {
@@ -180,35 +173,19 @@ export function BrandScanWizard({
     setLoading(false);
   }
 
-  /**
-   * Build request headers. When we have an anonymous session token (Safari /
-   * 3rd-party-iframe contexts where the cookie was blocked by ITP), echo it
-   * via X-Aplomb-Session so the server can still verify ownership.
-   */
-  function authedHeaders(): HeadersInit {
-    const h: Record<string, string> = { "Content-Type": "application/json" };
-    if (result?.sessionToken) h["X-Aplomb-Session"] = result.sessionToken;
-    return h;
-  }
-
   // ── Generate outfits ─────────────────────────────────────────────────────
   async function generateOutfits() {
     if (!result) return;
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/outfits", {
-        method: "POST",
-        headers: authedHeaders(),
-        body: JSON.stringify({
-          brandSlug: brand.slug,
-          recommendationSessionId: result.recommendationSessionId,
-          occasion: occasion || undefined,
-          stylePreference: stylePreference || undefined,
-          maxOutfits: 3,
-        }),
+      const json = await postOutfits({
+        brandSlug: brand.slug,
+        recommendationSessionId: result.recommendationSessionId,
+        occasion: occasion || undefined,
+        stylePreference: stylePreference || undefined,
+        sessionToken: result.sessionToken,
       });
-      const json = await res.json();
       if (!json.success) {
         setError(json.error?.message ?? "Could not generate outfits.");
         setLoading(false);
@@ -227,15 +204,11 @@ export function BrandScanWizard({
     if (!result) return;
     setTryOnByItem((s) => ({ ...s, [itemId]: { loading: true } }));
     try {
-      const res = await fetch("/api/tryon", {
-        method: "POST",
-        headers: authedHeaders(),
-        body: JSON.stringify({
-          outfitItemId: itemId,
-          bodyProfileId: result.bodyProfileId,
-        }),
+      const json = await postTryOn({
+        outfitItemId: itemId,
+        bodyProfileId: result.bodyProfileId,
+        sessionToken: result.sessionToken,
       });
-      const json = await res.json();
       if (!json.success) {
         setTryOnByItem((s) => ({ ...s, [itemId]: { error: json.error?.message ?? "Try-on failed." } }));
         return;
@@ -250,40 +223,37 @@ export function BrandScanWizard({
   // ── Save outfit to wardrobe ──────────────────────────────────────────────
   function saveToWardrobe(outfit: OutfitDTO) {
     if (!result) return;
-    try {
-      const raw = localStorage.getItem(WARDROBE_KEY);
-      const existing: WardrobeOutfit[] = raw ? JSON.parse(raw) : [];
-      if (
-        planLimits.maxWardrobeSaves !== Infinity &&
-        existing.length >= planLimits.maxWardrobeSaves
-      ) {
-        setShowUpgrade(true);
-        return;
-      }
-      if (existing.some((o) => o.id === outfit.id)) {
-        setSavedIds((s) => new Set([...s, outfit.id]));
-        return;
-      }
-      const sizeFor = (cat: string | null) =>
-        result.sizeRecommendations.find(
-          (r) => cat && r.category.toLowerCase().includes(cat.toLowerCase()),
-        )?.recommendedSize ??
-        result.sizeRecommendations[0]?.recommendedSize ??
-        "—";
-      const entry: WardrobeOutfit = {
-        id: outfit.id,
-        brandName: brand.name,
-        brandSlug: brand.slug,
-        savedAt: new Date().toISOString(),
-        items: outfit.items.map((it) => ({
-          name: it.product.name,
-          size: it.productVariant?.sizeLabel ?? sizeFor(it.product.category),
-          category: it.position,
-        })),
-      };
-      localStorage.setItem(WARDROBE_KEY, JSON.stringify([entry, ...existing]));
+    const existing = loadWardrobe();
+    if (
+      planLimits.maxWardrobeSaves !== Infinity &&
+      existing.length >= planLimits.maxWardrobeSaves
+    ) {
+      setShowUpgrade(true);
+      return;
+    }
+    if (existing.some((o) => o.id === outfit.id)) {
       setSavedIds((s) => new Set([...s, outfit.id]));
-    } catch {}
+      return;
+    }
+    const sizeFor = (cat: string | null) =>
+      result.sizeRecommendations.find(
+        (r) => cat && r.category.toLowerCase().includes(cat.toLowerCase()),
+      )?.recommendedSize ??
+      result.sizeRecommendations[0]?.recommendedSize ??
+      "—";
+    const entry: WardrobeOutfit = {
+      id: outfit.id,
+      brandName: brand.name,
+      brandSlug: brand.slug,
+      savedAt: new Date().toISOString(),
+      items: outfit.items.map((it) => ({
+        name: it.product.name,
+        size: it.productVariant?.sizeLabel ?? sizeFor(it.product.category),
+        category: it.position,
+      })),
+    };
+    saveWardrobe([entry, ...existing]);
+    setSavedIds((s) => new Set([...s, outfit.id]));
   }
 
   // ─── Render ────────────────────────────────────────────────────────────────
