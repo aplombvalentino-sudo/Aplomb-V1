@@ -21,6 +21,15 @@
   var productId = script.getAttribute("data-product") || "";
   var baseUrl = script.src.replace("/widget.js", "");
 
+  // The iframe is served from the Aplomb origin; only trust postMessages from it.
+  var aplombOrigin = (function () {
+    try {
+      return new URL(baseUrl).origin;
+    } catch (_) {
+      return null;
+    }
+  })();
+
   if (!brandSlug) {
     console.warn("[Aplomb] Missing data-brand attribute on widget script.");
     return;
@@ -187,8 +196,9 @@
     }
   }
 
-  // Listen for close message from iframe
+  // Listen for close message from iframe — only from the Aplomb origin.
   window.addEventListener("message", function (e) {
+    if (aplombOrigin && e.origin !== aplombOrigin) return;
     if (e.data && e.data.type === "aplomb:close") closeWidget();
   });
 

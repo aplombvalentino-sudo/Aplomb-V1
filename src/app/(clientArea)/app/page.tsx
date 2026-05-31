@@ -2,33 +2,13 @@ import Link from "next/link";
 import { Metadata } from "next";
 import { ClientSignOutLink } from "@/components/client/ClientSignOutLink";
 import { Logo } from "@/components/brand/Logo";
+import { listActiveBrands } from "@/lib/brands";
 
 export const metadata: Metadata = { title: "Find your fit — Aplomb" };
 
-async function getBrands() {
-  const base =
-    process.env.NEXTAUTH_URL ??
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
-  try {
-    const res = await fetch(`${base}/api/brands`, { cache: "no-store" });
-    const json = await res.json();
-    return json.data?.brands ?? [];
-  } catch {
-    return [];
-  }
-}
-
-type Brand = {
-  id: string;
-  name: string;
-  slug: string;
-  logoUrl: string | null;
-  primaryColor: string;
-  _count: { products: number };
-};
-
 export default async function ClientDiscoveryPage() {
-  const brands: Brand[] = await getBrands();
+  // Query the data layer directly — no HTTP round-trip back to our own API.
+  const brands = await listActiveBrands().catch(() => []);
 
   return (
     <div className="min-h-[100dvh] bg-canvas">

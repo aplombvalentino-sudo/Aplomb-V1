@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
-import { db } from "@/lib/db";
 import { ok } from "@/lib/api";
+import { listActiveBrands } from "@/lib/brands";
 import {
   LIMITS,
   enforceLimits,
@@ -14,20 +14,6 @@ export async function GET(req: NextRequest) {
   const guard = await enforceLimits(`ip:${clientIp(req)}`, [LIMITS.public_read]);
   if (!guard.allowed) return tooManyRequests(guard.retryAfterSeconds);
 
-  const brands = await db.brand.findMany({
-    where: {
-      products: { some: { isActive: true } },
-    },
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      logoUrl: true,
-      primaryColor: true,
-      _count: { select: { products: true } },
-    },
-    orderBy: { name: "asc" },
-  });
-
+  const brands = await listActiveBrands();
   return ok({ brands });
 }

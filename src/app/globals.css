@@ -19,7 +19,7 @@
   /* Ink + greys (the ~15% — text & detail) */
   --ink: #111010;             /* near-black, never pure black */
   --ink-muted: #6B6965;       /* secondary text (AA) */
-  --ink-subtle: #7A7773;      /* tertiary text (AA on canvas) */
+  --ink-subtle: #6E6C67;      /* tertiary text — darkened to keep ≥4.5:1 on canvas */
   --border: rgba(17, 16, 16, 0.08); /* hairline */
   --border-strong: rgba(17, 16, 16, 0.14);
 
