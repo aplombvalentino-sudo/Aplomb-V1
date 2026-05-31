@@ -21,6 +21,55 @@ function ipFromRequest(req: Request | undefined): string {
   return req.headers.get("x-real-ip") ?? "unknown";
 }
 
+/**
+ * Credentials authorize, extracted from the inline NextAuth provider config so
+ * it can be unit-tested in isolation. Behaviour is identical to the previous
+ * inline version: schema → ip → optional Turnstile → rate-limit → Supabase signIn.
+ */
+export async function authorizeCredentialsLogin(
+  credentials: Partial<Record<string, unknown>> | undefined,
+  request: Request | undefined,
+) {
+  const parsed = loginSchema.safeParse(credentials);
+  if (!parsed.success) return null;
+
+  const ip = ipFromRequest(request);
+
+  // Bot protection (toggle via TURNSTILE_PROTECT_LOGIN). Verified before the
+  // password check. Returning null keeps the failure generic.
+  if (TURNSTILE_PROTECT_LOGIN) {
+    const token =
+      typeof credentials?.turnstileToken === "string"
+        ? credentials.turnstileToken
+        : null;
+    const captcha = await verifyTurnstileToken(token, ip);
+    if (!captcha.success) return null;
+  }
+
+  // Anti-credential-stuffing: cap attempts per (IP, email) pair. Returning null
+  // on rate-limit makes the error indistinguishable from "wrong password" so
+  // attackers can't probe the limiter.
+  const guard = await enforceLimits(
+    `${ip}:${parsed.data.email.toLowerCase()}`,
+    [LIMITS.login_window],
+  );
+  if (!guard.allowed) return null;
+
+  // Validate credentials against Supabase Auth.
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: parsed.data.email,
+    password: parsed.data.password,
+  });
+
+  if (error || !data.user) return null;
+
+  return {
+    id: data.user.id,
+    email: data.user.email ?? "",
+    name: (data.user.user_metadata?.name as string) ?? null,
+  };
+}
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(db),
   session: { strategy: "jwt" },
@@ -39,47 +88,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Password", type: "password" },
         turnstileToken: { label: "Turnstile", type: "text" },
       },
-      async authorize(credentials, request) {
-        const parsed = loginSchema.safeParse(credentials);
-        if (!parsed.success) return null;
-
-        const ip = ipFromRequest(request as Request | undefined);
-
-        // Bot protection (toggle via TURNSTILE_PROTECT_LOGIN). Verified before
-        // the password check. Returning null keeps the failure generic.
-        if (TURNSTILE_PROTECT_LOGIN) {
-          const token =
-            typeof credentials?.turnstileToken === "string"
-              ? credentials.turnstileToken
-              : null;
-          const captcha = await verifyTurnstileToken(token, ip);
-          if (!captcha.success) return null;
-        }
-
-        // Anti-credential-stuffing: cap attempts per (IP, email) pair.
-        // Returning null on rate-limit makes the error indistinguishable from
-        // "wrong password" — important so attackers can't probe the limiter.
-        const guard = await enforceLimits(
-          `${ip}:${parsed.data.email.toLowerCase()}`,
-          [LIMITS.login_window],
-        );
-        if (!guard.allowed) return null;
-
-        // Validate credentials against Supabase Auth
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: parsed.data.email,
-          password: parsed.data.password,
-        });
-
-        if (error || !data.user) return null;
-
-        // Return the user object for the JWT
-        return {
-          id: data.user.id,
-          email: data.user.email ?? "",
-          name: (data.user.user_metadata?.name as string) ?? null,
-        };
-      },
+      authorize: (credentials, request) =>
+        authorizeCredentialsLogin(credentials, request as Request | undefined),
     }),
   ],
   callbacks: {
