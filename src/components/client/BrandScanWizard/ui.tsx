@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 
 /**
  * Presentational primitives used by the wizard. Each one is pure UI driven
@@ -179,8 +180,16 @@ export function PhotoField({
         style={{ aspectRatio: "3 / 4" }}
       >
         {previewUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={previewUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          // blob: URL from URL.createObjectURL — Next can't optimise these, so
+          // unoptimized + fill against the relative parent (button has aspectRatio).
+          <Image
+            src={previewUrl}
+            alt=""
+            fill
+            sizes="(max-width: 640px) 50vw, 320px"
+            className="object-cover"
+            unoptimized
+          />
         ) : (
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-3">
             <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden>

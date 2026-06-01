@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Metadata } from "next";
 import { ClientSignOutLink } from "@/components/client/ClientSignOutLink";
 import { Logo } from "@/components/brand/Logo";
@@ -109,8 +110,14 @@ export default async function ClientDiscoveryPage() {
                   style={{ background: brand.primaryColor + "22" }}
                 >
                   {brand.logoUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={brand.logoUrl} alt={brand.name} className="h-full w-full object-cover" />
+                    <Image
+                      src={brand.logoUrl}
+                      alt={brand.name}
+                      width={48}
+                      height={48}
+                      className="h-full w-full object-cover"
+                      unoptimized
+                    />
                   ) : (
                     <span
                       className="text-[15px] font-semibold"

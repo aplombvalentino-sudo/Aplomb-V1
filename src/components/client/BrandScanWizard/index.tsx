@@ -314,8 +314,14 @@ export function BrandScanWizard({
             style={{ background: brand.primaryColor + "22" }}
           >
             {brand.logoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={brand.logoUrl} alt={brand.name} className="h-full w-full object-cover" />
+              <Image
+                src={brand.logoUrl}
+                alt={brand.name}
+                width={32}
+                height={32}
+                className="h-full w-full object-cover"
+                unoptimized
+              />
             ) : (
               <span className="text-[11px] font-semibold" style={{ color: brand.primaryColor }}>
                 {brand.name.slice(0, 2).toUpperCase()}
@@ -510,11 +516,15 @@ export function BrandScanWizard({
               className="relative max-h-[90vh] max-w-[640px] w-full overflow-hidden rounded-2xl bg-white"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src={activeTryOn}
                 alt="Try-on preview"
+                width={640}
+                height={800}
+                sizes="(max-width: 640px) 100vw, 640px"
                 className="w-full h-auto max-h-[88vh] object-contain bg-[#F6F3EE]"
+                unoptimized
+                priority
               />
               <button
                 onClick={() => setActiveTryOn(null)}

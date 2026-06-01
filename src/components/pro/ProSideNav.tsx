@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
 import { cn } from "@/lib/cn";
@@ -74,8 +75,14 @@ export function ProSideNav({
                      overflow-hidden ring-1 ring-black/10"
         >
           {brandLogoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={brandLogoUrl} alt={brandName} className="h-full w-full object-cover" />
+            <Image
+              src={brandLogoUrl}
+              alt={brandName}
+              width={32}
+              height={32}
+              className="h-full w-full object-cover"
+              unoptimized
+            />
           ) : (
             <span className="text-[11px] font-semibold text-white">
               {brandName.slice(0, 2).toUpperCase()}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Badge } from "@/components/ui/Badge";
@@ -149,10 +150,13 @@ export function ProductsClient({ brandId }: { brandId: string }) {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         {p.imageUrl && (
-                          <img
+                          <Image
                             src={p.imageUrl}
                             alt={p.name}
+                            width={40}
+                            height={40}
                             className="h-10 w-10 rounded-lg object-cover"
+                            unoptimized
                           />
                         )}
                         <div>
