@@ -12,6 +12,7 @@
 
 import { db } from "@/lib/db";
 import type { MeasurementResponse } from "@/lib/measurementProvider";
+import { assertStubAllowed } from "@/lib/featureFlags";
 
 export type OutfitGenerationInput = {
   brandId: string;
@@ -64,6 +65,11 @@ async function callStylistLLM(input: LLMInput): Promise<string> {
     // Call Anthropic/OpenAI with a fashion-stylist system prompt
     throw new Error(`LLM provider "${provider}" not yet implemented`);
   }
+
+  // Loud failure in production unless explicitly allowed. The stub returns
+  // a deterministic template that has nothing to do with the user's actual
+  // body shape — shoppers should NEVER receive this text in a paid context.
+  assertStubAllowed("outfitGenerator.callStylistLLM");
 
   // Stub: deterministic rationale text
   const occasion = input.context?.occasion ?? "everyday";

@@ -7,7 +7,13 @@
  *
  * Nothing in the rest of the app depends on the chosen vendor — they all
  * consume `NormalizedMeasurements`.
+ *
+ * SAFETY: the stub is gated by `assertStubAllowed()` — in production it
+ * refuses to run unless ALLOW_STUB_PROVIDERS=true is set explicitly. This
+ * prevents made-up measurements from reaching real shoppers.
  */
+
+import { assertStubAllowed } from "@/lib/featureFlags";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -56,9 +62,20 @@ export type MeasurementInput = {
 export async function runMeasurement(input: MeasurementInput): Promise<NormalizedMeasurements> {
   // TODO: wire 3DLOOK once the API key (THREEDLOOK_API_KEY) lands in env.
   //       The signature stays stable so swapping vendors is one return statement away.
-  // const provider = process.env.MEASUREMENT_PROVIDER ?? "stub";
+  const provider = process.env.MEASUREMENT_PROVIDER ?? "stub";
   // if (provider === "3dlook") return provider3DLook(input);
-  return provideStub(input);
+
+  if (provider === "stub") {
+    // Loud failure in production unless explicitly allowed — prevents
+    // made-up body measurements from reaching real shoppers.
+    assertStubAllowed("measurementProvider");
+    return provideStub(input);
+  }
+
+  throw new Error(
+    `[measurementProvider] Unknown MEASUREMENT_PROVIDER="${provider}". ` +
+      `Supported values: "stub" (dev only), "3dlook" (TODO).`,
+  );
 }
 
 // ─── Heuristic stub (good enough until 3DLOOK is wired) ─────────────────────

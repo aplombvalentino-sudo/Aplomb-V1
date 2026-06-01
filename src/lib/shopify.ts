@@ -8,6 +8,10 @@
  *   SHOPIFY_API_KEY=<key>
  *   SHOPIFY_API_SECRET=<secret>
  *   SHOPIFY_APP_URL=<url>
+ *
+ * SAFETY: every public function in this module throws unconditionally — they
+ * are NOT no-ops. Calling them from production code will fail loudly so the
+ * bug is caught at deploy time rather than silently dropping data.
  */
 
 export type ShopifyProduct = {
@@ -33,13 +37,19 @@ export type ShopifySyncResult = {
   errors: string[];
 };
 
+const NOT_IMPLEMENTED =
+  "[shopify] Not implemented. The Shopify integration is a placeholder — " +
+  "wire @shopify/shopify-api before invoking. If you reached this from a " +
+  "production code path, that's a bug: either remove the call or implement " +
+  "the integration. See module-level comment for required env vars.";
+
 // TODO: implement using @shopify/shopify-api when adding Shopify app
 export async function syncShopifyProducts(
   _brandId: string,
   _shopDomain: string,
   _accessToken: string
 ): Promise<ShopifySyncResult> {
-  throw new Error("Shopify sync not yet implemented");
+  throw new Error(`${NOT_IMPLEMENTED} (syncShopifyProducts)`);
 }
 
 // TODO: implement webhook handler for product/update, product/delete
@@ -48,10 +58,10 @@ export async function handleShopifyWebhook(
   _shopDomain: string,
   _payload: unknown
 ): Promise<void> {
-  throw new Error("Shopify webhooks not yet implemented");
+  throw new Error(`${NOT_IMPLEMENTED} (handleShopifyWebhook)`);
 }
 
 // TODO: implement OAuth flow for Shopify app installation
 export function getShopifyAuthUrl(_shop: string, _state: string): string {
-  throw new Error("Shopify OAuth not yet implemented");
+  throw new Error(`${NOT_IMPLEMENTED} (getShopifyAuthUrl)`);
 }
