@@ -1,30 +1,9 @@
 import type { NextConfig } from "next";
 
-const isDev = process.env.NODE_ENV !== "production";
-
-// Content-Security-Policy directives shared by every route. `frame-ancestors`
-// is appended per-route below (the app is frame-locked; /widget is embeddable).
-// `'unsafe-eval'` is only added in development, where Next's HMR/react-refresh
-// needs it; production stays without it.
-const cspDirectives = [
-  "default-src 'self'",
-  "base-uri 'self'",
-  "object-src 'none'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://challenges.cloudflare.com`,
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https:",
-  "font-src 'self' data:",
-  "connect-src 'self' https://*.supabase.co https://challenges.cloudflare.com",
-  "frame-src 'self' https://challenges.cloudflare.com",
-  "form-action 'self'",
-  "worker-src 'self' blob:",
-];
-
-function csp(frameAncestors: string): string {
-  return [...cspDirectives, `frame-ancestors ${frameAncestors}`].join("; ");
-}
-
-// Headers sent on every response. Frame protection is route-specific.
+// Static security headers that are the same on every response.
+// The CSP + X-Frame-Options are dynamic (per-request nonce, per-route
+// frame-ancestors) and live in `src/middleware.ts` — see that file for the
+// strict-dynamic + nonce scheme that replaces the old 'unsafe-inline' script-src.
 const commonSecurityHeaders = [
   {
     key: "Strict-Transport-Security",
@@ -46,23 +25,12 @@ const nextConfig: NextConfig = {
 
   async headers() {
     return [
-      // The embeddable widget must be iframe-able by any brand store, so it
-      // gets a permissive frame-ancestors and no X-Frame-Options.
+      // Static headers on every route. CSP + X-Frame-Options live in
+      // src/middleware.ts because they need per-request nonces + per-route
+      // frame-ancestors.
       {
-        source: "/widget",
-        headers: [
-          ...commonSecurityHeaders,
-          { key: "Content-Security-Policy", value: csp("*") },
-        ],
-      },
-      // Everything else: deny framing entirely (clickjacking protection).
-      {
-        source: "/((?!widget$).*)",
-        headers: [
-          ...commonSecurityHeaders,
-          { key: "X-Frame-Options", value: "DENY" },
-          { key: "Content-Security-Policy", value: csp("'none'") },
-        ],
+        source: "/(.*)",
+        headers: commonSecurityHeaders,
       },
     ];
   },
