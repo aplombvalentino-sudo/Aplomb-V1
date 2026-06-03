@@ -221,6 +221,7 @@ Every change to any of these files is versioned in git history — that **is** t
 | 5 | Retention cron schedule | Pre-launch | Weekly via Vercel cron |
 | 6 | Avatar-fallback for try-on | If fal.ai DPA negotiation fails OR before 100k users | Real photo with explicit Art 9 §2.a consent (current) |
 | 7 | Bug-bounty / security disclosure program | When at >10k users | GitHub Security Advisory (current) |
+| 8 | **`next-auth` beta → stable upgrade** | Before first paying user OR DAU > 1k, whichever first | Stays on `5.0.0-beta.31` until upgrade. Playbook in `docs/DEPENDENCIES.md`. |
 
 ---
 

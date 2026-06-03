@@ -1,3 +1,8 @@
+// ⚠️ next-auth is pinned at 5.0.0-beta.31 (see package.json). The whole auth
+// surface — session, JWT, providers, callbacks, middleware integration —
+// rides on this single dependency. Migrate to 5.0.0 stable BEFORE the first
+// paying user OR once DAU > 1k, whichever comes first. Upgrade playbook +
+// trigger criteria live in docs/DEPENDENCIES.md.
 import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import Credentials from "next-auth/providers/credentials";
