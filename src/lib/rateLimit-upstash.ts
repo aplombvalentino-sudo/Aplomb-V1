@@ -5,8 +5,8 @@
  *   UPSTASH_REDIS_REST_URL
  *   UPSTASH_REDIS_REST_TOKEN
  *
- * If either is missing, this module gracefully falls back to the legacy
- * in-memory limiter (src/lib/rateLimit.ts). That keeps local dev and any
+ * If either is missing, this module gracefully falls back to an in-memory
+ * limiter (inlined at the bottom of this file). That keeps local dev and any
  * preview deploy without the vars set working — at the cost of per-instance
  * accuracy. Production must set both vars.
  *
@@ -21,9 +21,33 @@
 
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
-import { rateLimit as legacyInMemory } from "@/lib/rateLimit";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+
+// ─── In-memory fallback ─────────────────────────────────────────────────────
+// Single-instance only — unsafe for production. Active only when Upstash env
+// vars are missing (local dev, preview deploys without Redis). Inlined here
+// rather than living in its own module so the entire rate-limit story is
+// readable in one file.
+
+type LegacyWindow = { count: number; resetAt: number };
+const legacyStore = new Map<string, LegacyWindow>();
+
+function legacyInMemory(
+  key: string,
+  limit: number,
+  windowMs: number,
+): { allowed: boolean } {
+  const now = Date.now();
+  const existing = legacyStore.get(key);
+  if (!existing || now > existing.resetAt) {
+    legacyStore.set(key, { count: 1, resetAt: now + windowMs });
+    return { allowed: true };
+  }
+  if (existing.count >= limit) return { allowed: false };
+  existing.count++;
+  return { allowed: true };
+}
 
 // ─── Redis client (lazy) ────────────────────────────────────────────────────
 
