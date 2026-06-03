@@ -320,7 +320,6 @@ export function BrandScanWizard({
                 width={32}
                 height={32}
                 className="h-full w-full object-cover"
-                unoptimized
               />
             ) : (
               <span className="text-[11px] font-semibold" style={{ color: brand.primaryColor }}>
@@ -523,7 +522,6 @@ export function BrandScanWizard({
                 height={800}
                 sizes="(max-width: 640px) 100vw, 640px"
                 className="w-full h-auto max-h-[88vh] object-contain bg-[#F6F3EE]"
-                unoptimized
                 priority
               />
               <button

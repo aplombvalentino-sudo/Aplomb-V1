@@ -116,7 +116,6 @@ export default async function ClientDiscoveryPage() {
                       width={48}
                       height={48}
                       className="h-full w-full object-cover"
-                      unoptimized
                     />
                   ) : (
                     <span

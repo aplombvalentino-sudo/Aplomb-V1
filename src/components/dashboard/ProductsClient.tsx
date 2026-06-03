@@ -156,7 +156,6 @@ export function ProductsClient({ brandId }: { brandId: string }) {
                             width={40}
                             height={40}
                             className="h-10 w-10 rounded-lg object-cover"
-                            unoptimized
                           />
                         )}
                         <div>

@@ -23,6 +23,38 @@ const nextConfig: NextConfig = {
   // forces app pages / API route handlers to use the .tsx extension.
   pageExtensions: ["tsx", "jsx", "js"],
 
+  // ─── Image optimization ──────────────────────────────────────────────────
+  // Next/Image will only optimize remote URLs whose host matches one of
+  // these patterns. Anything else needs `unoptimized` on the <Image> instance.
+  //
+  // Why each entry:
+  //   - *.supabase.co + *.supabase.in
+  //     Private body-scan bucket signed URLs and any future public asset
+  //     URLs we serve from Supabase Storage.
+  //   - *.fal.media + *.fal.ai
+  //     Virtual try-on outputs come from fal.media (CDN) or fal.ai paths.
+  //   - hostname: '**'
+  //     Brand-uploaded logos and product images can point at any HTTPS host
+  //     (S3, Shopify CDN, Cloudinary, the brand's own server, etc.). We
+  //     cannot enumerate them ahead of time. Accepted risk: brands with
+  //     write access to brand.logoUrl could ask our optimizer to fetch from
+  //     a malicious host. Mitigation: Next limits image size + processing
+  //     budget; routes are gated by requireBrandRole; pre-launch scale.
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "**.supabase.co" },
+      { protocol: "https", hostname: "**.supabase.in" },
+      { protocol: "https", hostname: "**.fal.media" },
+      { protocol: "https", hostname: "**.fal.ai" },
+      { protocol: "https", hostname: "fal.media" },
+      // Wildcard for brand-uploaded URLs — see note above. Must stay last
+      // so the more specific patterns above are matched first in code review.
+      { protocol: "https", hostname: "**" },
+    ],
+    // Cache optimized responses for a day, then refresh.
+    minimumCacheTTL: 60 * 60 * 24,
+  },
+
   async headers() {
     return [
       // Static headers on every route. CSP + X-Frame-Options live in

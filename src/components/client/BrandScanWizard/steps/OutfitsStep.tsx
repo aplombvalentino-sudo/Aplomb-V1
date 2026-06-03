@@ -85,7 +85,6 @@ export function OutfitsStep({
                             fill
                             sizes="56px"
                             className="object-cover"
-                            unoptimized
                           />
                         ) : (
                           <div className="h-full w-full" style={{ background: brand.primaryColor + "22" }} />
