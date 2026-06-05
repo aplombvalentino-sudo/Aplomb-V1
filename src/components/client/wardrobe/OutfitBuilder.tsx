@@ -25,23 +25,34 @@ export type BuilderItem = {
   createdAt: string;
 };
 
-type Slot = "top" | "bottom" | "shoes" | "accessory";
+// Streetwear-first slot system. Five slots reflect how a streetwear fit is
+// actually built: start with sneakers → layer a top → choose pants → add
+// outerwear → finish with cap / bag.
+type Slot = "sneakers" | "top" | "bottom" | "outerwear" | "accessory";
 
-// Which item categories qualify for each slot. Loose mapping — the user owns
-// the call ultimately (they can override by clicking from any item list).
+// Maps wardrobe-item categories to slots. Accepts BOTH new streetwear
+// values (sneakers, hoodie, tee, jacket, pants, denim, cargos, shorts,
+// cap, bag) AND legacy broad values (top, bottom, shoes, outerwear, dress,
+// accessory) so items captured before the taxonomy update still slot in.
 const SLOT_RULES: Record<Slot, string[]> = {
-  top: ["top", "dress", "outerwear", "other"],
-  bottom: ["bottom", "dress", "other"],
-  shoes: ["shoes"],
-  accessory: ["accessory", "other"],
+  sneakers: ["sneakers", "shoes"],
+  top: ["tee", "hoodie", "top", "dress", "other"],
+  bottom: ["pants", "denim", "cargos", "shorts", "bottom", "dress", "other"],
+  outerwear: ["jacket", "outerwear"],
+  accessory: ["cap", "bag", "accessory", "other"],
 };
 
 const SLOT_LABELS: Record<Slot, string> = {
+  sneakers: "Sneakers",
   top: "Top",
   bottom: "Bottom",
-  shoes: "Shoes",
+  outerwear: "Outerwear",
   accessory: "Accessory",
 };
+
+// Order matters: it's the order slots render in the builder and the order
+// the streetwear flow makes natural sense (footwear → layers → finishing).
+const SLOT_ORDER: Slot[] = ["sneakers", "top", "bottom", "outerwear", "accessory"];
 
 // ─── Main builder ────────────────────────────────────────────────────────────
 
@@ -80,14 +91,14 @@ export function OutfitBuilder({ availableItems }: { availableItems: BuilderItem[
       return;
     }
     if (itemCount === 0) {
-      setError("Add at least one item to save the outfit.");
+      setError("Add at least one piece to save the fit.");
       return;
     }
 
     setError("");
     setSubmitting(true);
     try {
-      const items = (["top", "bottom", "shoes", "accessory"] as Slot[])
+      const items = SLOT_ORDER
         .filter((s) => picks[s])
         .map((s) => ({ wardrobeItemId: picks[s]!.id, position: s }));
 
@@ -102,7 +113,7 @@ export function OutfitBuilder({ availableItems }: { availableItems: BuilderItem[
       });
       const json = await res.json();
       if (!json.success) {
-        setError(json.error?.message ?? "Could not save this outfit.");
+        setError(json.error?.message ?? "Could not save this fit.");
         setSubmitting(false);
         return;
       }
@@ -119,25 +130,27 @@ export function OutfitBuilder({ availableItems }: { availableItems: BuilderItem[
       {/* Heading */}
       <div>
         <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-ink-subtle">
-          New look
+          New fit
         </p>
         <h1 className="mt-2 font-serif text-[clamp(2rem,4vw,2.4rem)] font-medium leading-[1.05] tracking-[-0.02em] text-ink">
-          Build an <em className="italic">outfit</em>
+          Build a <em className="italic">fit</em>
           <span className="text-accent">.</span>
         </h1>
         <p className="mt-3 text-[14px] text-ink-muted max-w-[52ch]">
-          Pick a piece for each slot you want to use. Mix your own clothes with certified brand items — both work the same.
+          Build a fit from the pieces you already own. Start with sneakers,
+          layer a top, choose pants, drop outerwear, finish with a cap or
+          bag. Mix your own and certified pieces freely.
         </p>
       </div>
 
       {/* Title + occasion */}
       <div className="space-y-4">
         <Input
-          label="Outfit name"
+          label="Fit name"
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="e.g. Casual Wednesday"
+          placeholder="e.g. Sunday rotation"
           maxLength={120}
         />
         <Input
@@ -145,14 +158,15 @@ export function OutfitBuilder({ availableItems }: { availableItems: BuilderItem[
           type="text"
           value={occasion}
           onChange={(e) => setOccasion(e.target.value)}
-          placeholder="e.g. Brunch, Office, Date night"
+          placeholder="e.g. Errands, Hoop session, Studio day"
           maxLength={120}
         />
       </div>
 
-      {/* Slots */}
+      {/* Slots — rendered in streetwear-natural order:
+          sneakers → top → bottom → outerwear → accessory */}
       <div className="space-y-3">
-        {(["top", "bottom", "shoes", "accessory"] as Slot[]).map((slot) => (
+        {SLOT_ORDER.map((slot) => (
           <SlotRow
             key={slot}
             slot={slot}
@@ -176,7 +190,7 @@ export function OutfitBuilder({ availableItems }: { availableItems: BuilderItem[
 
       <div className="flex items-center gap-3">
         <Button onClick={handleSave} loading={submitting} disabled={itemCount === 0 || !title.trim()}>
-          Save outfit
+          Save fit
         </Button>
         <span className="text-[12px] text-ink-subtle">
           {itemCount} {itemCount === 1 ? "piece" : "pieces"} selected
@@ -230,7 +244,7 @@ function SlotRow({
               {SLOT_LABELS[slot]}
             </p>
             <p className="mt-0.5 text-[14px] font-medium text-ink truncate">
-              {picked ? (picked.nickname || titleCase(picked.category)) : "Choose item"}
+              {picked ? (picked.nickname || titleCase(picked.category)) : "Choose a piece"}
             </p>
             {picked && (
               <p className="text-[11px] text-ink-subtle truncate">

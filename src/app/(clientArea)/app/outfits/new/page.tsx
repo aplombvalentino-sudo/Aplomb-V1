@@ -49,11 +49,11 @@ export default async function NewOutfitPage() {
             <Logo className="text-[17px]" />
           </Link>
           <Link href="/app/outfits" className="text-[12px] text-ink-subtle hover:text-ink transition-colors">
-            ← Back to outfits
+            ← Back to fits
           </Link>
         </div>
         <span className="text-[11px] text-ink-subtle">
-          {usable.length} item{usable.length === 1 ? "" : "s"} ready in wardrobe
+          {usable.length} piece{usable.length === 1 ? "" : "s"} ready in rotation
         </span>
       </header>
 

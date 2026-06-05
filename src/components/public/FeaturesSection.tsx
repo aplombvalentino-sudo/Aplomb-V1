@@ -4,76 +4,86 @@ import { motion } from "motion/react";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
+// Six features framed for streetwear shoppers building rotations. The
+// dark "focal" card leads with the rotation-size promise; the rest map to
+// the wardrobe → outfit → fit-insight flow.
 const features = [
   {
-    id: "measurement",
-    heading: "15+ body measurements in seconds",
-    body: "Shoppers upload a photo or short video. Our AI extracts precise measurements — no tape measure, no size chart guesswork.",
+    id: "rotation",
+    heading: "Your whole rotation, in one place",
+    body: "Snap the hoodies, sneakers, jackets and pants you already own. Add certified streetwear pieces alongside them. Everything you wear, in one digital closet.",
     span: "col-span-1 md:col-span-7 row-span-1",
-    dark: true,      // ← inverted card
+    dark: true, // ← inverted focal card
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M21 6H3M18 12H6M15 18H9"/>
+        <rect x="3" y="6" width="18" height="14" rx="2" />
+        <path d="M8 6V4a4 4 0 0 1 8 0v2" />
       </svg>
     ),
   },
   {
-    id: "outfits",
-    heading: "Complete looks, not just sizes",
-    body: "The AI stylist builds outfit combinations from your catalog that fit the shopper's body and match their preferences.",
+    id: "fits",
+    heading: "Test fits before you change",
+    body: "Mix sneakers, layers, pants and outerwear in the builder. See the whole look come together before you reach for it.",
     span: "col-span-1 md:col-span-5 row-span-1",
     dark: false,
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        <path d="M12 2l2.5 6H21l-5 4 2 6-6-4-6 4 2-6-5-4h6.5L12 2z" />
       </svg>
     ),
   },
   {
-    id: "embed",
-    heading: "Live in under 10 minutes",
-    body: "Drop a single <script> tag onto your product pages. The widget handles everything — no backend changes needed.",
+    id: "capture",
+    heading: "Snap any piece, front and back",
+    body: "Two photos per item. Lay it flat, capture both sides, add a category and color. The piece is in your rotation in under a minute.",
     span: "col-span-1 md:col-span-4 row-span-1",
     dark: false,
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+        <rect x="3" y="6" width="18" height="14" rx="2" />
+        <circle cx="12" cy="13" r="3.5" />
+        <path d="M7 6l1.5-2h7L17 6" />
       </svg>
     ),
   },
   {
-    id: "shopify",
-    heading: "Your catalog, always in sync",
-    body: "Connect your Shopify store once. Products, variants, and inventory update automatically in the background.",
+    id: "certified",
+    heading: "Mix your closet with certified streetwear",
+    body: "Browse certified streetwear brands and drop new pieces straight into your rotation. Your stuff, their stuff, one fit.",
     span: "col-span-1 md:col-span-4 row-span-1",
     dark: false,
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+        <path d="M9 11l3 3L22 4" />
+        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
       </svg>
     ),
   },
   {
-    id: "analytics",
-    heading: "Know exactly what converts",
-    body: "Track fit sessions, outfit clicks, and purchases. See Aplomb's impact on your conversion rate in real time.",
+    id: "sync",
+    heading: "Cross-device, never lost",
+    body: "Your rotation lives on your account, not on one phone. Sign in anywhere and find every piece, every fit, exactly where you left it.",
     span: "col-span-1 md:col-span-4 row-span-1",
     dark: false,
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+        <path d="M21 12a9 9 0 0 1-9 9 9 9 0 0 1-6.7-3" />
+        <path d="M3 12a9 9 0 0 1 9-9 9 9 0 0 1 6.7 3" />
+        <polyline points="21 3 21 9 15 9" />
+        <polyline points="3 21 3 15 9 15" />
       </svg>
     ),
   },
   {
-    id: "whitelabel",
-    heading: "Your brand, front and centre",
-    body: "The widget matches your colours, fonts, and tone. Shoppers never leave your brand experience.",
+    id: "fit-insights",
+    heading: "Fit insights when you want them",
+    body: "Optional sizing support sits in your profile, not in your face. Run a body scan only when you actually want size guidance — never as a price of entry.",
     span: "col-span-1 md:col-span-8 row-span-1",
     dark: false,
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+        <path d="M21 6H3M18 12H6M15 18H9" />
       </svg>
     ),
   },
@@ -81,12 +91,12 @@ const features = [
 
 // Alternate entrance direction per card to break uniform fade-up
 const entranceMap: Record<number, { x: number; y: number }> = {
-  0: { x: -24, y: 0   },   // slides from left
-  1: { x:  24, y: 0   },   // slides from right
-  2: { x:   0, y: 28  },   // rises up
-  3: { x:   0, y: 28  },   // rises up
-  4: { x:   0, y: 28  },   // rises up
-  5: { x: -20, y: 16  },   // diagonal from bottom-left
+  0: { x: -24, y: 0 },     // slides from left
+  1: { x: 24, y: 0 },      // slides from right
+  2: { x: 0, y: 28 },      // rises up
+  3: { x: 0, y: 28 },      // rises up
+  4: { x: 0, y: 28 },      // rises up
+  5: { x: -20, y: 16 },    // diagonal from bottom-left
 };
 
 export function FeaturesSection() {
@@ -104,14 +114,14 @@ export function FeaturesSection() {
         >
           <span className="inline-flex items-center rounded-full border border-hairline bg-surface/60
                            px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-ink-subtle">
-            Platform
+            How it works
           </span>
           <h2 className="mt-5 font-serif text-[clamp(2rem,3.5vw,2.8rem)] font-medium leading-[1.1]
                          tracking-[-0.02em] text-ink [text-wrap:balance]">
-            Everything your brand needs to nail <em className="italic">fit</em>
+            Everything you need to <em className="italic">build a fit</em>
           </h2>
           <p className="mt-4 text-[17px] leading-[1.65] text-ink-muted">
-            One platform. Zero friction for your shoppers.
+            One closet. Your pieces, certified pieces, every fit you can build with them.
           </p>
         </motion.div>
 
@@ -154,17 +164,14 @@ export function FeaturesSection() {
                           <div>
                             <p className="font-serif text-[clamp(2.6rem,5vw,3.8rem)] font-medium
                                           leading-[1] tracking-[-0.03em] text-ink [text-wrap:balance]">
-                              15+
-                            </p>
-                            <p className="mt-2 text-[13px] font-medium text-ink-subtle uppercase tracking-[0.12em]">
-                              measurements extracted
+                              {f.heading}
                             </p>
                           </div>
-                          <p className="mt-6 max-w-[44ch] text-[14px] leading-[1.65] text-ink-muted">
+                          <p className="mt-6 max-w-[48ch] text-[14px] leading-[1.65] text-ink-muted">
                             {f.body}
                           </p>
                         </div>
-                        {/* Animated scan line — terracotta signature */}
+                        {/* Animated accent line — terracotta signature */}
                         <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-ink/[0.06]">
                           <motion.div
                             initial={{ width: "0%" }}

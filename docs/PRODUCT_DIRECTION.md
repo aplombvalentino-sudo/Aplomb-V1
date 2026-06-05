@@ -1,4 +1,4 @@
-# Product Direction — Aplomb (Wardrobe-First Repositioning)
+# Product Direction — Aplomb (Streetwear-First Wardrobe)
 
 *Locked: 2026-06-05. Owner: founder. Read this before touching any shopper-facing copy, navigation, pricing, or feature surface.*
 
@@ -7,26 +7,45 @@
 ## The shift
 
 Aplomb is no longer sold as an "AI fitting room / size-recommendation tool".
+It is also no longer pitched at *generic* fashion shoppers.
 
-**It is now sold as a personal digital wardrobe** that lets a shopper add the
-clothes they already own, mix them with certified brand pieces, and try new
-outfits visually without changing clothes. Sizing remains in the product —
-but as a **secondary** support layer.
+**It is now sold as a streetwear-first personal digital wardrobe** that lets
+a shopper add the pieces they already own, mix them with certified streetwear
+items, and test new fits on themselves without getting dressed. Sizing
+remains in the product — but as a **secondary** support layer.
+
+The product centre is rotation building (sneakers, hoodies, jackets, pants,
+cargos, denim, caps, bags). Generic fashion vocabulary ("outfit", "wardrobe",
+"clothing item") is replaced wherever natural with streetwear-native words
+("fit", "rotation", "piece").
 
 ### The new product hierarchy
 
-1. Personal digital wardrobe
-2. Outfit experimentation on self
-3. Add your own clothes from photos
-4. Certified brand items
-5. Sizing and fit insights *as secondary support*
+1. Build your streetwear wardrobe (your rotation)
+2. Test fits on yourself without changing
+3. Add the pieces you already own
+4. Mix your wardrobe with certified streetwear items
+5. Use sizing / fit support only as a secondary layer
 
 ### The new primary message
 
-> Build your digital wardrobe and try new outfits on yourself.
+> Build your digital streetwear wardrobe.
 >
-> Add the clothes you already own, mix them with certified brand pieces, and
-> explore new combinations without changing.
+> Add the pieces you already own, mix them with certified streetwear items,
+> and test new fits on yourself before you get dressed.
+
+### Streetwear vocabulary (use everywhere it fits)
+
+- **fit** / fits — instead of "outfit"
+- **rotation** — instead of "wardrobe" when colloquial works
+- **piece** / pieces — instead of "item" or "clothing item"
+- **sneakers** — instead of "shoes"
+- **hoodie, tee, jacket, cargos, denim, pants, shorts, cap, bag** — never
+  the generic "top/bottom/shoes/accessory" pair in front of users
+- **streetwear** — surfaced when describing certified brand pieces
+
+Sizing copy stays neutral and stays in the **fit insights** section of
+`/app/account`, never on the front-stage nav, never as the entry copy.
 
 ### What we no longer lead with
 
@@ -185,14 +204,36 @@ verbatim where it fits.
 
 | Surface | Copy |
 |---|---|
-| Hero | Build your digital wardrobe and try new outfits on yourself. |
-| Subhero | Add the clothes you already own, mix them with certified brand pieces, and explore new combinations without changing. |
-| Primary CTA | Start my wardrobe. |
-| Wardrobe empty state | Your digital wardrobe is empty. Add a piece you own or save a certified item to start building outfits. |
-| Personal upload CTA | Add a clothing item I already own. |
-| Photo step helper | Front photo first. Lay the item flat and capture the full shape. |
-| Essential limit message | Your Essential plan includes 10 wardrobe slots, including up to 3 personal photo items. |
+| Hero | Build your digital streetwear wardrobe. |
+| Subhero | Add the pieces you already own, mix them with certified streetwear items, and test new fits on yourself before you get dressed. |
+| Primary CTA | Start my rotation. |
+| Secondary CTA | Add a piece I already own. |
+| Wardrobe empty state | Your rotation is empty. Add a hoodie, sneaker, jacket, or any piece you already own to start building fits. |
+| Personal upload CTA | Add a piece I already own. |
+| Upload helper | Photograph a piece you already wear and add it to your digital rotation. |
+| Photo step helper | Front photo first. Lay the piece flat and capture the full shape. |
+| Essential limit message | Your Essential plan includes 10 rotation slots, including up to 3 pieces from your real closet. |
+| Outfit-builder helper | Build a fit from the pieces you already own. |
 | Sizing copy | Optional fit insights are available in your profile. |
+
+## Streetwear taxonomy
+
+The wardrobe-item `category` field is a free string in the DB. New uploads
+use streetwear-native values; legacy broad values still resolve through the
+outfit-builder slot rules. The CaptureFlow picker offers:
+
+`sneakers · hoodie · tee · jacket · pants · denim · cargos · shorts · cap · bag · accessory · other`
+
+The OutfitBuilder uses 5 slots in streetwear-natural order:
+
+1. **Sneakers** — accepts `sneakers`, legacy `shoes`
+2. **Top** — accepts `tee`, `hoodie`, legacy `top`, `dress`, `other`
+3. **Bottom** — accepts `pants`, `denim`, `cargos`, `shorts`, legacy `bottom`, `dress`, `other`
+4. **Outerwear** — accepts `jacket`, legacy `outerwear`
+5. **Accessory** — accepts `cap`, `bag`, legacy `accessory`, `other`
+
+Adding a new category is a one-line addition to `CATEGORY_OPTIONS` in
+`CaptureFlow.tsx` + a corresponding slot mapping in `OutfitBuilder.tsx`.
 
 ---
 

@@ -19,7 +19,7 @@ export function CtaSection() {
             className="inline-flex items-center rounded-full border border-hairline-strong
                        px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-ink-subtle"
           >
-            Built for fashion brands
+            Start your rotation
           </motion.span>
 
           {/* Heading */}
@@ -31,8 +31,8 @@ export function CtaSection() {
             className="mt-5 font-serif text-[clamp(2rem,3.8vw,3.2rem)] font-medium leading-[1.08]
                        tracking-[-0.02em] text-ink"
           >
-            Ready to reduce returns and boost <em className="italic">conversion</em>
-            <span className="text-accent">?</span>
+            Put your sneakers, hoodies and <em className="italic">fits</em> in one closet
+            <span className="text-accent">.</span>
           </motion.h2>
 
           {/* Sub-copy */}
@@ -43,7 +43,8 @@ export function CtaSection() {
             transition={{ duration: 0.65, delay: 0.15, ease }}
             className="mt-5 text-[17px] leading-[1.6] text-ink-muted"
           >
-            Set up Aplomb in under 30 minutes. No engineering team required.
+            Free to start. Add 10 pieces, build your first fit, see your outfit
+            before you change.
           </motion.p>
 
           {/* CTAs */}
@@ -57,13 +58,13 @@ export function CtaSection() {
             {/* Primary — ink pill with terracotta arrow */}
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
               <Link
-                href="/signup"
+                href="/signup?audience=client"
                 className="group inline-flex items-center gap-2.5 rounded-full bg-ink
                            pl-6 pr-2.5 py-3 text-sm font-medium text-white
                            transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
                            hover:bg-[#2a2622]"
               >
-                Start for free
+                Start my rotation
                 <span className="flex h-7 w-7 items-center justify-center rounded-full
                                  bg-accent aplomb-glow transition-all duration-500
                                  ease-[cubic-bezier(0.32,0.72,0,1)]
@@ -97,9 +98,9 @@ export function CtaSection() {
           aria-hidden="true"
         >
           {[
-            { stat: "Fewer", label: "returns" },
-            { stat: "Higher", label: "conversion" },
-            { stat: "10 min", label: "to go live" },
+            { stat: "10", label: "pieces free" },
+            { stat: "5", label: "fit slots" },
+            { stat: "0", label: "fitting rooms" },
           ].map((s) => (
             <div key={s.stat} className="text-right">
               <p className="font-serif text-[2rem] font-medium tracking-[-0.02em] text-ink leading-none">

@@ -54,7 +54,7 @@ export function AudienceChooser({
           delay={0.23}
           iconBg="bg-[#C9A882]"
           title="I'm a shopper"
-          body="Find your perfect fit across brands, build your digital wardrobe."
+          body="Build your digital streetwear rotation. Add the pieces you already own, mix them with certified brand items, test fits on yourself."
           icon={
             <path
               d="M10 3l2.5 6H18l-5 4 2 6-5-3.5L5 19l2-6-5-4h5.5L10 3z"

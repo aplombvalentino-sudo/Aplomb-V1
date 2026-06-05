@@ -112,8 +112,8 @@ export default async function AccountPage() {
           <span className="text-accent">.</span>
         </h1>
         <p className="mt-3 text-[14px] text-ink-muted max-w-[52ch]">
-          Manage your account, fit insights, and the GDPR controls you have over
-          your personal data.
+          Manage your account, your optional fit insights, and the GDPR controls
+          you have over your personal data.
         </p>
 
         <AccountPanel

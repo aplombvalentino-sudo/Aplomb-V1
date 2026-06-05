@@ -22,7 +22,7 @@ export function HeroSection() {
           {/* ── LEFT: editorial text block ── */}
           <div className="flex flex-col">
 
-            {/* Eyebrow pill — wardrobe-first positioning */}
+            {/* Eyebrow pill — streetwear-first positioning */}
             <motion.span
               initial={enter({ opacity: 0, y: 16 })}
               animate={{ opacity: 1, y: 0 }}
@@ -30,10 +30,10 @@ export function HeroSection() {
               className="inline-flex self-start items-center rounded-full border border-hairline bg-surface/60
                          px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-ink-muted"
             >
-              Digital Wardrobe
+              Streetwear Wardrobe
             </motion.span>
 
-            {/* H1 — wardrobe + try-on-yourself promise */}
+            {/* H1 — streetwear rotation + try-fits-on-yourself promise */}
             <motion.h1
               initial={enter({ opacity: 0, y: 32 })}
               animate={{ opacity: 1, y: 0 }}
@@ -41,18 +41,18 @@ export function HeroSection() {
               className="mt-5 font-serif text-[clamp(2.6rem,5.2vw,4.6rem)] font-medium leading-[1.06]
                          tracking-[-0.02em] text-ink"
             >
-              Build your digital wardrobe and try new <em className="italic">outfits</em> on yourself<span className="text-accent">.</span>
+              Build your digital <em className="italic">streetwear</em> wardrobe<span className="text-accent">.</span>
             </motion.h1>
 
-            {/* Subhero */}
+            {/* Subhero — streetwear vocab: pieces, fits, getting dressed */}
             <motion.p
               initial={enter({ opacity: 0, y: 20 })}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.2, ease }}
-              className="mt-7 max-w-[44ch] text-[17px] leading-[1.65] text-ink-muted"
+              className="mt-7 max-w-[46ch] text-[17px] leading-[1.65] text-ink-muted"
             >
-              Add the clothes you already own, mix them with certified brand pieces,
-              and explore new combinations without changing.
+              Add the pieces you already own, mix them with certified streetwear
+              items, and test new fits on yourself before you get dressed.
             </motion.p>
 
             {/* CTAs */}
@@ -62,7 +62,7 @@ export function HeroSection() {
               transition={{ duration: 0.65, delay: 0.33, ease }}
               className="mt-10 flex flex-wrap items-center gap-3"
             >
-              {/* Primary CTA — "Start my wardrobe" per product spec */}
+              {/* Primary CTA — "Start my rotation" (streetwear vocab) */}
               <motion.div whileHover={reduce ? undefined : { scale: 1.02 }} whileTap={reduce ? undefined : { scale: 0.97 }}>
                 <Link
                   href="/signup?audience=client"
@@ -72,7 +72,7 @@ export function HeroSection() {
                              hover:bg-[#2a2622]
                              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
                 >
-                  Start my wardrobe
+                  Start my rotation
                   <span className="flex h-7 w-7 items-center justify-center rounded-full
                                    bg-accent aplomb-glow transition-all duration-500
                                    ease-[cubic-bezier(0.32,0.72,0,1)]
@@ -123,7 +123,7 @@ export function HeroSection() {
                 ))}
               </div>
               <p className="text-[12px] text-[#6B6965]">
-                Your closet, the brands you love, all in one place.
+                Your rotation, sneakers and certified streetwear, all in one place.
               </p>
             </motion.div>
           </div>
@@ -148,9 +148,9 @@ export function HeroSection() {
 
                 {/* Mock header bar */}
                 <div className="flex items-center justify-between border-b border-black/[0.06] px-5 py-4">
-                  <span className="text-[13px] font-semibold text-[#111010]">My wardrobe</span>
+                  <span className="text-[13px] font-semibold text-[#111010]">My rotation</span>
                   <span className="text-[10px] font-medium text-[#6B6965]">
-                    7 / 10 slots
+                    7 / 10 pieces
                   </span>
                 </div>
 
@@ -185,10 +185,10 @@ export function HeroSection() {
                     ))}
                   </div>
 
-                  {/* Outfit-of-the-day strip — composed from items above */}
+                  {/* Today's-fit strip — composed from items above */}
                   <div className="rounded-xl border border-black/[0.06] bg-[#FBFAF7] p-3.5">
                     <p className="text-[10px] font-medium uppercase tracking-[0.15em] text-[#6B6965] mb-2.5">
-                      Today&apos;s outfit
+                      Today&apos;s fit
                     </p>
                     <div className="flex items-center gap-3">
                       <div className="flex -space-x-1.5">
@@ -201,8 +201,8 @@ export function HeroSection() {
                         ))}
                       </div>
                       <div>
-                        <p className="text-[12px] font-medium text-[#111010]">Casual Wednesday</p>
-                        <p className="text-[11px] text-[#6B6965]">Mine + Atelier Verdú</p>
+                        <p className="text-[12px] font-medium text-[#111010]">Sunday rotation</p>
+                        <p className="text-[11px] text-[#6B6965]">Mine + Studio 78</p>
                       </div>
                     </div>
                   </div>
@@ -214,7 +214,7 @@ export function HeroSection() {
                                text-white transition-opacity hover:opacity-80"
                     tabIndex={-1}
                   >
-                    Try outfit on me
+                    Test this fit
                   </Link>
                 </div>
 

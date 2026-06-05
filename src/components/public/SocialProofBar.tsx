@@ -1,16 +1,18 @@
 "use client";
 
+// Placeholder brand names — picked to feel street/contemporary rather than
+// luxury-editorial. Swap once real partner brands sign on.
 const brands = [
-  "Maison Verdú",
-  "Atelier Noir",
-  "Studio Lumière",
-  "Forme Paris",
-  "Velour House",
-  "Cerise Label",
-  "Arc & Thread",
-  "Nuance Studio",
-  "Toile Collective",
-  "Blanc Saisonnier",
+  "Studio 78",
+  "Northbound",
+  "Vault Atelier",
+  "Hard Cargo",
+  "Cipher Lab",
+  "Block & Stitch",
+  "Form / Function",
+  "Nightshift",
+  "Pavement Goods",
+  "Off-Hours",
 ];
 
 export function SocialProofBar() {

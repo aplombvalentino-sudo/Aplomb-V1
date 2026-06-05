@@ -89,30 +89,30 @@ export default async function WardrobePage() {
         <div className="mb-10 flex items-end justify-between gap-6 flex-wrap">
           <div>
             <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-ink-subtle">
-              {user?.name ? `${user.name}'s` : "Your"} closet
+              {user?.name ? `${user.name}'s` : "Your"} rotation
             </p>
             <h1 className="mt-2 font-serif text-[clamp(2rem,4vw,2.6rem)] font-medium leading-[1.05] tracking-[-0.02em] text-ink">
-              My <em className="italic">wardrobe</em>
+              My <em className="italic">rotation</em>
               <span className="text-accent">.</span>
             </h1>
           </div>
 
-          {/* Slot counter — quiet, right-aligned. Personal photos shown
-              alongside total to make the Essential 3-photo cap legible. */}
+          {/* Slot counter — quiet, right-aligned. Personal pieces shown
+              alongside total so the Essential 3-piece cap is legible. */}
           <div className="flex items-center gap-5 text-[12px] text-ink-muted tabular-nums">
             <div>
               <span className="text-ink font-medium">{quota.itemsUsed}</span>
               {" / "}
               {quota.maxItems === Infinity ? "∞" : quota.maxItems}
               {" "}
-              <span className="text-ink-subtle">slots</span>
+              <span className="text-ink-subtle">pieces</span>
             </div>
             <div>
               <span className="text-ink font-medium">{quota.personalPhotosUsed}</span>
               {" / "}
               {quota.maxPersonalPhotos === Infinity ? "∞" : quota.maxPersonalPhotos}
               {" "}
-              <span className="text-ink-subtle">personal photos</span>
+              <span className="text-ink-subtle">from your closet</span>
             </div>
           </div>
         </div>

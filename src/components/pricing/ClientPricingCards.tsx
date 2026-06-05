@@ -34,6 +34,9 @@ type ClientTier = {
   dark?: boolean;
 };
 
+// In-app upgrade cards. Mirror the public /pricing framing: rotation slots
+// + pieces from your closet + fit-building depth. Sizing limits are absent
+// from the headline list (they live in /app/account → Fit insights).
 const TIERS: ClientTier[] = [
   {
     id: "essential",
@@ -42,29 +45,29 @@ const TIERS: ClientTier[] = [
     originalPrice: "9.99",
     priceBadge: "FREE",
     period: "/month",
-    tagline: "Free during launch — start finding your perfect fit.",
+    tagline: "Free while we launch — save your core rotation.",
     features: [
-      "5 scans per month",
-      "3 preset occasion styles",
-      "Save up to 4 looks",
-      "Single-brand outfits",
-      "Standard color palettes",
+      "10 rotation slots",
+      "Up to 3 pieces from your real closet",
+      "Mix your own with certified streetwear",
+      "Build and test essential fits",
+      "Optional fit insights",
       "No payment required",
     ],
-    cta: "Get Essential — free",
+    cta: "Start my rotation — free",
   },
   {
     id: "fashion",
     name: "Fashion",
     price: "25.99",
     period: "/month",
-    tagline: "More outfits, more style choices.",
+    tagline: "Bigger rotation, full fit-building toolkit.",
     features: [
-      "15 scans per month",
-      "6 occasion presets + custom input",
-      "Save up to 10 looks",
-      "Single-brand outfits",
-      "Extended color palettes",
+      "40 rotation slots",
+      "Up to 15 pieces from your closet",
+      "Layer outerwear, sneakers, caps and bags",
+      "Cross-brand mixing for every fit",
+      "Custom occasions & moods",
     ],
     cta: "Choose Fashion",
   },
@@ -73,14 +76,14 @@ const TIERS: ClientTier[] = [
     name: "Model",
     price: "29.99",
     period: "/month",
-    tagline: "Unlimited. Cross-brand. Your wardrobe.",
+    tagline: "Unlimited rotation. The full styling rig.",
     features: [
-      "Unlimited scans",
-      "Custom occasions (free text)",
-      "Full color picker",
-      "Cross-brand outfit creation",
-      "Unlimited digital wardrobe",
-      "Mobile wardrobe access",
+      "Unlimited rotation slots",
+      "Unlimited pieces from your closet",
+      "Full outfit experimentation",
+      "Mobile rotation sync",
+      "Custom colour picker",
+      "Priority fit recommendations",
     ],
     cta: "Choose Model",
     recommended: true,

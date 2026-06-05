@@ -44,21 +44,21 @@ export default async function ClientPricingPage() {
           <span className="inline-flex items-center rounded-full border border-hairline-strong
                            bg-surface-raised px-3 py-1 text-[10px] font-medium uppercase
                            tracking-[0.18em] text-ink-muted">
-            Wardrobe plans
+            Rotation plans
           </span>
           <h1 className="mt-5 font-serif text-[clamp(1.9rem,4vw,2.8rem)] font-semibold
                          leading-[1.08] tracking-[-0.03em] text-ink">
-            More <em className="italic">closet</em>, more outfits
+            More <em className="italic">rotation</em>, more fits
             <span className="text-accent">.</span>
           </h1>
-          <p className="mt-4 text-[15px] leading-relaxed text-ink-muted max-w-[48ch] mx-auto">
-            Start free with 10 wardrobe slots. Upgrade when you want more
-            personal photo items, deeper outfit experimentation, or unlimited
-            slots.
+          <p className="mt-4 text-[15px] leading-relaxed text-ink-muted max-w-[50ch] mx-auto">
+            Start free with 10 rotation slots and 3 pieces from your real
+            closet. Upgrade when you want a bigger rotation, more personal
+            uploads, or full fit experimentation.
           </p>
         </div>
 
-        {/* Current plan summary — reframed around wardrobe capacity */}
+        {/* Current plan summary — reframed around rotation capacity */}
         <div className="mb-8 flex items-center justify-center gap-3 flex-wrap">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-surface
                            border border-hairline px-4 py-2 text-[13px]
@@ -68,14 +68,14 @@ export default async function ClientPricingPage() {
             <span className="text-ink-subtle">·</span>
             <span className="text-ink-subtle nums">
               {limits.maxWardrobeItems === Infinity
-                ? "Unlimited slots"
-                : `${limits.maxWardrobeItems} wardrobe slots`}
+                ? "Unlimited pieces"
+                : `${limits.maxWardrobeItems} pieces`}
             </span>
             <span className="text-ink-subtle">·</span>
             <span className="text-ink-subtle nums">
               {limits.maxPersonalPhotos === Infinity
-                ? "∞ personal photos"
-                : `${limits.maxPersonalPhotos} personal photos`}
+                ? "∞ from your closet"
+                : `${limits.maxPersonalPhotos} from your closet`}
             </span>
           </span>
         </div>
@@ -86,7 +86,7 @@ export default async function ClientPricingPage() {
           Plan selection is instant — no payment required for Essential.{" "}
           <Link href="/app/wardrobe" className="text-ink-muted hover:text-ink underline
                                        underline-offset-2 transition-colors">
-            Back to my wardrobe
+            Back to my rotation
           </Link>
         </p>
       </main>

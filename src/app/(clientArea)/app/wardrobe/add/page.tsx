@@ -50,7 +50,7 @@ export default async function AddWardrobeItemPage() {
           </span>
         </Link>
         <span className="text-[11px] text-ink-subtle tabular-nums">
-          {quota.personalPhotosUsed} / {quota.maxPersonalPhotos === Infinity ? "∞" : quota.maxPersonalPhotos} personal items
+          {quota.personalPhotosUsed} / {quota.maxPersonalPhotos === Infinity ? "∞" : quota.maxPersonalPhotos} pieces from your closet
         </span>
       </header>
 

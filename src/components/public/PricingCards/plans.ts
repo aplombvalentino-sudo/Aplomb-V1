@@ -75,10 +75,11 @@ export const brandPlans: Plan[] = [
   },
 ];
 
-// Shopper plans — framed primarily around wardrobe capacity, personal-photo
-// upload allowance, and outfit-experimentation depth. Sizing-related features
-// (scans, try-ons) appear as a single optional line at the bottom of each
-// card to reinforce that fit support is secondary to the wardrobe product.
+// Shopper plans — framed for streetwear rotation building. Each plan sells
+// on (a) how many pieces fit in your rotation, (b) how many of those can
+// be your own photographed pieces, (c) how deep the fit-building toolkit
+// goes. Sizing features (scans, try-ons) appear as a single optional line
+// at the bottom of each card — fit support is secondary to the rotation.
 export const clientPlans: Plan[] = [
   {
     name: "Essential",
@@ -86,29 +87,29 @@ export const clientPlans: Plan[] = [
     originalPrice: "9.99",
     priceBadge: "FREE",
     period: "/mo",
-    description: "Start your digital wardrobe — free during launch.",
+    description: "Save your core rotation — free while we launch.",
     features: [
-      "10 wardrobe slots",
-      "Up to 3 personal photo items",
-      "Mix certified brand items with your own",
-      "Basic outfit testing",
+      "10 rotation slots",
+      "Up to 3 pieces from your real closet",
+      "Mix your own pieces with certified streetwear",
+      "Build and test essential fits",
       "Optional fit insights",
     ],
-    cta: "Start my wardrobe — free",
+    cta: "Start my rotation — free",
     href: "/signup?audience=client&plan=essential",
   },
   {
     name: "Fashion",
     price: "25.99",
     period: "/mo",
-    description: "A roomier closet and full outfit experimentation.",
+    description: "Bigger rotation, full fit-building toolkit.",
     features: [
-      "40 wardrobe slots",
-      "Up to 15 personal photo items",
-      "Full outfit experimentation",
-      "Cross-brand mixing",
+      "40 rotation slots",
+      "Up to 15 pieces from your real closet",
+      "Layer outerwear, sneakers, caps and bags",
+      "Cross-brand mixing for every fit",
       "Custom occasions & moods",
-      "Fit insights when relevant",
+      "Fit insights when you want them",
     ],
     cta: "Choose Fashion",
     href: "/signup?audience=client&plan=fashion",
@@ -117,12 +118,12 @@ export const clientPlans: Plan[] = [
     name: "Model",
     price: "29.99",
     period: "/mo",
-    description: "Unlimited wardrobe and the full styling toolkit.",
+    description: "Unlimited rotation. The full styling rig.",
     features: [
-      "Unlimited wardrobe slots",
-      "Unlimited personal photo items",
+      "Unlimited rotation slots",
+      "Unlimited pieces from your closet",
       "Full outfit experimentation",
-      "Mobile wardrobe sync",
+      "Mobile rotation sync",
       "Custom colour picker",
       "Priority fit recommendations",
     ],

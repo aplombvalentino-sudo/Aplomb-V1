@@ -64,24 +64,24 @@ export default async function DiscoverPage() {
             Discover
           </p>
           <h1 className="mt-2 font-serif text-[clamp(2rem,4vw,2.6rem)] font-medium leading-[1.05] tracking-[-0.02em] text-ink">
-            Certified <em className="italic">brands</em>
+            Certified <em className="italic">streetwear</em>
             <span className="text-accent">.</span>
           </h1>
-          <p className="mt-3 max-w-[48ch] text-[15px] leading-relaxed text-ink-muted">
-            Browse certified brands and add pieces to your digital wardrobe.
-            Mix them with the clothes you already own.
+          <p className="mt-3 max-w-[50ch] text-[15px] leading-relaxed text-ink-muted">
+            Browse certified streetwear brands and drop new pieces straight into
+            your rotation. Mix them with the pieces you already own.
           </p>
         </div>
 
         {brands.length === 0 ? (
           <div className="rounded-2xl border border-hairline bg-surface py-20 text-center">
-            <p className="text-ink-muted font-medium">No brands available yet.</p>
+            <p className="text-ink-muted font-medium">No brands onboard yet.</p>
             <p className="mt-2 text-sm text-ink-subtle">
               Check back soon — or{" "}
               <Link href="/app/wardrobe/add" className="text-ink underline underline-offset-2">
-                add a piece you already own
+                add a piece you already wear
               </Link>{" "}
-              to start your wardrobe.
+              to start your rotation.
             </p>
           </div>
         ) : (

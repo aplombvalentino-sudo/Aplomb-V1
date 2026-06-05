@@ -57,12 +57,12 @@ function EmptyState({ wardrobeItemCount }: { wardrobeItemCount: number }) {
       className="rounded-2xl border border-hairline bg-surface px-6 py-16 text-center"
     >
       <p className="font-serif text-[1.5rem] font-medium text-ink leading-snug">
-        {hasItems ? "No outfits yet." : "Your wardrobe is waiting."}
+        {hasItems ? "No fits yet." : "Your rotation is waiting."}
       </p>
-      <p className="mt-3 max-w-[44ch] mx-auto text-[14px] text-ink-muted leading-relaxed">
+      <p className="mt-3 max-w-[46ch] mx-auto text-[14px] text-ink-muted leading-relaxed">
         {hasItems
-          ? "Pick a few wardrobe items, give the look a name, and save it for later."
-          : "Add a few clothing items to your wardrobe first — then start building outfits."}
+          ? "Pick sneakers, a top, pants and any layer you want — name the fit and save it for later."
+          : "Add a few pieces to your rotation first — sneakers, hoodie, jacket — then start building fits."}
       </p>
 
       <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
@@ -72,7 +72,7 @@ function EmptyState({ wardrobeItemCount }: { wardrobeItemCount: number }) {
             className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5
                        text-[13px] font-medium text-white hover:bg-[#2a2622] transition-colors"
           >
-            Build my first outfit
+            Build my first fit
           </Link>
         ) : (
           <Link
@@ -80,7 +80,7 @@ function EmptyState({ wardrobeItemCount }: { wardrobeItemCount: number }) {
             className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5
                        text-[13px] font-medium text-white hover:bg-[#2a2622] transition-colors"
           >
-            Go to my wardrobe
+            Go to my rotation
           </Link>
         )}
       </div>
