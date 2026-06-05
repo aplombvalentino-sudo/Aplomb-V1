@@ -70,6 +70,7 @@ model User {
   legalAcceptances LegalAcceptance[]
   subscription Subscription?
   wardrobeItems WardrobeItem[]
+  wardrobeOutfits WardrobeOutfit[]
 }
 
 // ─── Legal / compliance ──────────────────────────────────────────────────────
@@ -428,9 +429,48 @@ model WardrobeItem {
   user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   product         Product?         @relation(fields: [productId], references: [id])
   productVariant  ProductVariant?  @relation(fields: [productVariantId], references: [id])
+  outfitItems     WardrobeOutfitItem[]
 
   @@index([userId])
   @@index([userId, sourceType])
   @@index([userId, processingStatus])
   @@map("wardrobe_items")
+}
+
+// ─── Wardrobe Outfits ────────────────────────────────────────────────────────
+// A saved "look" — a combination of wardrobe items the user assembled. Lives
+// on the user (not on a brand) — replaces the previous localStorage-only
+// saved outfits, so a shopper can come back from another device and find
+// their wardrobe + their outfits intact.
+
+model WardrobeOutfit {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  title     String
+  occasion  String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user  User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items WardrobeOutfitItem[]
+
+  @@index([userId])
+  @@map("wardrobe_outfits")
+}
+
+model WardrobeOutfitItem {
+  id              String   @id @default(cuid())
+  outfitId        String   @map("outfit_id")
+  wardrobeItemId  String   @map("wardrobe_item_id")
+  /// Logical slot for this item in the look. Free-form so the UI can evolve
+  /// without a migration — typical values: "top", "bottom", "shoes", "accessory".
+  position        String
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  outfit       WardrobeOutfit @relation(fields: [outfitId], references: [id], onDelete: Cascade)
+  wardrobeItem WardrobeItem   @relation(fields: [wardrobeItemId], references: [id], onDelete: Cascade)
+
+  @@index([outfitId])
+  @@index([wardrobeItemId])
+  @@map("wardrobe_outfit_items")
 }

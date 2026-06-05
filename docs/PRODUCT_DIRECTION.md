@@ -150,9 +150,12 @@ The foundation + the wardrobe surface + the capture flow are in. Still pending:
       shoppers to `/app/wardrobe` directly (was `/app` → redirect).
 - [x] **Navigation**: top nav across `/app/wardrobe` + `/app/discover` is
       `Wardrobe | Discover | Profile`. Sizing not in the front-stage nav.
-- [ ] **Outfit builder**: existing brand-driven outfit gen needs a
-      wardrobe-driven counterpart that uses `WardrobeItem`s instead of
-      catalog products. **TODO — next session.**
+- [x] **Outfit builder**: `/app/outfits` lists saved looks, `/app/outfits/new`
+      is a 4-slot manual builder (top / bottom / shoes / accessory) that
+      picks from any ready WardrobeItem. Server-stored as
+      `WardrobeOutfit` + `WardrobeOutfitItem` (replaces the prior
+      localStorage saved-outfits — same UX, now cross-device). Ownership
+      gate on POST checks every wardrobeItemId belongs to the user.
 - [ ] **Sizing relocation to /app/profile**: today body-scan + fit live
       inside the brand wizard (`/app/[brandSlug]`). The wardrobe-first nav
       already doesn't surface them in the main bar — sizing happens

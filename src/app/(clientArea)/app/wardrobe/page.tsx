@@ -62,6 +62,12 @@ export default async function WardrobePage() {
             Wardrobe
           </Link>
           <Link
+            href="/app/outfits"
+            className="text-[12px] text-ink-subtle hover:text-ink transition-colors duration-200"
+          >
+            Outfits
+          </Link>
+          <Link
             href="/app/discover"
             className="text-[12px] text-ink-subtle hover:text-ink transition-colors duration-200"
           >
