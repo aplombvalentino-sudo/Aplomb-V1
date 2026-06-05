@@ -151,7 +151,7 @@ export function OutfitsStep({
         </button>
         {!widgetMode && (
           <Link
-            href="/app"
+            href="/app/discover"
             className="rounded-full border border-hairline-strong bg-white px-5 py-2.5 text-sm font-medium
                        text-ink-muted hover:bg-white/80 transition-all duration-200"
           >

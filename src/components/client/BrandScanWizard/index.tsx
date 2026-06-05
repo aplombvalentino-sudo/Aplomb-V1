@@ -334,19 +334,34 @@ export function BrandScanWizard({
           {!widgetMode && (
             <>
               <Link
-                href="/app"
+                href="/app/wardrobe"
                 className="text-[12px] text-ink-subtle hover:text-ink transition-colors duration-200"
               >
-                ← All brands
+                ← My wardrobe
               </Link>
               <span aria-hidden className="h-3 w-px bg-black/10" />
               <ClientSignOutLink />
             </>
           )}
           {widgetMode && (
-            <span className="text-[10px] uppercase tracking-[0.14em] text-ink-subtle">
-              Powered by Aplomb
-            </span>
+            <div className="flex items-center gap-3">
+              {/* Conversion CTA — brings widget shoppers into the wardrobe
+                  product. target="_top" breaks out of the iframe so the
+                  signup happens at the top level, not inside the brand's
+                  embed. Quiet by design — the widget is the brand's surface. */}
+              <a
+                href="/signup?audience=client"
+                target="_top"
+                rel="noopener"
+                className="text-[10px] uppercase tracking-[0.14em] text-ink-muted hover:text-ink transition-colors duration-200"
+              >
+                Start your own wardrobe →
+              </a>
+              <span aria-hidden className="h-3 w-px bg-black/10" />
+              <span className="text-[10px] uppercase tracking-[0.14em] text-ink-subtle">
+                Powered by Aplomb
+              </span>
+            </div>
           )}
         </div>
       </header>

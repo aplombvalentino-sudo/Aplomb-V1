@@ -19,18 +19,38 @@ const ease = [0.16, 1, 0.3, 1] as const;
  * friction to prevent accidental account loss. After successful deletion,
  * NextAuth signOut runs and the user is sent to /.
  */
+type FitInsights = {
+  scannedAt: string;
+  mode: "easy" | "advanced";
+  brandName: string;
+  brandSlug: string;
+  shapeSummary: string | null;
+  measurements: {
+    height: number | null;
+    weight: number | null;
+    chest: number | null;
+    waist: number | null;
+    hips: number | null;
+    shoulders: number | null;
+    inseam: number | null;
+  };
+};
+
 export function AccountPanel({
   initialName,
   email,
   plan,
   memberSince,
   counts,
+  fitInsights,
 }: {
   initialName: string;
   email: string;
   plan: string;
   memberSince: string;
   counts: { bodyProfiles: number; recommendationSessions: number; legalAcceptances: number };
+  /** Latest body profile + measurements. Null when the user has never scanned. */
+  fitInsights: FitInsights | null;
 }) {
   const router = useRouter();
 
@@ -120,6 +140,9 @@ export function AccountPanel({
           </dl>
         </div>
       </section>
+
+      {/* ── Fit insights (optional, sizing-as-secondary) ──────────────── */}
+      <FitInsightsSection insights={fitInsights} />
 
       {/* ── Update name (Art 16 — rectification) ──────────────────────── */}
       <section>
@@ -285,4 +308,100 @@ function Row({ label, value, capitalize }: { label: string; value: string; capit
       </dd>
     </div>
   );
+}
+
+// ─── Fit insights (sizing as secondary — appears only AFTER wardrobe value) ──
+
+function FitInsightsSection({ insights }: { insights: FitInsights | null }) {
+  return (
+    <section>
+      <h2 className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink-subtle mb-4">
+        Fit insights
+        <span className="ml-2 text-ink-subtle/60 normal-case font-normal lowercase tracking-normal">
+          (optional)
+        </span>
+      </h2>
+
+      {insights ? (
+        <div className="rounded-2xl border border-hairline bg-surface p-6">
+          <div className="flex items-start justify-between gap-4 flex-wrap mb-5">
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.12em] text-ink-subtle">
+                Last scan
+              </p>
+              <p className="mt-0.5 text-[14px] font-medium text-ink">
+                {formatRelative(insights.scannedAt)}
+                <span className="ml-2 text-[11px] text-ink-subtle font-normal capitalize">
+                  · {insights.mode} mode · {insights.brandName}
+                </span>
+              </p>
+            </div>
+            <a
+              href={`/app/${insights.brandSlug}`}
+              className="rounded-full border border-hairline-strong bg-white px-4 py-1.5 text-[12px] font-medium
+                         text-ink hover:bg-surface-raised transition-colors"
+            >
+              Run a new scan
+            </a>
+          </div>
+
+          {/* Measurement grid — only show fields that have a number */}
+          <dl className="grid grid-cols-2 sm:grid-cols-4 gap-x-5 gap-y-4">
+            {(
+              [
+                ["Height", insights.measurements.height, "cm"],
+                ["Weight", insights.measurements.weight, "kg"],
+                ["Chest", insights.measurements.chest, "cm"],
+                ["Waist", insights.measurements.waist, "cm"],
+                ["Hips", insights.measurements.hips, "cm"],
+                ["Shoulders", insights.measurements.shoulders, "cm"],
+                ["Inseam", insights.measurements.inseam, "cm"],
+              ] as const
+            )
+              .filter(([, v]) => typeof v === "number")
+              .map(([label, v, unit]) => (
+                <div key={label}>
+                  <dt className="text-[10px] uppercase tracking-[0.1em] text-ink-subtle">
+                    {label}
+                  </dt>
+                  <dd className="mt-0.5 font-serif text-[1.3rem] font-medium text-ink leading-none tabular-nums">
+                    {Math.round(v as number)}
+                    <span className="ml-1 text-[11px] font-normal text-ink-subtle">{unit}</span>
+                  </dd>
+                </div>
+              ))}
+          </dl>
+
+          {insights.shapeSummary && (
+            <p className="mt-5 text-[12px] text-ink-muted leading-[1.55]">
+              {insights.shapeSummary}
+            </p>
+          )}
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-hairline bg-surface p-6 text-center">
+          <p className="text-[13px] text-ink-muted leading-relaxed max-w-[44ch] mx-auto">
+            No body scan yet. Optional — start one through any brand in
+            <a href="/app/discover" className="text-ink underline underline-offset-2 ml-1">
+              Discover
+            </a>{" "}
+            to get personalized size recommendations.
+          </p>
+        </div>
+      )}
+    </section>
+  );
+}
+
+/** Best-effort "X ago" formatter — keeps the section visually quiet. */
+function formatRelative(iso: string): string {
+  const ms = Date.now() - new Date(iso).getTime();
+  const minutes = Math.round(ms / 60_000);
+  const hours = Math.round(ms / 3_600_000);
+  const days = Math.round(ms / 86_400_000);
+  if (minutes < 1) return "Just now";
+  if (minutes < 60) return `${minutes} min ago`;
+  if (hours < 24) return `${hours}h ago`;
+  if (days < 30) return `${days}d ago`;
+  return new Date(iso).toLocaleDateString("en-GB");
 }

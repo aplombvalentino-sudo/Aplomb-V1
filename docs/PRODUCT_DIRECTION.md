@@ -156,18 +156,25 @@ The foundation + the wardrobe surface + the capture flow are in. Still pending:
       `WardrobeOutfit` + `WardrobeOutfitItem` (replaces the prior
       localStorage saved-outfits — same UX, now cross-device). Ownership
       gate on POST checks every wardrobeItemId belongs to the user.
-- [ ] **Sizing relocation to /app/profile**: today body-scan + fit live
-      inside the brand wizard (`/app/[brandSlug]`). The wardrobe-first nav
-      already doesn't surface them in the main bar — sizing happens
-      contextually when shoppers enter a brand's fitting room. A dedicated
-      `/app/profile` page that lets users opt-in to "see my fit insights"
-      is a future polish, not a blocker.
-- [ ] **`/widget`**: brand embeddable widget keeps its sizing-first flow
-      for v1 (a brand iframe is a different surface than the standalone
-      shopper app — that integration is still a try-on + size assistant).
-      Revisit once shoppers have meaningful wardrobes.
+- [x] **Sizing in profile**: `/app/account` now has a "Fit insights
+      (optional)" section between Account stats and Update profile.
+      Pulls the user's latest BodyProfile (if any) + measurements +
+      brand-of-last-scan + a "Run a new scan" button that links to the
+      brand wizard. Empty state when no scan: "No body scan yet —
+      optional, start one through any brand in Discover."
+- [x] **`/widget` light wardrobe-aware CTA**: brand embeddable widget keeps
+      its sizing-first flow per spec (it's the brand's surface, not the
+      shopper's). Header gains a quiet "Start your own wardrobe →" link
+      that opens /signup at the iframe-top level — a conversion path
+      without polluting the brand's UX.
+- [x] **Internal nav cleanup**: the wizard's own back-link said "← All
+      brands" pointing at the old `/app` brand grid. Now reads
+      "← My wardrobe" pointing at `/app/wardrobe`. "Browse more brands"
+      on the outfits step now routes to `/app/discover` (where the
+      brand grid actually lives).
 
-Each follow-up should be its own commit so the rollout stays bisectable.
+All checklist items are now done. The repositioning is structurally
+complete; future iteration is product polish on top of this base.
 
 ---
 
