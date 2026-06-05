@@ -75,6 +75,10 @@ export const brandPlans: Plan[] = [
   },
 ];
 
+// Shopper plans — framed primarily around wardrobe capacity, personal-photo
+// upload allowance, and outfit-experimentation depth. Sizing-related features
+// (scans, try-ons) appear as a single optional line at the bottom of each
+// card to reinforce that fit support is secondary to the wardrobe product.
 export const clientPlans: Plan[] = [
   {
     name: "Essential",
@@ -82,44 +86,47 @@ export const clientPlans: Plan[] = [
     originalPrice: "9.99",
     priceBadge: "FREE",
     period: "/mo",
-    description: "Free during launch — try Aplomb across your favourite brands.",
+    description: "Start your digital wardrobe — free during launch.",
     features: [
-      "5 body scans / month",
-      "Save up to 4 looks",
-      "Preset occasions",
-      "Per-brand sizing",
-      "No payment required",
+      "10 wardrobe slots",
+      "Up to 3 personal photo items",
+      "Mix certified brand items with your own",
+      "Basic outfit testing",
+      "Optional fit insights",
     ],
-    cta: "Get Essential — free",
+    cta: "Start my wardrobe — free",
     href: "/signup?audience=client&plan=essential",
   },
   {
     name: "Fashion",
     price: "25.99",
     period: "/mo",
-    description: "For active shoppers who care about fit.",
+    description: "A roomier closet and full outfit experimentation.",
     features: [
-      "15 body scans / month",
-      "Save up to 10 looks",
-      "Custom occasions",
-      "Extended preset library",
+      "40 wardrobe slots",
+      "Up to 15 personal photo items",
+      "Full outfit experimentation",
+      "Cross-brand mixing",
+      "Custom occasions & moods",
+      "Fit insights when relevant",
     ],
-    cta: "Get Fashion",
+    cta: "Choose Fashion",
     href: "/signup?audience=client&plan=fashion",
   },
   {
     name: "Model",
     price: "29.99",
     period: "/mo",
-    description: "Unlimited scans and full digital wardrobe.",
+    description: "Unlimited wardrobe and the full styling toolkit.",
     features: [
-      "Unlimited body scans",
-      "Unlimited wardrobe",
-      "Cross-brand outfit composer",
+      "Unlimited wardrobe slots",
+      "Unlimited personal photo items",
+      "Full outfit experimentation",
       "Mobile wardrobe sync",
       "Custom colour picker",
+      "Priority fit recommendations",
     ],
-    cta: "Get Model",
+    cta: "Choose Model",
     href: "/signup?audience=client&plan=model",
     highlight: true,
   },

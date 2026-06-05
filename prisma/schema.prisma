@@ -69,6 +69,7 @@ model User {
   recommendationSessions RecommendationSession[]
   legalAcceptances LegalAcceptance[]
   subscription Subscription?
+  wardrobeItems WardrobeItem[]
 }
 
 // ─── Legal / compliance ──────────────────────────────────────────────────────
@@ -195,6 +196,7 @@ model Product {
   brand    Brand            @relation(fields: [brandId], references: [id], onDelete: Cascade)
   variants ProductVariant[]
   outfitItems OutfitItem[]
+  wardrobeItems WardrobeItem[]
 
   @@index([brandId])
   @@index([brandId, isActive])
@@ -219,6 +221,7 @@ model ProductVariant {
 
   product     Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
   outfitItems OutfitItem[]
+  wardrobeItems WardrobeItem[]
 
   @@index([productId])
 }
@@ -366,4 +369,68 @@ model TryOnResult {
 
   @@index([outfitItemId])
   @@index([bodyProfileId])
+}
+
+// ─── Digital Wardrobe ────────────────────────────────────────────────────────
+// Each user's personal closet. A wardrobe item can be either a CERTIFIED item
+// (linked to a Brand catalog Product) OR a USER_PHOTO item (clothing the
+// shopper already owns, uploaded from two photos). Both types are usable in
+// outfit creation. This is now the primary product surface — sizing is built
+// on top of this layer, not the other way round.
+
+enum WardrobeItemSourceType {
+  certified
+  user_photo
+}
+
+enum WardrobeItemProcessingStatus {
+  pending_upload  // record created, photos not yet uploaded
+  processing      // photos uploaded, AI pipeline running (bg removal, category, etc.)
+  needs_review    // pipeline succeeded but confidence is low — user should confirm
+  ready           // item visible in wardrobe + selectable in outfit builder
+  failed          // pipeline could not extract a usable asset
+}
+
+model WardrobeItem {
+  id                String                       @id @default(cuid())
+  userId            String                       @map("user_id")
+  sourceType        WardrobeItemSourceType       @map("source_type")
+
+  // Certified path — link into the brand catalog (optional, only for sourceType=certified).
+  productId         String?                      @map("product_id")
+  productVariantId  String?                      @map("product_variant_id")
+
+  // User-photo path — paths inside the private wardrobe-items Supabase bucket.
+  // Never returned to clients; signed URLs are minted at read time.
+  frontImagePath    String?                      @map("front_image_path")
+  backImagePath     String?                      @map("back_image_path")
+  /// Processed visual (background-removed + cropped). Used as the primary
+  /// thumbnail in the wardrobe + in outfit picker. Falls back to frontImage.
+  processedAssetPath String?                     @map("processed_asset_path")
+
+  // Common metadata captured / inferred at item creation. Brand and nickname
+  // are optional even for certified items so users can rename them.
+  category          String
+  subcategory       String?
+  color             String?
+  brand             String?
+  nickname          String?
+
+  /// Pipeline state. Only meaningful for user_photo items; certified items
+  /// are written with `ready` directly. The wardrobe UI uses this to gate
+  /// whether the item is selectable in the outfit builder (usableInOutfit
+  /// is derived: processingStatus === 'ready').
+  processingStatus  WardrobeItemProcessingStatus @default(ready) @map("processing_status")
+
+  createdAt         DateTime                     @default(now()) @map("created_at")
+  updatedAt         DateTime                     @updatedAt @map("updated_at")
+
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product         Product?         @relation(fields: [productId], references: [id])
+  productVariant  ProductVariant?  @relation(fields: [productVariantId], references: [id])
+
+  @@index([userId])
+  @@index([userId, sourceType])
+  @@index([userId, processingStatus])
+  @@map("wardrobe_items")
 }

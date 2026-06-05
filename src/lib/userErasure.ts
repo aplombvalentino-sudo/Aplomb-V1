@@ -1,6 +1,7 @@
 import "server-only";
 import { db } from "@/lib/db";
 import { deleteBodyScan } from "@/lib/ai/storage";
+import { deleteWardrobePhoto } from "@/lib/wardrobe/storage";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 
 /**
@@ -69,6 +70,30 @@ export async function eraseUser(userId: string): Promise<EraseResult> {
     }
     if (p.sideImagePath) {
       await deleteBodyScan(p.sideImagePath);
+      deletedPhotos++;
+    }
+  }
+
+  // ── 3b. Wardrobe user_photo items — same posture, storage before DB ─────
+  // (Certified wardrobe items don't have photo paths to clean up; their FK
+  // to Product is SET NULL on delete, and the wardrobe row itself is
+  // CASCADE-deleted with the User below.)
+  const wardrobePhotos = await db.wardrobeItem.findMany({
+    where: { userId, sourceType: "user_photo" },
+    select: { frontImagePath: true, backImagePath: true, processedAssetPath: true },
+  });
+
+  for (const w of wardrobePhotos) {
+    if (w.frontImagePath) {
+      await deleteWardrobePhoto(w.frontImagePath);
+      deletedPhotos++;
+    }
+    if (w.backImagePath) {
+      await deleteWardrobePhoto(w.backImagePath);
+      deletedPhotos++;
+    }
+    if (w.processedAssetPath) {
+      await deleteWardrobePhoto(w.processedAssetPath);
       deletedPhotos++;
     }
   }

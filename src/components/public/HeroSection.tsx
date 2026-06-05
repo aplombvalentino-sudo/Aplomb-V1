@@ -22,7 +22,7 @@ export function HeroSection() {
           {/* ── LEFT: editorial text block ── */}
           <div className="flex flex-col">
 
-            {/* Eyebrow pill */}
+            {/* Eyebrow pill — wardrobe-first positioning */}
             <motion.span
               initial={enter({ opacity: 0, y: 16 })}
               animate={{ opacity: 1, y: 0 }}
@@ -30,10 +30,10 @@ export function HeroSection() {
               className="inline-flex self-start items-center rounded-full border border-hairline bg-surface/60
                          px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-ink-muted"
             >
-              AI Fitting Room
+              Digital Wardrobe
             </motion.span>
 
-            {/* H1 — Fraunces editorial, italic emphasis, terracotta signature period */}
+            {/* H1 — wardrobe + try-on-yourself promise */}
             <motion.h1
               initial={enter({ opacity: 0, y: 32 })}
               animate={{ opacity: 1, y: 0 }}
@@ -41,19 +41,18 @@ export function HeroSection() {
               className="mt-5 font-serif text-[clamp(2.6rem,5.2vw,4.6rem)] font-medium leading-[1.06]
                          tracking-[-0.02em] text-ink"
             >
-              Your shoppers find <em className="italic">the perfect fit</em>, every time<span className="text-accent">.</span>
+              Build your digital wardrobe and try new <em className="italic">outfits</em> on yourself<span className="text-accent">.</span>
             </motion.h1>
 
-            {/* Description */}
+            {/* Subhero */}
             <motion.p
               initial={enter({ opacity: 0, y: 20 })}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.2, ease }}
-              className="mt-7 max-w-[42ch] text-[17px] leading-[1.65] text-ink-muted"
+              className="mt-7 max-w-[44ch] text-[17px] leading-[1.65] text-ink-muted"
             >
-              Aplomb embeds an AI fitting room into your product pages.
-              Shoppers get accurate size recommendations and complete outfit
-              suggestions — reducing returns and increasing conversion.
+              Add the clothes you already own, mix them with certified brand pieces,
+              and explore new combinations without changing.
             </motion.p>
 
             {/* CTAs */}
@@ -63,17 +62,17 @@ export function HeroSection() {
               transition={{ duration: 0.65, delay: 0.33, ease }}
               className="mt-10 flex flex-wrap items-center gap-3"
             >
-              {/* Primary CTA — button-in-button */}
+              {/* Primary CTA — "Start my wardrobe" per product spec */}
               <motion.div whileHover={reduce ? undefined : { scale: 1.02 }} whileTap={reduce ? undefined : { scale: 0.97 }}>
                 <Link
-                  href="/signup"
+                  href="/signup?audience=client"
                   className="group inline-flex items-center gap-2.5 rounded-full bg-ink
                              pl-6 pr-2.5 py-3 text-sm font-medium text-white
                              transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
                              hover:bg-[#2a2622]
                              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
                 >
-                  Start for free
+                  Start my wardrobe
                   <span className="flex h-7 w-7 items-center justify-center rounded-full
                                    bg-accent aplomb-glow transition-all duration-500
                                    ease-[cubic-bezier(0.32,0.72,0,1)]
@@ -99,7 +98,7 @@ export function HeroSection() {
               </motion.div>
             </motion.div>
 
-            {/* Social proof micro-stat */}
+            {/* Social proof micro-stat — repositioned for shopper-first */}
             <motion.div
               initial={enter({ opacity: 0 })}
               animate={{ opacity: 1 }}
@@ -124,14 +123,15 @@ export function HeroSection() {
                 ))}
               </div>
               <p className="text-[12px] text-[#6B6965]">
-                Built for fashion brands that care about fit.
+                Your closet, the brands you love, all in one place.
               </p>
             </motion.div>
           </div>
 
-          {/* ── RIGHT: widget mockup — double-bezel ── */}
-          {/* Visible on every breakpoint now (was hidden on mobile). On small
-              screens it stacks below the CTAs as a compressed proof asset. */}
+          {/* ── RIGHT: wardrobe mockup — reframed around the new product ── */}
+          {/* Replaces the prior body-scan/measurements mock. Shows a personal
+              digital closet: mix of personal photo items + certified brand
+              items + a "Build outfit" CTA. */}
           <motion.div
             initial={enter({ opacity: 0, y: 40 })}
             animate={{ opacity: 1, y: 0 }}
@@ -148,68 +148,61 @@ export function HeroSection() {
 
                 {/* Mock header bar */}
                 <div className="flex items-center justify-between border-b border-black/[0.06] px-5 py-4">
-                  <span className="text-[13px] font-semibold text-[#111010]">AI Fitting Room</span>
-                  <span className="rounded-full bg-[#EDF3EC] px-2.5 py-0.5 text-[10px] font-medium
-                                   uppercase tracking-wide text-[#2c5530]">
-                    Live
+                  <span className="text-[13px] font-semibold text-[#111010]">My wardrobe</span>
+                  <span className="text-[10px] font-medium text-[#6B6965]">
+                    7 / 10 slots
                   </span>
                 </div>
 
-                {/* Mock body */}
+                {/* Mock body — wardrobe grid */}
                 <div className="px-5 py-5 space-y-4">
-                  {/* Measurement progress */}
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-[11px] font-medium text-[#6B6965]">Body scan</span>
-                      <span className="text-[11px] text-[#111010] font-semibold">94%</span>
-                    </div>
-                    <div className="h-1.5 rounded-full bg-black/[0.06] overflow-hidden">
-                      <motion.div
-                        initial={reduce ? { width: "94%" } : { width: 0 }}
-                        animate={{ width: "94%" }}
-                        transition={reduce ? { duration: 0 } : { duration: 1.4, delay: 0.9, ease }}
-                        className="h-full rounded-full bg-[#111010]"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Measurement grid */}
-                  <div className="grid grid-cols-2 gap-2">
+                  {/* Two-row 3-col mini grid representing the closet. Each tile
+                      is either a CERTIFIED swatch (with brand stripe) or a
+                      PERSONAL photo item (with "Mine" pill in the corner). */}
+                  <div className="grid grid-cols-3 gap-2">
                     {[
-                      { label: "Chest", value: "92 cm" },
-                      { label: "Waist", value: "74 cm" },
-                      { label: "Hips", value: "98 cm" },
-                      { label: "Inseam", value: "81 cm" },
-                    ].map((m) => (
+                      { bg: "#C9B8A8", kind: "certified" },
+                      { bg: "#4A3F35", kind: "mine" },
+                      { bg: "#8A7A6A", kind: "certified" },
+                      { bg: "#D9CFC2", kind: "mine" },
+                      { bg: "#6B5B4E", kind: "certified" },
+                      { bg: "#A89888", kind: "mine" },
+                    ].map((tile, i) => (
                       <div
-                        key={m.label}
-                        className="rounded-xl bg-[#F6F3EE] px-3.5 py-3"
+                        key={i}
+                        className="relative aspect-square rounded-lg shadow-sm overflow-hidden"
+                        style={{ background: tile.bg }}
                       >
-                        <p className="text-[10px] text-[#6B6965] mb-0.5">{m.label}</p>
-                        <p className="text-[14px] font-semibold text-[#111010]">{m.value}</p>
+                        {tile.kind === "mine" && (
+                          <span
+                            className="absolute top-1 right-1 rounded-full bg-white/95 px-1.5 py-0.5
+                                       text-[8px] font-semibold uppercase tracking-[0.08em] text-[#111010]"
+                          >
+                            Mine
+                          </span>
+                        )}
                       </div>
                     ))}
                   </div>
 
-                  {/* Outfit recommendation */}
+                  {/* Outfit-of-the-day strip — composed from items above */}
                   <div className="rounded-xl border border-black/[0.06] bg-[#FBFAF7] p-3.5">
                     <p className="text-[10px] font-medium uppercase tracking-[0.15em] text-[#6B6965] mb-2.5">
-                      Recommended outfit
+                      Today&apos;s outfit
                     </p>
                     <div className="flex items-center gap-3">
-                      {/* Product swatch placeholders */}
-                      <div className="flex gap-1.5">
-                        {["#C9B8A8", "#8A7A6A", "#4A3F35"].map((c, i) => (
+                      <div className="flex -space-x-1.5">
+                        {["#C9B8A8", "#4A3F35", "#8A7A6A"].map((c, i) => (
                           <div
                             key={i}
-                            className="h-10 w-10 rounded-lg shadow-sm"
+                            className="h-9 w-9 rounded-lg ring-2 ring-[#FBFAF7] shadow-sm"
                             style={{ background: c }}
                           />
                         ))}
                       </div>
                       <div>
-                        <p className="text-[12px] font-medium text-[#111010]">3-piece look</p>
-                        <p className="text-[11px] text-[#6B6965]">Size M — 98% match</p>
+                        <p className="text-[12px] font-medium text-[#111010]">Casual Wednesday</p>
+                        <p className="text-[11px] text-[#6B6965]">Mine + Atelier Verdú</p>
                       </div>
                     </div>
                   </div>
@@ -221,13 +214,13 @@ export function HeroSection() {
                                text-white transition-opacity hover:opacity-80"
                     tabIndex={-1}
                   >
-                    Shop this look
+                    Try outfit on me
                   </Link>
                 </div>
 
                 {/* Mock bottom bar */}
                 <div className="border-t border-black/[0.06] px-5 py-3 flex items-center justify-center">
-                  <span className="text-[10px] text-[#6B6965]">Powered by Aplomb AI</span>
+                  <span className="text-[10px] text-[#6B6965]">Powered by Aplomb</span>
                 </div>
               </div>
 
