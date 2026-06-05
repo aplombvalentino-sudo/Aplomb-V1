@@ -4,11 +4,11 @@ import { buildDestination } from "./buildDestination";
 describe("buildDestination — post-signup redirect map", () => {
   // ── Client branch ──
   it("client + no plan → /app (free Essential is the default)", () => {
-    expect(buildDestination("client", null)).toBe("/app");
+    expect(buildDestination("client", null)).toBe("/app/wardrobe");
   });
 
   it("client + 'essential' plan → /app (Essential is free, skips Stripe)", () => {
-    expect(buildDestination("client", "essential")).toBe("/app");
+    expect(buildDestination("client", "essential")).toBe("/app/wardrobe");
   });
 
   it("client + paid plan → /checkout with audience=client and the plan slug", () => {

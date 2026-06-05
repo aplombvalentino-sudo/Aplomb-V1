@@ -1,7 +1,8 @@
 /**
  * Post-signup destination resolver.
  *
- * - Client + Essential (or no plan) → /app             (free, no checkout)
+ * - Client + Essential (or no plan) → /app/wardrobe   (wardrobe is the
+ *                                                      new product centre)
  * - Client + paid plan              → /checkout?audience=client&plan=…
  * - Brand  + any plan               → /checkout?audience=brand&plan=…
  * - Brand  + no plan                → /pro/dashboard   (free trial)
@@ -13,7 +14,7 @@ export function buildDestination(
   plan: string | null,
 ): string {
   if (audience === "client") {
-    if (!plan || plan === "essential") return "/app";
+    if (!plan || plan === "essential") return "/app/wardrobe";
     return `/checkout?audience=client&plan=${plan}`;
   }
   // Brand

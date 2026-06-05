@@ -135,20 +135,30 @@ outside Stripe (free); one highlighted plan per audience.
 
 ## Pending follow-up (NOT YET DONE — track in /COMPLIANCE_DECISIONS)
 
-The foundation is in, but the full repositioning still needs:
+The foundation + the wardrobe surface + the capture flow are in. Still pending:
 
-- [ ] **Wardrobe page**: replace `/app` (currently brand grid) with a
-      wardrobe-first layout. Move brand discovery to `/app/discover`.
-- [ ] **Navigation**: top nav = `Wardrobe | Outfits | Discover | Try On | Profile`.
-      Sizing settings move into `Profile → My body profile / Fit & sizing`.
-- [ ] **Capture flow**: 5-screen `/app/wardrobe/add` (intro → front → back
-      → review → confirm details). Camera + file upload, photo guidance copy.
+- [x] **Wardrobe page**: `/app/wardrobe` is now a server-rendered grid of
+      `WardrobeItem`s with quota counter, empty state, "Add a piece you own"
+      + "Add a certified brand item" CTAs, and per-card delete.
+- [x] **Brand discovery moved**: `/app` redirects to `/app/wardrobe`; the
+      brand grid moved to `/app/discover`.
+- [x] **Capture flow**: 5-step state machine at `/app/wardrobe/add` (intro
+      → front → back → review → confirm details). File picker with
+      camera="environment" for mobile, 8 MB cap, MIME allow-list. Posts to
+      `/api/wardrobe/items/upload`. Photo guidance copy at each step.
+- [x] **Onboarding redirect**: `buildDestination()` now sends Essential
+      shoppers to `/app/wardrobe` directly (was `/app` → redirect).
+- [x] **Navigation**: top nav across `/app/wardrobe` + `/app/discover` is
+      `Wardrobe | Discover | Profile`. Sizing not in the front-stage nav.
 - [ ] **Outfit builder**: existing brand-driven outfit gen needs a
-      wardrobe-driven counterpart that uses `WardrobeItem`s instead of catalog products.
-- [ ] **Onboarding redirect**: post-signup, send users to wardrobe-first
-      experience (not to a brand picker).
-- [ ] **Sizing UI**: move scan / fit features behind `/app/profile`. They
-      are still callable; they no longer lead.
+      wardrobe-driven counterpart that uses `WardrobeItem`s instead of
+      catalog products. **TODO — next session.**
+- [ ] **Sizing relocation to /app/profile**: today body-scan + fit live
+      inside the brand wizard (`/app/[brandSlug]`). The wardrobe-first nav
+      already doesn't surface them in the main bar — sizing happens
+      contextually when shoppers enter a brand's fitting room. A dedicated
+      `/app/profile` page that lets users opt-in to "see my fit insights"
+      is a future polish, not a blocker.
 - [ ] **`/widget`**: brand embeddable widget keeps its sizing-first flow
       for v1 (a brand iframe is a different surface than the standalone
       shopper app — that integration is still a try-on + size assistant).
