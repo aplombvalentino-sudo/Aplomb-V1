@@ -33,7 +33,10 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
     }
   }
 
-  const continueHref = side === "brand" ? "/pro/dashboard" : "/app";
+  // Shoppers land in their wardrobe (the new product centre); brands keep
+  // their existing pro dashboard.
+  const continueHref = side === "brand" ? "/pro/dashboard" : "/app/wardrobe";
+  const continueLabel = side === "brand" ? "Go to dashboard" : "Open my wardrobe";
 
   return (
     <div className="min-h-[100dvh] bg-canvas">
@@ -66,7 +69,7 @@ export default async function CheckoutSuccessPage({ searchParams }: Props) {
             className="group inline-flex items-center gap-2.5 rounded-full bg-ink pl-6 pr-2.5 py-3
                        text-sm font-medium text-white hover:bg-[#2a2622] transition-all duration-300"
           >
-            {side === "brand" ? "Go to dashboard" : "Start fitting"}
+            {continueLabel}
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent aplomb-glow
                              transition-transform duration-300 group-hover:translate-x-0.5">
               <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden>

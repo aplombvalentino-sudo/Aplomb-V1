@@ -74,12 +74,22 @@ function CheckoutRedirect() {
               Something went wrong<span className="not-italic text-accent">.</span>
             </h1>
             <p className="mt-3 text-sm text-ink-muted">{error}</p>
-            <Link
-              href="/pricing"
-              className="mt-7 inline-flex rounded-full bg-ink px-6 py-3 text-sm font-medium text-white hover:bg-[#2a2622] transition-colors"
-            >
-              Back to pricing
-            </Link>
+            <div className="mt-7 flex flex-col items-center gap-3">
+              <Link
+                href="/pricing"
+                className="inline-flex rounded-full bg-ink px-6 py-3 text-sm font-medium text-white hover:bg-[#2a2622] transition-colors"
+              >
+                Back to pricing
+              </Link>
+              {/* Escape hatch — checkout errors shouldn't strand a signed-in
+                  shopper. They can always get back to their wardrobe. */}
+              <Link
+                href="/app/wardrobe"
+                className="text-[12px] text-ink-subtle hover:text-ink transition-colors underline underline-offset-2"
+              >
+                ← Back to my wardrobe
+              </Link>
+            </div>
           </>
         ) : (
           <>
