@@ -1,4 +1,4 @@
-# Product Direction — Aplomb (Streetwear-First Wardrobe)
+# Product Direction — Aplomb (Digital Wardrobe)
 
 *Locked: 2026-06-05. Owner: founder. Read this before touching any shopper-facing copy, navigation, pricing, or feature surface.*
 
@@ -7,45 +7,31 @@
 ## The shift
 
 Aplomb is no longer sold as an "AI fitting room / size-recommendation tool".
-It is also no longer pitched at *generic* fashion shoppers.
 
-**It is now sold as a streetwear-first personal digital wardrobe** that lets
-a shopper add the pieces they already own, mix them with certified streetwear
-items, and test new fits on themselves without getting dressed. Sizing
+**It is now sold as a personal digital wardrobe** that lets a shopper add
+the clothes they already own, mix them with certified brand items, build
+outfits and test new combinations on themselves without changing. Sizing
 remains in the product — but as a **secondary** support layer.
 
-The product centre is rotation building (sneakers, hoodies, jackets, pants,
-cargos, denim, caps, bags). Generic fashion vocabulary ("outfit", "wardrobe",
-"clothing item") is replaced wherever natural with streetwear-native words
-("fit", "rotation", "piece").
+The product is style-flexible and works for many fashion use cases — not
+anchored to a single style culture or subculture. Categories, copy and
+examples should feel natural for someone who dresses minimal, classic,
+romantic, contemporary, smart-casual, or anything in between.
 
 ### The new product hierarchy
 
-1. Build your streetwear wardrobe (your rotation)
-2. Test fits on yourself without changing
-3. Add the pieces you already own
-4. Mix your wardrobe with certified streetwear items
+1. Build your digital wardrobe
+2. Try outfits on yourself without changing
+3. Add the clothes you already own
+4. Mix your wardrobe with certified brand items
 5. Use sizing / fit support only as a secondary layer
 
 ### The new primary message
 
-> Build your digital streetwear wardrobe.
+> Build your digital wardrobe and try new outfits on yourself.
 >
-> Add the pieces you already own, mix them with certified streetwear items,
-> and test new fits on yourself before you get dressed.
-
-### Streetwear vocabulary (use everywhere it fits)
-
-- **fit** / fits — instead of "outfit"
-- **rotation** — instead of "wardrobe" when colloquial works
-- **piece** / pieces — instead of "item" or "clothing item"
-- **sneakers** — instead of "shoes"
-- **hoodie, tee, jacket, cargos, denim, pants, shorts, cap, bag** — never
-  the generic "top/bottom/shoes/accessory" pair in front of users
-- **streetwear** — surfaced when describing certified brand pieces
-
-Sizing copy stays neutral and stays in the **fit insights** section of
-`/app/account`, never on the front-stage nav, never as the entry copy.
+> Add the clothes you already own, mix them with certified brand pieces,
+> and explore new combinations without changing.
 
 ### What we no longer lead with
 
@@ -74,6 +60,9 @@ of these is higher on the list:
 If a sizing-first pattern conflicts with the new direction, choose the new
 direction — don't compromise. Sizing always appears *after* wardrobe value
 has been understood.
+
+Equally: do NOT bias the product toward one style culture (streetwear,
+luxury, athleisure, etc.). The wardrobe layer must remain style-neutral.
 
 ---
 
@@ -142,8 +131,8 @@ outside Stripe (free); one highlighted plan per audience.
 
 ### Hero (`src/components/public/HeroSection.tsx`)
 
-- Eyebrow: "AI Fitting Room" → "Digital Wardrobe"
-- H1: "Build your digital wardrobe and try new *outfits* on yourself."
+- Eyebrow: "Digital Wardrobe"
+- H1: "Build your digital *wardrobe* and try new outfits on yourself."
 - Sub: the prompt's microcopy verbatim.
 - Primary CTA: "Start my wardrobe" → `/signup?audience=client`.
 - Mock asset (right side): wardrobe grid with mixed certified + "Mine" tiles
@@ -152,48 +141,40 @@ outside Stripe (free); one highlighted plan per audience.
 
 ---
 
-## Pending follow-up (NOT YET DONE — track in /COMPLIANCE_DECISIONS)
+## Shipped surfaces (completed work)
 
-The foundation + the wardrobe surface + the capture flow are in. Still pending:
-
-- [x] **Wardrobe page**: `/app/wardrobe` is now a server-rendered grid of
-      `WardrobeItem`s with quota counter, empty state, "Add a piece you own"
-      + "Add a certified brand item" CTAs, and per-card delete.
+- [x] **Wardrobe page**: `/app/wardrobe` is a server-rendered grid of
+      `WardrobeItem`s with quota counter, empty state, "Add a clothing
+      item I already own" + "Add a certified brand item" CTAs, and
+      per-card delete.
 - [x] **Brand discovery moved**: `/app` redirects to `/app/wardrobe`; the
       brand grid moved to `/app/discover`.
 - [x] **Capture flow**: 5-step state machine at `/app/wardrobe/add` (intro
       → front → back → review → confirm details). File picker with
       camera="environment" for mobile, 8 MB cap, MIME allow-list. Posts to
       `/api/wardrobe/items/upload`. Photo guidance copy at each step.
-- [x] **Onboarding redirect**: `buildDestination()` now sends Essential
-      shoppers to `/app/wardrobe` directly (was `/app` → redirect).
+- [x] **Onboarding redirect**: `buildDestination()` sends Essential
+      shoppers to `/app/wardrobe` directly.
 - [x] **Navigation**: top nav across `/app/wardrobe` + `/app/discover` is
-      `Wardrobe | Discover | Profile`. Sizing not in the front-stage nav.
-- [x] **Outfit builder**: `/app/outfits` lists saved looks, `/app/outfits/new`
+      `Wardrobe | Outfits | Discover | Profile`. Sizing not in the
+      front-stage nav.
+- [x] **Outfit builder**: `/app/outfits` lists saved outfits; `/app/outfits/new`
       is a 4-slot manual builder (top / bottom / shoes / accessory) that
       picks from any ready WardrobeItem. Server-stored as
-      `WardrobeOutfit` + `WardrobeOutfitItem` (replaces the prior
-      localStorage saved-outfits — same UX, now cross-device). Ownership
-      gate on POST checks every wardrobeItemId belongs to the user.
-- [x] **Sizing in profile**: `/app/account` now has a "Fit insights
-      (optional)" section between Account stats and Update profile.
-      Pulls the user's latest BodyProfile (if any) + measurements +
-      brand-of-last-scan + a "Run a new scan" button that links to the
-      brand wizard. Empty state when no scan: "No body scan yet —
-      optional, start one through any brand in Discover."
+      `WardrobeOutfit` + `WardrobeOutfitItem`. Ownership gate on POST
+      checks every wardrobeItemId belongs to the user.
+- [x] **Sizing in profile**: `/app/account` has a "Fit insights (optional)"
+      section between Account stats and Update profile. Pulls the user's
+      latest BodyProfile (if any) + measurements + brand-of-last-scan +
+      a "Run a new scan" button that links to the brand wizard. Empty
+      state when no scan: "No body scan yet — optional, start one through
+      any brand in Discover."
 - [x] **`/widget` light wardrobe-aware CTA**: brand embeddable widget keeps
       its sizing-first flow per spec (it's the brand's surface, not the
-      shopper's). Header gains a quiet "Start your own wardrobe →" link
-      that opens /signup at the iframe-top level — a conversion path
-      without polluting the brand's UX.
-- [x] **Internal nav cleanup**: the wizard's own back-link said "← All
-      brands" pointing at the old `/app` brand grid. Now reads
-      "← My wardrobe" pointing at `/app/wardrobe`. "Browse more brands"
-      on the outfits step now routes to `/app/discover` (where the
-      brand grid actually lives).
-
-All checklist items are now done. The repositioning is structurally
-complete; future iteration is product polish on top of this base.
+      shopper's). Header gains a quiet "Start your own wardrobe →" link.
+- [x] **Internal nav cleanup**: wizard back-link reads "← My wardrobe"
+      pointing at `/app/wardrobe`. "Browse more brands" on the outfits
+      step now routes to `/app/discover`.
 
 ---
 
@@ -204,36 +185,44 @@ verbatim where it fits.
 
 | Surface | Copy |
 |---|---|
-| Hero | Build your digital streetwear wardrobe. |
-| Subhero | Add the pieces you already own, mix them with certified streetwear items, and test new fits on yourself before you get dressed. |
-| Primary CTA | Start my rotation. |
-| Secondary CTA | Add a piece I already own. |
-| Wardrobe empty state | Your rotation is empty. Add a hoodie, sneaker, jacket, or any piece you already own to start building fits. |
-| Personal upload CTA | Add a piece I already own. |
-| Upload helper | Photograph a piece you already wear and add it to your digital rotation. |
-| Photo step helper | Front photo first. Lay the piece flat and capture the full shape. |
-| Essential limit message | Your Essential plan includes 10 rotation slots, including up to 3 pieces from your real closet. |
-| Outfit-builder helper | Build a fit from the pieces you already own. |
+| Hero | Build your digital wardrobe and try new outfits on yourself. |
+| Subhero | Add the clothes you already own, mix them with certified brand pieces, and explore new combinations without changing. |
+| Primary CTA | Start my wardrobe. |
+| Secondary CTA | Add a clothing item I already own. |
+| Wardrobe empty state | Your digital wardrobe is empty. Add a piece you own or save a certified item to start building outfits. |
+| Personal upload CTA | Add a clothing item I already own. |
+| Upload helper | Photograph a clothing item you already own to reuse it in future outfits. |
+| Photo step helper | Front photo first. Lay the item flat and capture the full shape. |
+| Essential limit message | Your Essential plan includes 10 wardrobe slots, with up to 3 of your own clothing items. |
+| Outfit-builder helper | Build an outfit from the clothing items you already own. |
 | Sizing copy | Optional fit insights are available in your profile. |
 
-## Streetwear taxonomy
+## Taxonomy
 
-The wardrobe-item `category` field is a free string in the DB. New uploads
-use streetwear-native values; legacy broad values still resolve through the
-outfit-builder slot rules. The CaptureFlow picker offers:
+The wardrobe-item `category` field is a free string in the DB. The
+CaptureFlow picker offers a broad, style-neutral list:
 
-`sneakers · hoodie · tee · jacket · pants · denim · cargos · shorts · cap · bag · accessory · other`
+`top · bottom · dress · outerwear · shoes · bag · accessory · other`
 
-The OutfitBuilder uses 5 slots in streetwear-natural order:
+The OutfitBuilder uses 4 slots in a standard outfit order:
 
-1. **Sneakers** — accepts `sneakers`, legacy `shoes`
-2. **Top** — accepts `tee`, `hoodie`, legacy `top`, `dress`, `other`
-3. **Bottom** — accepts `pants`, `denim`, `cargos`, `shorts`, legacy `bottom`, `dress`, `other`
-4. **Outerwear** — accepts `jacket`, legacy `outerwear`
-5. **Accessory** — accepts `cap`, `bag`, legacy `accessory`, `other`
+1. **Top** — accepts `top`, plus legacy granular values (`tee`, `hoodie`,
+   `dress`, `outerwear`, `jacket`, `other`).
+2. **Bottom** — accepts `bottom`, plus legacy granular values (`pants`,
+   `denim`, `cargos`, `shorts`, `dress`, `other`).
+3. **Shoes** — accepts `shoes`, plus legacy `sneakers`.
+4. **Accessory** — accepts `accessory`, plus legacy `bag`, `cap`, `other`.
 
-Adding a new category is a one-line addition to `CATEGORY_OPTIONS` in
-`CaptureFlow.tsx` + a corresponding slot mapping in `OutfitBuilder.tsx`.
+The legacy values are kept in SLOT_RULES so wardrobe items captured during
+an earlier (more granular) iteration still slot correctly without a data
+migration. Adding a new category is a one-line addition to
+`CATEGORY_OPTIONS` in `CaptureFlow.tsx` + a corresponding slot mapping in
+`OutfitBuilder.tsx`.
+
+The taxonomy intentionally avoids style-segment vocabulary (sneakers,
+hoodies, cargos, etc. as primary categories). The app should feel
+appropriate for many style cultures — minimal, classic, contemporary,
+romantic, smart-casual — not biased toward one.
 
 ---
 

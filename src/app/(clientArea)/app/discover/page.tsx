@@ -64,12 +64,12 @@ export default async function DiscoverPage() {
             Discover
           </p>
           <h1 className="mt-2 font-serif text-[clamp(2rem,4vw,2.6rem)] font-medium leading-[1.05] tracking-[-0.02em] text-ink">
-            Certified <em className="italic">streetwear</em>
+            Certified <em className="italic">brands</em>
             <span className="text-accent">.</span>
           </h1>
           <p className="mt-3 max-w-[50ch] text-[15px] leading-relaxed text-ink-muted">
-            Browse certified streetwear brands and drop new pieces straight into
-            your rotation. Mix them with the pieces you already own.
+            Browse certified brands and drop new pieces straight into your
+            wardrobe. Mix them with the clothes you already own.
           </p>
         </div>
 
@@ -79,9 +79,9 @@ export default async function DiscoverPage() {
             <p className="mt-2 text-sm text-ink-subtle">
               Check back soon — or{" "}
               <Link href="/app/wardrobe/add" className="text-ink underline underline-offset-2">
-                add a piece you already wear
+                add a clothing item you already own
               </Link>{" "}
-              to start your rotation.
+              to start your wardrobe.
             </p>
           </div>
         ) : (

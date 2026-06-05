@@ -13,20 +13,15 @@ type Step = "intro" | "front" | "back" | "review" | "confirm";
 
 // ─── Reference data ──────────────────────────────────────────────────────────
 
-// Streetwear-led category taxonomy. The underlying field is still a free
-// string in the DB (no enum constraint) so legacy values like "top" or
-// "shoes" remain valid — but new uploads use these granular streetwear
-// values. The outfit builder's SLOT_RULES accepts both old and new.
+// Broad fashion-neutral category taxonomy. The underlying field is a free
+// string in the DB (no enum constraint), so legacy or future values are
+// also accepted by the outfit builder's SLOT_RULES.
 const CATEGORY_OPTIONS = [
-  { value: "sneakers", label: "Sneakers" },
-  { value: "hoodie", label: "Hoodie" },
-  { value: "tee", label: "T-Shirt" },
-  { value: "jacket", label: "Jacket" },
-  { value: "pants", label: "Pants" },
-  { value: "denim", label: "Denim" },
-  { value: "cargos", label: "Cargos" },
-  { value: "shorts", label: "Shorts" },
-  { value: "cap", label: "Cap" },
+  { value: "top", label: "Top" },
+  { value: "bottom", label: "Bottom" },
+  { value: "dress", label: "Dress" },
+  { value: "outerwear", label: "Outerwear" },
+  { value: "shoes", label: "Shoes" },
   { value: "bag", label: "Bag" },
   { value: "accessory", label: "Accessory" },
   { value: "other", label: "Other" },
@@ -217,20 +212,20 @@ function IntroStep({
         Step 1 of 5
       </p>
       <h1 className="mt-3 font-serif text-[2.2rem] font-medium leading-[1.05] tracking-[-0.02em] text-ink">
-        Photograph a piece you already wear and add it to your digital <em className="italic">rotation</em><span className="text-accent">.</span>
+        Photograph a clothing item you already own and add it to your digital <em className="italic">wardrobe</em><span className="text-accent">.</span>
       </h1>
       <p className="mt-3 text-[14px] text-ink-muted leading-[1.6]">
-        Two photos — front and back. Hoodie, sneaker, jacket, whatever. About a minute.
+        Two photos — front and back. Any clothing item, any style. About a minute.
         {remaining !== Infinity && (
           <span className="block mt-1 text-[12px] text-ink-subtle">
-            {remaining} piece {remaining === 1 ? "slot" : "slots"} from your closet remaining on your plan.
+            {remaining} personal {remaining === 1 ? "photo slot" : "photo slots"} remaining on your plan.
           </span>
         )}
       </p>
 
       <ul className="mt-7 space-y-2.5 text-[13px] text-ink">
-        <Bullet>Lay the piece flat on a plain floor or surface — no hanger, no hands</Bullet>
-        <Bullet>Make the full piece visible — top to bottom, sleeves, straps and laces out</Bullet>
+        <Bullet>Lay the item flat on a plain floor or surface — no hanger, no hands</Bullet>
+        <Bullet>Make the whole item visible — top to bottom, sleeves and straps out</Bullet>
         <Bullet>One front photo, then flip it for the back</Bullet>
         <Bullet>Skip folded fabric, dark shadows, and overlap with other clothes</Bullet>
         <Bullet>Even daylight works best</Bullet>
@@ -265,7 +260,7 @@ function CaptureStep({
     kind === "front" ? "Front photo first." : "Now the back.";
   const helper =
     kind === "front"
-      ? "Lay the piece flat and capture the full shape."
+      ? "Lay the item flat and capture the full shape."
       : "Flip it over and capture the back, same way.";
 
   return (
@@ -285,7 +280,7 @@ function CaptureStep({
 
       {/* Short reminders */}
       <ul className="mt-5 space-y-1.5 text-[12px] text-ink-subtle">
-        <li>· Piece alone, plain background</li>
+        <li>· Item alone, plain background</li>
         <li>· No hangers, no hands, not worn</li>
         <li>· Capture the whole silhouette</li>
       </ul>

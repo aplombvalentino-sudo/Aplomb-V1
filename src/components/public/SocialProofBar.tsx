@@ -1,18 +1,19 @@
 "use client";
 
-// Placeholder brand names — picked to feel street/contemporary rather than
-// luxury-editorial. Swap once real partner brands sign on.
+// Placeholder brand names — picked to feel broadly contemporary fashion
+// (workshop, atelier, label, house) without anchoring to one style culture.
+// Swap once real partner brands sign on.
 const brands = [
+  "Atelier Verdú",
+  "Maison Lévigne",
   "Studio 78",
   "Northbound",
-  "Vault Atelier",
-  "Hard Cargo",
-  "Cipher Lab",
-  "Block & Stitch",
   "Form / Function",
-  "Nightshift",
-  "Pavement Goods",
-  "Off-Hours",
+  "Coralie & Co.",
+  "Edition Neuf",
+  "House of Ardent",
+  "Linen & Lace",
+  "Roussel Paris",
 ];
 
 export function SocialProofBar() {

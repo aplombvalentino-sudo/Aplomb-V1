@@ -9,9 +9,9 @@ import { Logo } from "@/components/brand/Logo";
 export const metadata: Metadata = { title: "Wardrobe plans — Aplomb" };
 
 /**
- * In-app pricing for signed-in shoppers. Reframed wardrobe-first to match
+ * In-app pricing for signed-in shoppers. Wardrobe-first framing to match
  * the public /pricing positioning: plans differ by wardrobe size + personal-
- * photo allowance + outfit experimentation depth. Sizing limits stay but
+ * item allowance + outfit experimentation depth. Sizing limits stay but
  * appear as a quieter trailing line.
  */
 export default async function ClientPricingPage() {
@@ -44,21 +44,21 @@ export default async function ClientPricingPage() {
           <span className="inline-flex items-center rounded-full border border-hairline-strong
                            bg-surface-raised px-3 py-1 text-[10px] font-medium uppercase
                            tracking-[0.18em] text-ink-muted">
-            Rotation plans
+            Wardrobe plans
           </span>
           <h1 className="mt-5 font-serif text-[clamp(1.9rem,4vw,2.8rem)] font-semibold
                          leading-[1.08] tracking-[-0.03em] text-ink">
-            More <em className="italic">rotation</em>, more fits
+            A bigger <em className="italic">wardrobe</em>, more outfits
             <span className="text-accent">.</span>
           </h1>
           <p className="mt-4 text-[15px] leading-relaxed text-ink-muted max-w-[50ch] mx-auto">
-            Start free with 10 rotation slots and 3 pieces from your real
-            closet. Upgrade when you want a bigger rotation, more personal
-            uploads, or full fit experimentation.
+            Start free with 10 wardrobe slots and 3 of your own clothing
+            items. Upgrade when you want a bigger wardrobe, more personal
+            uploads, or full outfit experimentation.
           </p>
         </div>
 
-        {/* Current plan summary — reframed around rotation capacity */}
+        {/* Current plan summary — wardrobe capacity at a glance */}
         <div className="mb-8 flex items-center justify-center gap-3 flex-wrap">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-surface
                            border border-hairline px-4 py-2 text-[13px]
@@ -68,14 +68,14 @@ export default async function ClientPricingPage() {
             <span className="text-ink-subtle">·</span>
             <span className="text-ink-subtle nums">
               {limits.maxWardrobeItems === Infinity
-                ? "Unlimited pieces"
-                : `${limits.maxWardrobeItems} pieces`}
+                ? "Unlimited items"
+                : `${limits.maxWardrobeItems} items`}
             </span>
             <span className="text-ink-subtle">·</span>
             <span className="text-ink-subtle nums">
               {limits.maxPersonalPhotos === Infinity
-                ? "∞ from your closet"
-                : `${limits.maxPersonalPhotos} from your closet`}
+                ? "∞ personal photos"
+                : `${limits.maxPersonalPhotos} personal photos`}
             </span>
           </span>
         </div>
@@ -86,7 +86,7 @@ export default async function ClientPricingPage() {
           Plan selection is instant — no payment required for Essential.{" "}
           <Link href="/app/wardrobe" className="text-ink-muted hover:text-ink underline
                                        underline-offset-2 transition-colors">
-            Back to my rotation
+            Back to my wardrobe
           </Link>
         </p>
       </main>

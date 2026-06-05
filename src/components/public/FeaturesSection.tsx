@@ -4,14 +4,14 @@ import { motion } from "motion/react";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
-// Six features framed for streetwear shoppers building rotations. The
-// dark "focal" card leads with the rotation-size promise; the rest map to
-// the wardrobe → outfit → fit-insight flow.
+// Six wardrobe-first features for shoppers. The dark "focal" card leads
+// with the digital-wardrobe promise; the rest map to the wardrobe → outfit
+// → fit-insight flow.
 const features = [
   {
-    id: "rotation",
-    heading: "Your whole rotation, in one place",
-    body: "Snap the hoodies, sneakers, jackets and pants you already own. Add certified streetwear pieces alongside them. Everything you wear, in one digital closet.",
+    id: "wardrobe",
+    heading: "Your whole wardrobe, in one place",
+    body: "Photograph the clothes you already own and save them as a digital wardrobe. Add certified brand pieces alongside them. Everything you wear, in one closet.",
     span: "col-span-1 md:col-span-7 row-span-1",
     dark: true, // ← inverted focal card
     icon: (
@@ -22,9 +22,9 @@ const features = [
     ),
   },
   {
-    id: "fits",
-    heading: "Test fits before you change",
-    body: "Mix sneakers, layers, pants and outerwear in the builder. See the whole look come together before you reach for it.",
+    id: "outfits",
+    heading: "Try outfits on yourself without changing",
+    body: "Combine tops, bottoms, shoes and layers in the outfit builder. See the whole look come together before you reach for anything in your closet.",
     span: "col-span-1 md:col-span-5 row-span-1",
     dark: false,
     icon: (
@@ -35,8 +35,8 @@ const features = [
   },
   {
     id: "capture",
-    heading: "Snap any piece, front and back",
-    body: "Two photos per item. Lay it flat, capture both sides, add a category and color. The piece is in your rotation in under a minute.",
+    heading: "Snap any clothing item, front and back",
+    body: "Two photos per item. Lay it flat, capture both sides, add a category and color. The piece is in your digital wardrobe in under a minute.",
     span: "col-span-1 md:col-span-4 row-span-1",
     dark: false,
     icon: (
@@ -49,8 +49,8 @@ const features = [
   },
   {
     id: "certified",
-    heading: "Mix your closet with certified streetwear",
-    body: "Browse certified streetwear brands and drop new pieces straight into your rotation. Your stuff, their stuff, one fit.",
+    heading: "Mix your closet with certified brand pieces",
+    body: "Browse certified brands and drop new pieces straight into your wardrobe. Your own clothes, brand items, one outfit.",
     span: "col-span-1 md:col-span-4 row-span-1",
     dark: false,
     icon: (
@@ -63,7 +63,7 @@ const features = [
   {
     id: "sync",
     heading: "Cross-device, never lost",
-    body: "Your rotation lives on your account, not on one phone. Sign in anywhere and find every piece, every fit, exactly where you left it.",
+    body: "Your wardrobe lives on your account, not on one phone. Sign in anywhere and find every piece, every outfit, exactly where you left it.",
     span: "col-span-1 md:col-span-4 row-span-1",
     dark: false,
     icon: (
@@ -118,10 +118,10 @@ export function FeaturesSection() {
           </span>
           <h2 className="mt-5 font-serif text-[clamp(2rem,3.5vw,2.8rem)] font-medium leading-[1.1]
                          tracking-[-0.02em] text-ink [text-wrap:balance]">
-            Everything you need to <em className="italic">build a fit</em>
+            Everything you need to <em className="italic">build an outfit</em>
           </h2>
           <p className="mt-4 text-[17px] leading-[1.65] text-ink-muted">
-            One closet. Your pieces, certified pieces, every fit you can build with them.
+            One digital closet. Your own clothes, certified brand pieces, every outfit you can build with them.
           </p>
         </motion.div>
 

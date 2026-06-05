@@ -156,7 +156,7 @@ export function SignupForm({
             ? "Quick setup — you'll be redirected to checkout next."
             : isBrand
             ? "Start your Aplomb merchant account in under a minute."
-            : "Build your digital streetwear rotation and test fits on yourself."}
+            : "Build your digital wardrobe and try outfits on yourself."}
         </p>
       </motion.div>
 

@@ -53,7 +53,7 @@ export default async function OutfitsPage() {
               My
             </p>
             <h1 className="mt-2 font-serif text-[clamp(2rem,4vw,2.6rem)] font-medium leading-[1.05] tracking-[-0.02em] text-ink">
-              <em className="italic">Fits</em>
+              <em className="italic">Outfits</em>
               <span className="text-accent">.</span>
             </h1>
           </div>
@@ -64,7 +64,7 @@ export default async function OutfitsPage() {
               className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5
                          text-[13px] font-medium text-white hover:bg-[#2a2622] transition-colors"
             >
-              Build a new fit
+              Build a new outfit
             </Link>
           )}
         </div>

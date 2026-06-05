@@ -61,12 +61,12 @@ export function WardrobeGrid({
         <AddCertifiedButton disabled={itemsFull} />
         {personalFull && !itemsFull && (
           <p className="text-[12px] text-ink-subtle">
-            Cap on personal pieces reached — upgrade to add more.
+            Personal-item cap reached — upgrade to add more.
           </p>
         )}
         {itemsFull && (
           <p className="text-[12px] text-[#C9653B]">
-            Rotation full ({quota.maxItems} pieces) — remove one or
+            Wardrobe full ({quota.maxItems} items) — remove one or
             <Link href="/pricing" className="underline underline-offset-2 ml-1">upgrade</Link>.
           </p>
         )}
@@ -82,8 +82,8 @@ export function WardrobeGrid({
       {/* Footer hint — only for Essential users who haven't hit the cap yet */}
       {plan === "essential" && !itemsFull && (
         <p className="text-center text-[12px] text-ink-subtle">
-          Your Essential plan includes 10 rotation slots, including up to 3
-          pieces from your real closet.
+          Your Essential plan includes 10 wardrobe slots, with up to 3 of
+          your own clothing items.
         </p>
       )}
     </div>
@@ -101,11 +101,10 @@ function EmptyState() {
       className="rounded-2xl border border-hairline bg-surface px-6 py-16 text-center"
     >
       <p className="font-serif text-[1.5rem] font-medium text-ink leading-snug">
-        Your rotation is empty.
+        Your digital wardrobe is empty.
       </p>
       <p className="mt-3 max-w-[44ch] mx-auto text-[14px] text-ink-muted leading-relaxed">
-        Add a hoodie, sneaker, jacket, or any piece you already own to start
-        building fits.
+        Add a piece you own or save a certified item to start building outfits.
       </p>
 
       <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
@@ -129,7 +128,7 @@ function AddPersonalButton({ disabled }: { disabled?: boolean }) {
           : "inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-[13px] font-medium text-white hover:bg-[#2a2622] transition-colors"
       }
     >
-      Add a piece I already own
+      Add a clothing item I already own
     </Link>
   );
 }
@@ -150,7 +149,7 @@ function AddCertifiedButton({
             : "inline-flex items-center gap-2 rounded-full border border-hairline-strong bg-surface px-5 py-2.5 text-[13px] font-medium text-ink hover:bg-surface-raised transition-colors"
       }
     >
-      Add a certified streetwear piece
+      Add a certified brand item
     </Link>
   );
 }

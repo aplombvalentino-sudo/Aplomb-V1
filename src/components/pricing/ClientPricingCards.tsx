@@ -34,9 +34,9 @@ type ClientTier = {
   dark?: boolean;
 };
 
-// In-app upgrade cards. Mirror the public /pricing framing: rotation slots
-// + pieces from your closet + fit-building depth. Sizing limits are absent
-// from the headline list (they live in /app/account → Fit insights).
+// In-app upgrade cards. Mirror the public /pricing framing: wardrobe slots
+// + personal clothing items + outfit-building depth. Sizing limits are
+// absent from the headline list (they live in /app/account → Fit insights).
 const TIERS: ClientTier[] = [
   {
     id: "essential",
@@ -45,28 +45,28 @@ const TIERS: ClientTier[] = [
     originalPrice: "9.99",
     priceBadge: "FREE",
     period: "/month",
-    tagline: "Free while we launch — save your core rotation.",
+    tagline: "Free during launch — start your digital wardrobe.",
     features: [
-      "10 rotation slots",
-      "Up to 3 pieces from your real closet",
-      "Mix your own with certified streetwear",
-      "Build and test essential fits",
+      "10 wardrobe slots",
+      "Up to 3 of your own clothing items",
+      "Mix your clothes with certified brand pieces",
+      "Build and test essential outfits",
       "Optional fit insights",
       "No payment required",
     ],
-    cta: "Start my rotation — free",
+    cta: "Start my wardrobe — free",
   },
   {
     id: "fashion",
     name: "Fashion",
     price: "25.99",
     period: "/month",
-    tagline: "Bigger rotation, full fit-building toolkit.",
+    tagline: "A bigger wardrobe and the full outfit toolkit.",
     features: [
-      "40 rotation slots",
-      "Up to 15 pieces from your closet",
-      "Layer outerwear, sneakers, caps and bags",
-      "Cross-brand mixing for every fit",
+      "40 wardrobe slots",
+      "Up to 15 of your own clothing items",
+      "Layer outerwear, shoes, bags and accessories",
+      "Cross-brand mixing for every outfit",
       "Custom occasions & moods",
     ],
     cta: "Choose Fashion",
@@ -76,12 +76,12 @@ const TIERS: ClientTier[] = [
     name: "Model",
     price: "29.99",
     period: "/month",
-    tagline: "Unlimited rotation. The full styling rig.",
+    tagline: "Unlimited wardrobe. The full styling toolkit.",
     features: [
-      "Unlimited rotation slots",
-      "Unlimited pieces from your closet",
+      "Unlimited wardrobe slots",
+      "Unlimited personal clothing items",
       "Full outfit experimentation",
-      "Mobile rotation sync",
+      "Mobile wardrobe sync",
       "Custom colour picker",
       "Priority fit recommendations",
     ],

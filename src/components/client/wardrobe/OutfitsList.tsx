@@ -57,12 +57,12 @@ function EmptyState({ wardrobeItemCount }: { wardrobeItemCount: number }) {
       className="rounded-2xl border border-hairline bg-surface px-6 py-16 text-center"
     >
       <p className="font-serif text-[1.5rem] font-medium text-ink leading-snug">
-        {hasItems ? "No fits yet." : "Your rotation is waiting."}
+        {hasItems ? "No outfits yet." : "Your wardrobe is waiting."}
       </p>
       <p className="mt-3 max-w-[46ch] mx-auto text-[14px] text-ink-muted leading-relaxed">
         {hasItems
-          ? "Pick sneakers, a top, pants and any layer you want — name the fit and save it for later."
-          : "Add a few pieces to your rotation first — sneakers, hoodie, jacket — then start building fits."}
+          ? "Pick a top, a bottom, shoes and any layer you want — name the outfit and save it for later."
+          : "Add a few clothing items to your wardrobe first, then start building outfits."}
       </p>
 
       <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
@@ -72,7 +72,7 @@ function EmptyState({ wardrobeItemCount }: { wardrobeItemCount: number }) {
             className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5
                        text-[13px] font-medium text-white hover:bg-[#2a2622] transition-colors"
           >
-            Build my first fit
+            Build my first outfit
           </Link>
         ) : (
           <Link
@@ -80,7 +80,7 @@ function EmptyState({ wardrobeItemCount }: { wardrobeItemCount: number }) {
             className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5
                        text-[13px] font-medium text-white hover:bg-[#2a2622] transition-colors"
           >
-            Go to my rotation
+            Go to my wardrobe
           </Link>
         )}
       </div>
@@ -137,7 +137,7 @@ function OutfitCard({ outfit }: { outfit: OutfitListItem }) {
       <div className="px-4 py-3">
         <p className="text-[14px] font-medium text-ink truncate">{outfit.title}</p>
         <p className="mt-0.5 text-[11px] text-ink-subtle truncate">
-          {outfit.occasion ?? `${outfit.items.length} piece${outfit.items.length === 1 ? "" : "s"}`}
+          {outfit.occasion ?? `${outfit.items.length} item${outfit.items.length === 1 ? "" : "s"}`}
         </p>
       </div>
     </li>

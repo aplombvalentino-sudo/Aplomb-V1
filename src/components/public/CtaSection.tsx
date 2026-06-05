@@ -19,7 +19,7 @@ export function CtaSection() {
             className="inline-flex items-center rounded-full border border-hairline-strong
                        px-3 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-ink-subtle"
           >
-            Start your rotation
+            Start your wardrobe
           </motion.span>
 
           {/* Heading */}
@@ -31,7 +31,7 @@ export function CtaSection() {
             className="mt-5 font-serif text-[clamp(2rem,3.8vw,3.2rem)] font-medium leading-[1.08]
                        tracking-[-0.02em] text-ink"
           >
-            Put your sneakers, hoodies and <em className="italic">fits</em> in one closet
+            Put your whole closet and your favourite <em className="italic">outfits</em> in one place
             <span className="text-accent">.</span>
           </motion.h2>
 
@@ -43,8 +43,8 @@ export function CtaSection() {
             transition={{ duration: 0.65, delay: 0.15, ease }}
             className="mt-5 text-[17px] leading-[1.6] text-ink-muted"
           >
-            Free to start. Add 10 pieces, build your first fit, see your outfit
-            before you change.
+            Free to start. Add 10 clothing items, build your first outfit, see
+            the whole look before you change.
           </motion.p>
 
           {/* CTAs */}
@@ -64,7 +64,7 @@ export function CtaSection() {
                            transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
                            hover:bg-[#2a2622]"
               >
-                Start my rotation
+                Start my wardrobe
                 <span className="flex h-7 w-7 items-center justify-center rounded-full
                                  bg-accent aplomb-glow transition-all duration-500
                                  ease-[cubic-bezier(0.32,0.72,0,1)]
@@ -98,8 +98,8 @@ export function CtaSection() {
           aria-hidden="true"
         >
           {[
-            { stat: "10", label: "pieces free" },
-            { stat: "5", label: "fit slots" },
+            { stat: "10", label: "items free" },
+            { stat: "∞", label: "outfit combos" },
             { stat: "0", label: "fitting rooms" },
           ].map((s) => (
             <div key={s.stat} className="text-right">
