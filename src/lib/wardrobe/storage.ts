@@ -60,6 +60,51 @@ export async function getSignedWardrobeUrl(
 }
 
 /**
+ * Batch-sign many wardrobe photo paths in a single Supabase round-trip.
+ *
+ * Why this exists: rendering the wardrobe grid used to hammer Supabase with
+ * one `createSignedUrl` per user_photo card (N+1). Supabase exposes a
+ * `createSignedUrls` plural endpoint that signs an array of paths server-side
+ * in one call — collapsing N round-trips into 1.
+ *
+ * Returns a Map<path, signedUrl> so callers can match URLs back to rows.
+ * Paths that fail to sign are silently omitted from the map (callers should
+ * treat a missing key as "no thumbnail available"). Empty input → empty map.
+ *
+ * Caveat: Supabase caps `createSignedUrls` at ~100 paths per call. If we
+ * ever ship Unlimited (Model) wardrobes that exceed this in one view, chunk
+ * here. For now the 40-slot Fashion cap keeps every page well under.
+ */
+export async function getSignedWardrobeUrls(
+  paths: string[],
+  ttlSeconds: number = DEFAULT_SIGNED_URL_TTL_SECONDS,
+): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  if (paths.length === 0) return out;
+
+  // De-dupe so the same path (e.g. the same item referenced from two outfits)
+  // never gets signed twice in one request.
+  const unique = Array.from(new Set(paths));
+
+  const svc = getSupabaseServiceClient();
+  const { data, error } = await svc.storage
+    .from(WARDROBE_BUCKET)
+    .createSignedUrls(unique, ttlSeconds);
+
+  if (error || !data) {
+    // Don't blow up the whole page render if a single signing call fails —
+    // log + return empty so consumers fall back to placeholders.
+    console.warn("[wardrobe.storage] batch sign failed:", error?.message);
+    return out;
+  }
+
+  for (const row of data) {
+    if (row.signedUrl && row.path) out.set(row.path, row.signedUrl);
+  }
+  return out;
+}
+
+/**
  * Delete a wardrobe photo. Called when a user removes an item from their
  * wardrobe (or when their account is erased — see lib/userErasure.ts).
  */

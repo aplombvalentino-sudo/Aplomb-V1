@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { Input } from "@/components/ui/Input";
@@ -21,7 +21,9 @@ export type BuilderItem = {
   nickname: string | null;
   processingStatus: string;
   usableInOutfit: boolean;
-  thumbPath: string | null;
+  /** Pre-resolved thumbnail URL from listWardrobeItems — signed for
+   *  user_photo, public product URL for certified. Never a raw bucket path. */
+  thumbUrl: string | null;
   createdAt: string;
 };
 
@@ -308,7 +310,7 @@ function SlotRow({
 // ─── Picked-thumb (the selected item on the slot row) ────────────────────────
 
 function SlotPickedThumb({ item }: { item: BuilderItem }) {
-  const url = useThumbUrl(item);
+  const url = item.thumbUrl;
   return (
     <div className="relative h-12 w-12 rounded-lg overflow-hidden ring-1 ring-black/[0.06] bg-[#F6F3EE]">
       {url && (
@@ -333,7 +335,7 @@ function PickableItem({
   item: BuilderItem;
   onPick: () => void;
 }) {
-  const url = useThumbUrl(item);
+  const url = item.thumbUrl;
   return (
     <button
       type="button"
@@ -378,36 +380,7 @@ function PickableItem({
   );
 }
 
-// ─── Shared thumb-URL hook ───────────────────────────────────────────────────
-
-/**
- * Resolves the right URL for an item's thumbnail. Certified items can use
- * their thumbPath directly (public product image). User_photo items need
- * a signed URL via /api/wardrobe/items/thumb because their paths are
- * inside a private bucket.
- */
-function useThumbUrl(item: BuilderItem): string | null {
-  const [url, setUrl] = useState<string | null>(
-    item.sourceType === "certified" ? item.thumbPath : null,
-  );
-  useEffect(() => {
-    if (item.sourceType === "certified") {
-      setUrl(item.thumbPath);
-      return;
-    }
-    let cancelled = false;
-    fetch(`/api/wardrobe/items/thumb?id=${encodeURIComponent(item.id)}`)
-      .then((r) => r.json())
-      .then((j) => {
-        if (!cancelled && j.success) setUrl(j.data.url);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [item.id, item.sourceType, item.thumbPath]);
-  return url;
-}
+// ─── Helpers ────────────────────────────────────────────────────────────────
 
 function titleCase(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();

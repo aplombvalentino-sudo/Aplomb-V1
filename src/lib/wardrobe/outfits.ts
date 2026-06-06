@@ -1,6 +1,7 @@
 import "server-only";
 
 import { db } from "@/lib/db";
+import { getSignedWardrobeUrls } from "@/lib/wardrobe/storage";
 
 /**
  * Wardrobe-driven outfit storage. Each outfit belongs to the user, references
@@ -24,7 +25,8 @@ export type WardrobeOutfitListEntry = {
     nickname: string | null;
     brand: string | null;
     sourceType: "certified" | "user_photo";
-    thumbPath: string | null;
+    /** Pre-signed URL (user_photo) or public product CDN URL (certified). */
+    thumbUrl: string | null;
   }>;
 };
 
@@ -55,25 +57,45 @@ export async function listWardrobeOutfits(
     },
   });
 
+  // Batch-sign every user_photo path referenced anywhere in the outfit list,
+  // so /app/outfits doesn't fire one Supabase round-trip per outfit-item
+  // thumbnail. Paths are de-duped inside getSignedWardrobeUrls.
+  const pathsToSign: string[] = [];
+  for (const o of rows) {
+    for (const oi of o.items) {
+      if (oi.wardrobeItem.sourceType !== "user_photo") continue;
+      const p =
+        oi.wardrobeItem.processedAssetPath ?? oi.wardrobeItem.frontImagePath;
+      if (p) pathsToSign.push(p);
+    }
+  }
+  const signed = await getSignedWardrobeUrls(pathsToSign);
+
   return rows.map((o) => ({
     id: o.id,
     title: o.title,
     occasion: o.occasion,
     createdAt: o.createdAt,
-    items: o.items.map((oi) => ({
-      id: oi.id,
-      position: oi.position,
-      wardrobeItemId: oi.wardrobeItemId,
-      category: oi.wardrobeItem.category,
-      nickname: oi.wardrobeItem.nickname,
-      brand: oi.wardrobeItem.brand,
-      sourceType: oi.wardrobeItem.sourceType,
-      thumbPath:
-        oi.wardrobeItem.processedAssetPath ??
-        oi.wardrobeItem.frontImagePath ??
-        oi.wardrobeItem.product?.imageUrl ??
-        null,
-    })),
+    items: o.items.map((oi) => {
+      const wi = oi.wardrobeItem;
+      let thumbUrl: string | null = null;
+      if (wi.sourceType === "user_photo") {
+        const path = wi.processedAssetPath ?? wi.frontImagePath ?? null;
+        thumbUrl = path ? signed.get(path) ?? null : null;
+      } else {
+        thumbUrl = wi.product?.imageUrl ?? null;
+      }
+      return {
+        id: oi.id,
+        position: oi.position,
+        wardrobeItemId: oi.wardrobeItemId,
+        category: wi.category,
+        nickname: wi.nickname,
+        brand: wi.brand,
+        sourceType: wi.sourceType,
+        thumbUrl,
+      };
+    }),
   }));
 }
 

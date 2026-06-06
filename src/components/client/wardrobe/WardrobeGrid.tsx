@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { Button } from "@/components/ui/Button";
@@ -23,7 +23,10 @@ export type WardrobeGridItem = {
   processingStatus:
     | "pending_upload" | "processing" | "needs_review" | "ready" | "failed";
   usableInOutfit: boolean;
-  thumbPath: string | null; // server-provided hint (may be product URL or null)
+  /** Ready-to-render URL: signed Supabase URL for user_photo, public
+   *  product CDN URL for certified. Server already resolved this — clients
+   *  must not refetch unless explicitly refreshing after a mutation. */
+  thumbUrl: string | null;
   createdAt: string;
 };
 
@@ -160,29 +163,12 @@ function WardrobeCard({ item }: { item: WardrobeGridItem }) {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [deleting, setDeleting] = useState(false);
-  const [thumbUrl, setThumbUrl] = useState<string | null>(null);
 
-  // Fetch a signed URL for the thumbnail when the item is user_photo (we
-  // never have a public URL for those). Certified items: server-provided
-  // product image URL — used as-is via thumbPath.
-  useEffect(() => {
-    let cancelled = false;
-    if (item.sourceType === "certified" && item.thumbPath) {
-      setThumbUrl(item.thumbPath); // already a public URL
-      return;
-    }
-    if (item.sourceType === "user_photo" && item.usableInOutfit) {
-      fetch(`/api/wardrobe/items/thumb?id=${encodeURIComponent(item.id)}`)
-        .then((r) => r.json())
-        .then((j) => {
-          if (!cancelled && j.success) setThumbUrl(j.data.url);
-        })
-        .catch(() => {});
-    }
-    return () => {
-      cancelled = true;
-    };
-  }, [item.id, item.sourceType, item.thumbPath, item.usableInOutfit]);
+  // The thumbnail URL is resolved server-side in listWardrobeItems — either
+  // a freshly signed Supabase URL (user_photo) or a public product CDN URL
+  // (certified). No per-card fetch: that pattern was an N+1 against both
+  // our API and Supabase storage.
+  const thumbUrl = item.thumbUrl;
 
   async function handleDelete() {
     if (!confirm(`Remove "${item.nickname || item.category}" from your wardrobe?`)) return;

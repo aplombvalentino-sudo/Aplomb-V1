@@ -10,13 +10,17 @@ import { getSignedWardrobeUrl } from "@/lib/wardrobe/storage";
 /**
  * GET /api/wardrobe/items/thumb?id=<cuid>
  *
- * Returns a short-lived signed URL for a wardrobe item's display image
- * (processed > front > certified product image). Used by the wardrobe grid
- * to show user-photo thumbnails without exposing raw paths to the client.
+ * Returns a short-lived signed URL for a single wardrobe item's display
+ * image (processed > front > certified product image).
  *
- * Why this exists: certified items can just use their product.imageUrl
- * (public CDN). User-photo items live in a PRIVATE bucket — the client
- * never sees the path, only a signed URL it requests fresh every page load.
+ * This endpoint is now an on-demand refresh affordance, NOT the default
+ * render path. listWardrobeItems / listWardrobeOutfits pre-resolve every
+ * thumbnail URL server-side and bake it into the page payload — clients
+ * read `item.thumbUrl` directly without a fetch.
+ *
+ * Use this endpoint when a single item URL has gone stale (e.g. after a
+ * 30-minute signed-URL TTL expires while the user kept the tab open).
+ * Routine grid rendering should never hit this route.
  */
 
 const querySchema = z.object({ id: zCuid }).strict();

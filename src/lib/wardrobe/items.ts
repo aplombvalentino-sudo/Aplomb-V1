@@ -10,6 +10,7 @@ import "server-only";
 
 import { db } from "@/lib/db";
 import { getClientPlanLimits, type ClientPlan } from "@/lib/planLimits";
+import { getSignedWardrobeUrls } from "@/lib/wardrobe/storage";
 
 // ─── Quota types ─────────────────────────────────────────────────────────────
 
@@ -81,8 +82,15 @@ export async function canAddWardrobeItem(
 // ─── List for UI ─────────────────────────────────────────────────────────────
 
 /**
- * The fields needed by the wardrobe grid + outfit-picker. Excludes raw image
- * paths — those are turned into signed URLs at read time (see /api/wardrobe/items).
+ * The fields needed by the wardrobe grid + outfit-picker. Note the field
+ * name: `thumbUrl`, not `thumbPath`. Raw Supabase bucket paths never cross
+ * the server→client boundary; user_photo items get their signed URL
+ * resolved here, and certified items get their public product CDN URL.
+ *
+ * Clients that previously had to fire one `GET /api/wardrobe/items/thumb`
+ * per card (N+1) can now render straight from this field. The thumb
+ * endpoint stays as a refresh affordance but the default render path
+ * doesn't touch it.
  */
 export type WardrobeItemListEntry = {
   id: string;
@@ -95,7 +103,8 @@ export type WardrobeItemListEntry = {
   processingStatus:
     | "pending_upload" | "processing" | "needs_review" | "ready" | "failed";
   usableInOutfit: boolean;
-  thumbPath: string | null;
+  /** Pre-signed URL (user_photo) or public product CDN URL (certified). */
+  thumbUrl: string | null;
   createdAt: Date;
 };
 
@@ -121,21 +130,44 @@ export async function listWardrobeItems(
     },
   });
 
-  return rows.map((r) => ({
-    id: r.id,
-    sourceType: r.sourceType,
-    category: r.category,
-    subcategory: r.subcategory,
-    color: r.color,
-    brand: r.brand,
-    nickname: r.nickname,
-    processingStatus: r.processingStatus,
-    usableInOutfit: r.processingStatus === "ready",
-    // Pick the best available thumbnail path:
+  // Collect every user_photo bucket path that needs a signed URL, then
+  // batch-sign them all in ONE Supabase round-trip. Previously each
+  // WardrobeCard fired its own /api/wardrobe/items/thumb fetch — N+1 from
+  // the client AND N+1 from us calling Supabase, which is the actual
+  // rate-limit risk. One bulk call replaces both.
+  const pathsToSign: string[] = [];
+  for (const r of rows) {
+    if (r.sourceType !== "user_photo") continue;
+    const p = r.processedAssetPath ?? r.frontImagePath;
+    if (p) pathsToSign.push(p);
+  }
+  const signed = await getSignedWardrobeUrls(pathsToSign);
+
+  return rows.map((r) => {
+    // Pick the best available thumbnail source:
     //   1. processed asset (background-removed, prettiest)
-    //   2. raw front photo (user_photo fallback)
+    //   2. raw front photo (user_photo fallback while processing finishes)
     //   3. product image URL (certified items linked to brand catalog)
-    thumbPath: r.processedAssetPath ?? r.frontImagePath ?? r.product?.imageUrl ?? null,
-    createdAt: r.createdAt,
-  }));
+    let thumbUrl: string | null = null;
+    if (r.sourceType === "user_photo") {
+      const path = r.processedAssetPath ?? r.frontImagePath ?? null;
+      thumbUrl = path ? signed.get(path) ?? null : null;
+    } else {
+      thumbUrl = r.product?.imageUrl ?? null;
+    }
+
+    return {
+      id: r.id,
+      sourceType: r.sourceType,
+      category: r.category,
+      subcategory: r.subcategory,
+      color: r.color,
+      brand: r.brand,
+      nickname: r.nickname,
+      processingStatus: r.processingStatus,
+      usableInOutfit: r.processingStatus === "ready",
+      thumbUrl,
+      createdAt: r.createdAt,
+    };
+  });
 }

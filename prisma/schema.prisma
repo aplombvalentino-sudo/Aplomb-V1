@@ -474,3 +474,31 @@ model WardrobeOutfitItem {
   @@index([wardrobeItemId])
   @@map("wardrobe_outfit_items")
 }
+
+// ─── Enterprise sales enquiries ──────────────────────────────────────────────
+// Captured from the "Contact team" CTA on the Premier (Enterprise) brand plan
+// card. Persisted so ops can follow up without depending on email plumbing
+// (no email infra wired up yet at the time this was added). Plain table, no
+// PII beyond what the lead voluntarily submitted; service-role-only access.
+//
+// userId is OPTIONAL because the enquiry CTA appears in the pro-workspace
+// pricing page (signed-in brand operator) — anonymous enquiries from the
+// public /pricing page would land here too if that surface is added later.
+
+model EnterpriseEnquiry {
+  id        String   @id @default(cuid())
+  /// Set when an authenticated brand operator submitted the form.
+  userId    String?  @map("user_id")
+  name      String
+  email     String
+  company   String
+  message   String   @db.Text
+  /// Captured at submit time for spam triage. Not displayed.
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@index([email])
+  @@map("enterprise_enquiries")
+}

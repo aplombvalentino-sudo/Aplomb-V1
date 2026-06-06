@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 
@@ -21,7 +21,9 @@ export type OutfitListItem = {
     nickname: string | null;
     brand: string | null;
     sourceType: "certified" | "user_photo";
-    thumbPath: string | null;
+    /** Pre-resolved server-side: signed Supabase URL for user_photo,
+     *  public product CDN URL for certified. */
+    thumbUrl: string | null;
   }>;
 };
 
@@ -144,28 +146,10 @@ function OutfitCard({ outfit }: { outfit: OutfitListItem }) {
   );
 }
 
-/** A small thumbnail tile inside the outfit-card strip. Signs user-photo URLs lazily. */
+/** A small thumbnail tile inside the outfit-card strip. URL is pre-resolved
+ *  server-side in listWardrobeOutfits — no per-tile fetch needed. */
 function OutfitItemThumb({ item }: { item: OutfitListItem["items"][number] }) {
-  const [url, setUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    if (item.sourceType === "certified" && item.thumbPath) {
-      setUrl(item.thumbPath);
-      return;
-    }
-    if (item.sourceType === "user_photo") {
-      fetch(`/api/wardrobe/items/thumb?id=${encodeURIComponent(item.wardrobeItemId)}`)
-        .then((r) => r.json())
-        .then((j) => {
-          if (!cancelled && j.success) setUrl(j.data.url);
-        })
-        .catch(() => {});
-    }
-    return () => {
-      cancelled = true;
-    };
-  }, [item.wardrobeItemId, item.sourceType, item.thumbPath]);
+  const url = item.thumbUrl;
 
   return (
     <div className="relative h-24 w-20 rounded-lg overflow-hidden bg-white shadow-sm ring-1 ring-black/[0.04]">

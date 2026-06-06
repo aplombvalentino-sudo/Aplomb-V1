@@ -25,14 +25,40 @@ function EnterpriseModal({ onClose }: { onClose: () => void }) {
   const [fields, setFields] = useState({ name: "", email: "", company: "", message: "" });
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    // TODO: replace with real endpoint / CRM webhook
-    console.log("[Enterprise enquiry]", fields);
-    await new Promise((r) => setTimeout(r, 600));
-    setSent(true);
+    setError(null);
+    try {
+      // Persisted server-side to enterprise_enquiries (see
+      // src/app/api/enquiry/enterprise/route.tsx). Replaces the previous
+      // console.log placeholder which leaked submitted contact data to
+      // server logs and never reached ops.
+      const res = await fetch("/api/enquiry/enterprise", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: fields.name.trim(),
+          email: fields.email.trim(),
+          company: fields.company.trim(),
+          message: fields.message.trim(),
+        }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        setError(
+          json?.error?.message ??
+            "Could not send your message. Please try again in a moment.",
+        );
+        setLoading(false);
+        return;
+      }
+      setSent(true);
+    } catch {
+      setError("Network error. Please try again.");
+    }
     setLoading(false);
   }
 
@@ -104,6 +130,11 @@ function EnterpriseModal({ onClose }: { onClose: () => void }) {
                              focus:ring-[#111010] transition-colors duration-200"
                 />
               </div>
+              {error && (
+                <div className="rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">
+                  {error}
+                </div>
+              )}
               <div className="flex items-center gap-3 pt-1">
                 <button type="button" onClick={onClose}
                   className="rounded-full border border-hairline-strong bg-white px-5 py-2.5

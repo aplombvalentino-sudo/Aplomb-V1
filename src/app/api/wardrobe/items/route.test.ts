@@ -15,6 +15,14 @@ vi.mock("@/lib/rateLimit-upstash", () => ({
   tooManyRequests: vi.fn(() => new Response(null, { status: 429 })),
 }));
 
+// listWardrobeItems now batch-signs user_photo paths via this module. Mock it
+// so the test doesn't pull in @supabase/supabase-js at import time (no env in
+// test). With db.wardrobeItem.findMany returning [] in beforeEach, this is
+// effectively a no-op anyway.
+vi.mock("@/lib/wardrobe/storage", () => ({
+  getSignedWardrobeUrls: vi.fn(async () => new Map<string, string>()),
+}));
+
 import { GET, POST } from "./route";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
