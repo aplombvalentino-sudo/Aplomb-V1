@@ -8,22 +8,28 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const createSignedUrls = vi.fn();
 const createSignedUrl = vi.fn();
+const getSupabaseServiceClient = vi.fn();
 
 vi.mock("@/lib/supabase", () => ({
-  getSupabaseServiceClient: () => ({
-    storage: {
-      from: () => ({
-        createSignedUrl,
-        createSignedUrls,
-      }),
-    },
-  }),
+  // The function-level mock lets individual tests override the client
+  // (e.g. make it throw to exercise the missing-env-var degradation path).
+  getSupabaseServiceClient: () => getSupabaseServiceClient(),
 }));
 
 import { getSignedWardrobeUrls, _SIGN_BATCH_SIZE_FOR_TESTS } from "./storage";
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // Default: service client resolves cleanly and routes calls to the
+  // createSignedUrls stub. Specific tests override this.
+  getSupabaseServiceClient.mockReturnValue({
+    storage: {
+      from: () => ({
+        createSignedUrl,
+        createSignedUrls,
+      }),
+    },
+  });
 });
 
 describe("getSignedWardrobeUrls — batch signing", () => {
@@ -188,5 +194,29 @@ describe("getSignedWardrobeUrls — chunking", () => {
     const out = await getSignedWardrobeUrls(input);
 
     expect(out.size).toBe(_SIGN_BATCH_SIZE_FOR_TESTS);
+  });
+});
+
+// ─── Degradation when storage is unreachable ───────────────────────────────
+//
+// If SUPABASE_SERVICE_ROLE_KEY is missing (or the client init otherwise
+// throws), we degrade the whole batch-sign call to an empty map instead of
+// blowing up the page render. The wardrobe grid then shows placeholder
+// thumbnails — which is bad but recoverable — rather than 500-ing the
+// entire /app/wardrobe route.
+
+describe("getSignedWardrobeUrls — storage unavailable", () => {
+  it("returns an empty map (no throw) when getSupabaseServiceClient() throws", async () => {
+    getSupabaseServiceClient.mockImplementation(() => {
+      throw new Error(
+        "SUPABASE_SERVICE_ROLE_KEY is not set. Add it to .env.local and Vercel env vars (server-only).",
+      );
+    });
+
+    const out = await getSignedWardrobeUrls(["users/a/1/front.jpg"]);
+
+    expect(out.size).toBe(0);
+    // We must NOT have called the signing API — the client never existed.
+    expect(createSignedUrls).not.toHaveBeenCalled();
   });
 });

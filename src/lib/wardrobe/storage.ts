@@ -110,7 +110,21 @@ export async function getSignedWardrobeUrls(
     chunks.push(unique.slice(i, i + SIGN_BATCH_SIZE));
   }
 
-  const svc = getSupabaseServiceClient();
+  // Get the service client. This throws synchronously if
+  // SUPABASE_SERVICE_ROLE_KEY isn't set in env. We don't want a missing
+  // env var to crash the entire wardrobe-page server render — degrade
+  // to empty map so the grid shows placeholder thumbnails instead.
+  let svc: ReturnType<typeof getSupabaseServiceClient>;
+  try {
+    svc = getSupabaseServiceClient();
+  } catch (e) {
+    console.warn(
+      "[wardrobe.storage] service client unavailable, skipping batch sign:",
+      e instanceof Error ? e.message : e,
+    );
+    return out;
+  }
+
   // Sign every chunk in parallel — they share the service client but the
   // underlying HTTP calls are independent, so wall-clock is one round-trip
   // not N. We use Promise.allSettled so one chunk failing doesn't drop

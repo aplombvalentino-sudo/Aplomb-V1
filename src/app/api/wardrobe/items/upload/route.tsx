@@ -172,10 +172,14 @@ export async function POST(req: NextRequest) {
       })
       .catch(() => null);
 
+    // Log the real error server-side for ops; show the user a clean
+    // generic message. Previously we returned `e.message` directly,
+    // which leaked internal details like missing-env-var names
+    // ("SUPABASE_SERVICE_ROLE_KEY is not set…") straight into the UI.
     console.error("[/api/wardrobe/items/upload]", e);
     return err(
       "UPLOAD_FAILED",
-      e instanceof Error ? e.message : "Photo upload failed",
+      "We couldn't upload your photo. Please try again in a moment — if it keeps failing, get in touch.",
       500,
     );
   }
