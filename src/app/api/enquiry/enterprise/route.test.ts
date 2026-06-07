@@ -13,11 +13,15 @@ vi.mock("@/lib/rateLimit-upstash", () => ({
   tooManyRequests: vi.fn(() => new Response(null, { status: 429 })),
   clientIp: vi.fn(() => "203.0.113.7"),
 }));
+vi.mock("@/lib/security/turnstile", () => ({
+  verifyTurnstileToken: vi.fn(),
+}));
 
 import { POST } from "./route";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { enforceLimits } from "@/lib/rateLimit-upstash";
+import { verifyTurnstileToken } from "@/lib/security/turnstile";
 
 function req(body: unknown): NextRequest {
   return new NextRequest("http://localhost:3000/api/enquiry/enterprise", {
@@ -40,6 +44,8 @@ beforeEach(() => {
   vi.mocked(auth).mockResolvedValue(null as never);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   vi.mocked(db.enterpriseEnquiry.create).mockResolvedValue({ id: "ent_1" } as any);
+  // Default: Turnstile passes. Specific tests override to test rejection.
+  vi.mocked(verifyTurnstileToken).mockResolvedValue({ success: true });
 });
 
 describe("POST /api/enquiry/enterprise", () => {
@@ -97,5 +103,37 @@ describe("POST /api/enquiry/enterprise", () => {
   it("400 when message exceeds the 4000-char cap", async () => {
     const res = await POST(req({ ...valid, message: "x".repeat(4001) }));
     expect(res.status).toBe(400);
+  });
+
+  it("403 TURNSTILE_FAILED when the captcha rejects — never reaches the DB", async () => {
+    vi.mocked(verifyTurnstileToken).mockResolvedValue({
+      success: false,
+      errorCodes: ["invalid-input-response"],
+    });
+    const res = await POST(req({ ...valid, turnstileToken: "tampered" }));
+    expect(res.status).toBe(403);
+    const json = await res.json();
+    expect(json.error.code).toBe("TURNSTILE_FAILED");
+    expect(vi.mocked(db.enterpriseEnquiry.create)).not.toHaveBeenCalled();
+  });
+
+  it("passes the submitted Turnstile token to verifyTurnstileToken with the client IP", async () => {
+    await POST(req({ ...valid, turnstileToken: "good-token" }));
+    expect(vi.mocked(verifyTurnstileToken)).toHaveBeenCalledWith(
+      "good-token",
+      "203.0.113.7",
+    );
+  });
+
+  it("happy path still works when no token is submitted (Turnstile not configured in env)", async () => {
+    // verifyTurnstileToken returns { success: true, skipped: true } when no
+    // secret is set — simulate that here. Server should accept the enquiry.
+    vi.mocked(verifyTurnstileToken).mockResolvedValue({
+      success: true,
+      skipped: true,
+    });
+    const res = await POST(req(valid)); // no turnstileToken field
+    expect(res.status).toBe(202);
+    expect(vi.mocked(db.enterpriseEnquiry.create)).toHaveBeenCalled();
   });
 });

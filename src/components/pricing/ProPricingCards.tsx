@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/lib/cn";
 import { Input } from "@/components/ui/Input";
+import { TurnstileField, type TurnstileFieldHandle } from "@/components/security/TurnstileField";
+import { TURNSTILE_ENABLED } from "@/components/security/TurnstileWidget";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
@@ -26,6 +28,12 @@ function EnterpriseModal({ onClose }: { onClose: () => void }) {
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Turnstile state — single-use token from the widget. When the env var
+  // NEXT_PUBLIC_TURNSTILE_SITE_KEY is unset (TURNSTILE_ENABLED === false),
+  // the field renders nothing and the token stays null; the server skips
+  // verification in that environment.
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileFieldHandle>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -44,6 +52,10 @@ function EnterpriseModal({ onClose }: { onClose: () => void }) {
           email: fields.email.trim(),
           company: fields.company.trim(),
           message: fields.message.trim(),
+          // Only include the token when Turnstile is enabled in this build
+          // AND the widget produced one. Sending an empty string would fail
+          // Zod's `.min(1)` and bounce the user with a confusing 400.
+          ...(turnstileToken ? { turnstileToken } : {}),
         }),
       });
       const json = await res.json().catch(() => null);
@@ -52,12 +64,16 @@ function EnterpriseModal({ onClose }: { onClose: () => void }) {
           json?.error?.message ??
             "Could not send your message. Please try again in a moment.",
         );
+        // Turnstile tokens are single-use — if the server rejected us for
+        // any reason, mint a new token before the next attempt.
+        turnstileRef.current?.reset();
         setLoading(false);
         return;
       }
       setSent(true);
     } catch {
       setError("Network error. Please try again.");
+      turnstileRef.current?.reset();
     }
     setLoading(false);
   }
@@ -135,6 +151,11 @@ function EnterpriseModal({ onClose }: { onClose: () => void }) {
                   {error}
                 </div>
               )}
+              {/* Turnstile field — renders nothing when not configured
+                  (NEXT_PUBLIC_TURNSTILE_SITE_KEY unset); when configured,
+                  the parent button stays disabled until the user solves
+                  the challenge. */}
+              <TurnstileField ref={turnstileRef} onChange={setTurnstileToken} />
               <div className="flex items-center gap-3 pt-1">
                 <button type="button" onClick={onClose}
                   className="rounded-full border border-hairline-strong bg-white px-5 py-2.5
@@ -142,7 +163,7 @@ function EnterpriseModal({ onClose }: { onClose: () => void }) {
                              transition-colors">
                   Cancel
                 </button>
-                <button type="submit" disabled={loading}
+                <button type="submit" disabled={loading || (TURNSTILE_ENABLED && !turnstileToken)}
                   className="flex-1 rounded-full bg-[#111010] py-2.5 text-sm font-medium
                              text-white hover:bg-[#2a2622] transition-colors
                              disabled:opacity-50 disabled:cursor-wait">

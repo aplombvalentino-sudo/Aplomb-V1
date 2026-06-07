@@ -60,20 +60,36 @@ export async function getSignedWardrobeUrl(
 }
 
 /**
- * Batch-sign many wardrobe photo paths in a single Supabase round-trip.
+ * Maximum number of paths handed to a single Supabase `createSignedUrls`
+ * call. Supabase documents an upper bound on this endpoint; 100 is a safe
+ * conservative chunk that's never been observed to fail in practice.
+ *
+ * If you need to raise it, also widen the test coverage in
+ * `storage.test.ts` ("chunks at the configured BATCH_SIZE boundary").
+ */
+const SIGN_BATCH_SIZE = 100;
+
+/**
+ * Batch-sign many wardrobe photo paths with as few Supabase round-trips as
+ * possible.
  *
  * Why this exists: rendering the wardrobe grid used to hammer Supabase with
  * one `createSignedUrl` per user_photo card (N+1). Supabase exposes a
- * `createSignedUrls` plural endpoint that signs an array of paths server-side
- * in one call — collapsing N round-trips into 1.
+ * `createSignedUrls` plural endpoint that signs an array of paths in one
+ * call — collapsing N round-trips into ⌈N/BATCH⌉.
  *
  * Returns a Map<path, signedUrl> so callers can match URLs back to rows.
  * Paths that fail to sign are silently omitted from the map (callers should
  * treat a missing key as "no thumbnail available"). Empty input → empty map.
  *
- * Caveat: Supabase caps `createSignedUrls` at ~100 paths per call. If we
- * ever ship Unlimited (Model) wardrobes that exceed this in one view, chunk
- * here. For now the 40-slot Fashion cap keeps every page well under.
+ * Chunking: Supabase caps `createSignedUrls` at a fixed number of paths per
+ * call (see SIGN_BATCH_SIZE). For a 100-slot wardrobe under the Model plan
+ * that's exactly one call; for an Unlimited (∞) plan that crosses the
+ * threshold the unique path set is sliced into BATCH-sized chunks and each
+ * chunk is signed in parallel. A failure in one chunk is contained: the
+ * other chunks still populate the map and the page renders with
+ * placeholders for the failed chunk only — we never throw away the entire
+ * batch for one upstream hiccup.
  */
 export async function getSignedWardrobeUrls(
   paths: string[],
@@ -86,23 +102,51 @@ export async function getSignedWardrobeUrls(
   // never gets signed twice in one request.
   const unique = Array.from(new Set(paths));
 
-  const svc = getSupabaseServiceClient();
-  const { data, error } = await svc.storage
-    .from(WARDROBE_BUCKET)
-    .createSignedUrls(unique, ttlSeconds);
-
-  if (error || !data) {
-    // Don't blow up the whole page render if a single signing call fails —
-    // log + return empty so consumers fall back to placeholders.
-    console.warn("[wardrobe.storage] batch sign failed:", error?.message);
-    return out;
+  // Slice the unique path list into BATCH-sized chunks. For most plans
+  // this is one chunk; for Unlimited / Model wardrobes that exceed the
+  // batch cap it's a small handful.
+  const chunks: string[][] = [];
+  for (let i = 0; i < unique.length; i += SIGN_BATCH_SIZE) {
+    chunks.push(unique.slice(i, i + SIGN_BATCH_SIZE));
   }
 
-  for (const row of data) {
-    if (row.signedUrl && row.path) out.set(row.path, row.signedUrl);
+  const svc = getSupabaseServiceClient();
+  // Sign every chunk in parallel — they share the service client but the
+  // underlying HTTP calls are independent, so wall-clock is one round-trip
+  // not N. We use Promise.allSettled so one chunk failing doesn't drop
+  // the URLs we already signed in the others.
+  const results = await Promise.allSettled(
+    chunks.map((chunk) =>
+      svc.storage.from(WARDROBE_BUCKET).createSignedUrls(chunk, ttlSeconds),
+    ),
+  );
+
+  for (const settled of results) {
+    if (settled.status === "rejected") {
+      // Network / runtime exception. Log and skip; the other chunks may
+      // still populate the map.
+      console.warn(
+        "[wardrobe.storage] batch sign chunk threw:",
+        settled.reason instanceof Error ? settled.reason.message : settled.reason,
+      );
+      continue;
+    }
+    const { data, error } = settled.value;
+    if (error || !data) {
+      // Supabase-reported error for one chunk. Same posture: log + skip.
+      console.warn("[wardrobe.storage] batch sign chunk failed:", error?.message);
+      continue;
+    }
+    for (const row of data) {
+      if (row.signedUrl && row.path) out.set(row.path, row.signedUrl);
+    }
   }
   return out;
 }
+
+// Exported only for tests — lets us assert chunking behaviour against the
+// authoritative constant rather than hard-coding 100 in two places.
+export const _SIGN_BATCH_SIZE_FOR_TESTS = SIGN_BATCH_SIZE;
 
 /**
  * Delete a wardrobe photo. Called when a user removes an item from their
