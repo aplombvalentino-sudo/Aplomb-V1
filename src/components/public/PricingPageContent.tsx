@@ -22,11 +22,12 @@ export function PricingPageContent() {
           </span>
           <h1 className="mt-5 font-serif text-[clamp(2.4rem,4vw,3.5rem)] font-medium
                          leading-[1.08] tracking-[-0.02em] text-ink">
-            Plans for brands and <em className="italic">shoppers</em><span className="text-accent">.</span>
+            A wardrobe plan for every <em className="italic">shopper</em><span className="text-accent">.</span>
           </h1>
           <p className="mt-4 text-[17px] leading-[1.65] text-ink-muted">
-            Brands integrate Aplomb to reduce returns.
-            Shoppers find their perfect fit across the catalogue.
+            Start free and build your digital wardrobe. Upgrade when you want
+            more slots, more personal uploads, or the full outfit-building
+            toolkit. Plans for brands integrating Aplomb are below.
           </p>
         </motion.div>
 

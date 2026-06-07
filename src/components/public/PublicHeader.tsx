@@ -8,10 +8,13 @@ import { Logo } from "@/components/brand/Logo";
 
 const ease = [0.32, 0.72, 0, 1] as const;
 
+// "Shop" → /app was removed in the SEO pass. It read as "browse a
+// marketplace" but actually opened the authed shopper area (or bounced to
+// signup), which confused everyone we tested it with. If we add a public
+// brand-discovery surface later, drop it back in here with a clearer label.
 const navLinks = [
   { label: "Features", href: "/#features" },
   { label: "Pricing", href: "/pricing" },
-  { label: "Shop", href: "/app" },
 ];
 
 export function PublicHeader() {

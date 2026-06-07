@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { cookies } from "next/headers";
@@ -9,6 +10,16 @@ import { HeroSection } from "@/components/public/HeroSection";
 import { SocialProofBar } from "@/components/public/SocialProofBar";
 import { FeaturesSection } from "@/components/public/FeaturesSection";
 import { CtaSection } from "@/components/public/CtaSection";
+
+// The homepage takes the strongest title — no template suffix. Inherits the
+// description / OG / Twitter / robots from the root layout, which is already
+// wardrobe-first.
+export const metadata: Metadata = {
+  title: "Aplomb — Digital Wardrobe & Outfit Tester",
+  description:
+    "Build your digital wardrobe. Add the clothes you already own, mix them with certified brand pieces, and try new outfits on yourself before you change.",
+  alternates: { canonical: "/" },
+};
 
 export default async function LandingPage() {
   const session = await auth();
