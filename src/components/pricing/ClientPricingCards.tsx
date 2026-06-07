@@ -63,7 +63,7 @@ const TIERS: ClientTier[] = [
     period: "/month",
     tagline: "AI styling from your saved wardrobe.",
     features: [
-      "40 wardrobe slots",
+      "50 wardrobe slots",
       "Up to 15 of your own clothing items",
       "50 AI outfit try-ons per month",
       "50 AI outfit recommendations per month",

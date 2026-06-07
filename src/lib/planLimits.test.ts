@@ -26,9 +26,9 @@ describe("getClientPlanLimits — wardrobe-first dimensions (DO NOT BREAK)", () 
     expect(p.nextPlan).toBe("fashion");
   });
 
-  it("fashion: 40 slots / 15 personal photos / full outfit experimentation", () => {
+  it("fashion: 50 slots / 15 personal photos / full outfit experimentation", () => {
     const p = getClientPlanLimits("fashion");
-    expect(p.maxWardrobeItems).toBe(40);
+    expect(p.maxWardrobeItems).toBe(50);
     expect(p.maxPersonalPhotos).toBe(15);
     expect(p.outfitExperimentation).toBe("full");
     expect(p.nextPlan).toBe("model");

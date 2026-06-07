@@ -144,7 +144,7 @@ export function getClientPlanLimits(plan: ClientPlan): ClientPlanLimits {
       };
     case "fashion":
       return {
-        maxWardrobeItems: 40,
+        maxWardrobeItems: 50, // ↑ from 40 — bumped per product call
         maxPersonalPhotos: 15,
         outfitExperimentation: "full",
         maxScansPerMonth: 15,
@@ -160,7 +160,7 @@ export function getClientPlanLimits(plan: ClientPlan): ClientPlanLimits {
         hasOutfitAssistant: true,
         maxAssistantRecommendationsPerMonth: 50,
         crossBrandRecommendations: false,
-        maxWardrobeSaves: 40,
+        maxWardrobeSaves: 50, // legacy mirror — keep in sync with maxWardrobeItems
       };
     case "model":
       return {
