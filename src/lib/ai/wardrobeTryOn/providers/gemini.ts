@@ -33,7 +33,23 @@ import "server-only";
 import { GoogleGenerativeAI, type Part } from "@google/generative-ai";
 import type { TryOnInput, TryOnProvider, TryOnResult } from "../types";
 
-const DEFAULT_MODEL = "gemini-2.5-flash-image";
+/**
+ * Default model id. We intentionally pick the OLDER experimental
+ * `gemini-2.0-flash-exp` over the current GA `gemini-2.5-flash-image`:
+ *
+ *   - `gemini-2.5-flash-image` is on a strict per-project image-gen quota
+ *     that Google sets to ~0 on free-tier API keys without billing. Even
+ *     a brand-new key that has never made a single call returns 429
+ *     RESOURCE_EXHAUSTED ("limit usage") on the first attempt.
+ *   - `gemini-2.0-flash-exp` lives on a SEPARATE experimental quota pool
+ *     that's more permissive on the free tier. Trade-off: it's a slightly
+ *     older model with marginally lower output quality. Worth it for the
+ *     "works without enabling billing" property.
+ *
+ * Override via GEMINI_TRYON_MODEL once billing is enabled — set it to
+ * `gemini-2.5-flash-image` to get the better output quality.
+ */
+const DEFAULT_MODEL = "gemini-2.0-flash-exp";
 
 function buildPrompt(input: TryOnInput): string {
   const pieces = input.items
