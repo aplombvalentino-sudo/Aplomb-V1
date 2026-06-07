@@ -39,6 +39,7 @@ export default async function OutfitsPage() {
         <nav className="flex items-center gap-4">
           <Link href="/app/wardrobe" className="text-[12px] text-ink-subtle hover:text-ink transition-colors duration-200">Wardrobe</Link>
           <Link href="/app/outfits" className="text-[12px] font-medium text-ink transition-colors">Outfits</Link>
+          <Link href="/app/chat" className="text-[12px] text-ink-subtle hover:text-ink transition-colors duration-200">Assistant</Link>
           <Link href="/app/discover" className="text-[12px] text-ink-subtle hover:text-ink transition-colors duration-200">Discover</Link>
           <Link href="/app/account" className="text-[12px] text-ink-subtle hover:text-ink transition-colors duration-200">Profile</Link>
           <span aria-hidden className="h-3 w-px bg-hairline-strong" />

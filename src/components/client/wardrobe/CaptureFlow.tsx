@@ -61,6 +61,14 @@ export function CaptureFlow({
   // size on the user's body). Free-form so brands using "38", "Tall L",
   // or anything else all fit.
   const [size, setSize] = useState<string>("");
+  // Granular type (T-shirt, Hoodie, …) — optional. The Confirm UI
+  // surfaces a preset pill row + "Other" → free text. The AI Outfit
+  // Assistant chatbot uses this for better matching than category alone.
+  const [type, setType] = useState<string>("");
+  // Optional fabric / textile, and free-text description. Both feed the
+  // chatbot's recommendation reasoning.
+  const [material, setMaterial] = useState<string>("");
+  const [description, setDescription] = useState<string>("");
 
   // Submit state
   const [submitting, setSubmitting] = useState(false);
@@ -84,9 +92,16 @@ export function CaptureFlow({
       form.set("backImage", backFile);
       form.set("category", category);
       form.set("size", size.trim());
-      if (color) form.set("color", color);
+      // Resolve "Other" sentinel → empty so we don't persist the marker.
+      const cleanColor = color === "__other__" ? "" : color.trim();
+      const cleanType = type === "__other__" ? "" : type.trim();
+      const cleanMaterial = material === "__other__" ? "" : material.trim();
+      if (cleanColor) form.set("color", cleanColor);
       if (brand) form.set("brand", brand);
       if (nickname) form.set("nickname", nickname);
+      if (cleanType) form.set("type", cleanType);
+      if (cleanMaterial) form.set("material", cleanMaterial);
+      if (description.trim()) form.set("description", description.trim());
 
       const res = await fetch("/api/wardrobe/items/upload", {
         method: "POST",
@@ -192,6 +207,12 @@ export function CaptureFlow({
             setNickname={setNickname}
             size={size}
             setSize={setSize}
+            type={type}
+            setType={setType}
+            material={material}
+            setMaterial={setMaterial}
+            description={description}
+            setDescription={setDescription}
             onBack={() => setStep("review")}
             onSave={handleSubmit}
             submitting={submitting}
@@ -417,12 +438,116 @@ function ReviewSlot({
 // pills covers everything else.
 const SIZE_PILLS = ["XS", "S", "M", "L", "XL", "XXL", "36", "38", "40", "42", "44"];
 
+// Granular clothing types the AI Outfit Assistant chatbot reasons about.
+// "Other" lets the user type their own — kept as the last pill so it sits
+// at the end of the row. The saved value is whatever the user enters in
+// the conditional text field that appears after picking Other.
+const TYPE_PILLS = [
+  "T-shirt", "Shirt", "Tank top", "Sweater", "Hoodie", "Polo", "Blouse",
+  "Jacket", "Coat", "Blazer", "Cardigan",
+  "Jeans", "Trousers", "Skirt", "Dress", "Shorts",
+  "Shoes", "Sneakers", "Boots",
+  "Bag", "Backpack",
+  "Accessory",
+];
+
+// Common colors. "Other" → free text below. Mirrors the brief's list.
+const COLOR_PILLS = [
+  "Black", "White", "Grey", "Navy", "Blue", "Red", "Green",
+  "Beige", "Brown", "Pink", "Purple", "Yellow", "Orange", "Multi-color",
+];
+
+// Optional material / textile.
+const MATERIAL_PILLS = [
+  "Cotton", "Wool", "Linen", "Denim", "Leather", "Polyester",
+  "Silk", "Satin", "Knit", "Cashmere", "Jersey", "Fleece", "Nylon", "Viscose",
+];
+
+const OTHER = "__other__";
+
+/**
+ * Renders a pill row + an "Other" pill that toggles a free-text input.
+ * The saved value is either the picked preset (when a non-Other pill is
+ * active) or whatever's typed in the free-text input.
+ */
+function PillRowWithOther({
+  label,
+  required,
+  presets,
+  value,
+  onChange,
+  otherPlaceholder,
+}: {
+  label: React.ReactNode;
+  required?: boolean;
+  presets: readonly string[];
+  value: string;
+  onChange: (v: string) => void;
+  otherPlaceholder: string;
+}) {
+  const isOnPreset = presets.includes(value);
+  // "Other mode" = either explicitly picked Other, OR the value is custom
+  // (non-empty and not in the preset list). Either way we surface the
+  // text input so the user can edit / clear it.
+  const isOtherActive = value === OTHER || (value !== "" && !isOnPreset);
+  return (
+    <div>
+      <label className="block text-[11px] font-medium text-ink-muted mb-2">
+        {label}
+        {required && <span className="text-[#C9653B]"> *</span>}
+      </label>
+      <div className="flex flex-wrap gap-2">
+        {presets.map((p) => (
+          <button
+            key={p}
+            type="button"
+            onClick={() => onChange(value === p ? "" : p)}
+            className={`rounded-full px-3 py-1.5 text-[12px] font-medium border transition-all duration-200 ${
+              value === p
+                ? "bg-ink text-white border-ink"
+                : "bg-white text-ink-muted border-black/[0.1] hover:border-black/20"
+            }`}
+          >
+            {p}
+          </button>
+        ))}
+        <button
+          type="button"
+          onClick={() => onChange(isOtherActive ? "" : OTHER)}
+          className={`rounded-full px-3 py-1.5 text-[12px] font-medium border transition-all duration-200 ${
+            isOtherActive
+              ? "bg-ink text-white border-ink"
+              : "bg-white text-ink-muted border-black/[0.1] hover:border-black/20"
+          }`}
+        >
+          Other
+        </button>
+      </div>
+      {isOtherActive && (
+        <div className="mt-3">
+          <Input
+            label="Type it"
+            type="text"
+            value={value === OTHER ? "" : value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={otherPlaceholder}
+            maxLength={80}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ConfirmStep({
   category, setCategory,
   color, setColor,
   brand, setBrand,
   nickname, setNickname,
   size, setSize,
+  type, setType,
+  material, setMaterial,
+  description, setDescription,
   onBack,
   onSave,
   submitting,
@@ -438,6 +563,12 @@ function ConfirmStep({
   setNickname: (v: string) => void;
   size: string;
   setSize: (v: string) => void;
+  type: string;
+  setType: (v: string) => void;
+  material: string;
+  setMaterial: (v: string) => void;
+  description: string;
+  setDescription: (v: string) => void;
   onBack: () => void;
   onSave: () => void;
   submitting: boolean;
@@ -457,8 +588,9 @@ function ConfirmStep({
         A few quick details<span className="text-accent">.</span>
       </h2>
       <p className="mt-2 text-[14px] text-ink-muted">
-        Category and size are required — the AI try-on uses both to render
-        the right fit on you. Everything else is optional.
+        Category and size are required. Type, color, material and
+        description are optional but help the AI Outfit Assistant give
+        sharper recommendations.
       </p>
 
       <div className="mt-7 space-y-5">
@@ -516,27 +648,48 @@ function ConfirmStep({
           </div>
         </div>
 
-        {/* Color */}
+        {/* Color — pills + Other → free-text */}
+        <PillRowWithOther
+          label={<>Main color <span className="text-ink-subtle">(optional)</span></>}
+          presets={COLOR_PILLS}
+          value={color}
+          onChange={setColor}
+          otherPlaceholder="e.g. Burgundy, Mint, Charcoal"
+        />
+
+        {/* Type — granular clothing type for the AI Outfit Assistant */}
+        <PillRowWithOther
+          label={<>Specific type <span className="text-ink-subtle">(optional — helps outfit recommendations)</span></>}
+          presets={TYPE_PILLS}
+          value={type}
+          onChange={setType}
+          otherPlaceholder="e.g. Crew-neck tee, Field jacket"
+        />
+
+        {/* Material — optional, improves chatbot reasoning */}
+        <PillRowWithOther
+          label={<>Material <span className="text-ink-subtle">(optional)</span></>}
+          presets={MATERIAL_PILLS}
+          value={material}
+          onChange={setMaterial}
+          otherPlaceholder="e.g. Boiled wool, Tencel, Recycled poly"
+        />
+
+        {/* Description — long-form notes the AI uses for context */}
         <div>
           <label className="block text-[11px] font-medium text-ink-muted mb-2">
-            Main color <span className="text-ink-subtle">(optional)</span>
+            Description <span className="text-ink-subtle">(optional)</span>
           </label>
-          <div className="flex flex-wrap gap-2">
-            {COLOR_OPTIONS.map((c) => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => setColor(color === c ? "" : c)}
-                className={`rounded-full px-3 py-1.5 text-[12px] font-medium border transition-all duration-200 ${
-                  color === c
-                    ? "bg-ink text-white border-ink"
-                    : "bg-white text-ink-muted border-black/[0.1] hover:border-black/20"
-                }`}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Fit, pattern, styling notes — e.g. oversized fit, ribbed knit, cropped, white tee with small blue graphic. Helps the AI Outfit Assistant give more precise suggestions."
+            maxLength={2000}
+            rows={3}
+            className="w-full rounded-xl border border-hairline-strong bg-white px-3.5 py-2.5
+                       text-[14px] text-ink placeholder:text-ink-subtle resize-none
+                       focus:border-ink focus:outline-none focus:ring-1 focus:ring-ink transition-colors duration-200"
+          />
         </div>
 
         {/* Brand */}

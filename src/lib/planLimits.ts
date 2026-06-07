@@ -54,6 +54,22 @@ export type ClientPlanLimits = {
   mobileWardrobe: boolean;
   nextPlan: ClientPlan | null;
 
+  // ─── AI Outfit Assistant — premium feature ─────────────────────────────────
+  /**
+   * Whether this plan can use the AI Outfit Assistant chatbot at /app/chat.
+   * Essential = false (locked, shows upgrade card); Fashion + Model = true.
+   * Enforced on both the UI (hide / lock the entry point) AND the server
+   * (POST /api/wardrobe/chat refuses with 402 Payment Required).
+   */
+  hasOutfitAssistant: boolean;
+  /**
+   * Daily ceiling on assistant messages the user can send. Infinity =
+   * uncapped. Caps the cost of a free-form chat surface and stops a single
+   * shopper burning the Gemini quota. UI shows "X / Y today" on the chat
+   * page when the cap is finite.
+   */
+  maxAssistantMessagesPerDay: number;
+
   /**
    * @deprecated Replaced by `maxWardrobeItems`. Still populated so legacy
    * code paths (the old wardrobeStorage save-outfit counter) keep building
@@ -71,59 +87,57 @@ export function getClientPlanLimits(plan: ClientPlan): ClientPlanLimits {
   switch (plan) {
     case "essential":
       return {
-        // Wardrobe-first
-        maxWardrobeItems: 10,        // 10 total slots (per product spec)
-        maxPersonalPhotos: 3,        // including up to 3 personal photo items
+        maxWardrobeItems: 10,
+        maxPersonalPhotos: 3,
         outfitExperimentation: "basic",
-        // Sizing-secondary
         maxScansPerMonth: 5,
         maxTryOnsPerMonth: 3,
-        // Cosmetic
         customOccasion: false,
         occasionPresets: OCCASION_PRESETS_BASIC,
         customColorPicker: false,
         crossBrand: false,
         mobileWardrobe: false,
         nextPlan: "fashion",
-        // Deprecated mirror
+        // AI Outfit Assistant locked on Essential — upgrade gate.
+        hasOutfitAssistant: false,
+        maxAssistantMessagesPerDay: 0,
         maxWardrobeSaves: 10,
       };
     case "fashion":
       return {
-        // Wardrobe-first
         maxWardrobeItems: 40,
         maxPersonalPhotos: 15,
         outfitExperimentation: "full",
-        // Sizing-secondary
         maxScansPerMonth: 15,
         maxTryOnsPerMonth: 25,
-        // Cosmetic
         customOccasion: true,
         occasionPresets: OCCASION_PRESETS_EXTENDED,
         customColorPicker: false,
         crossBrand: false,
         mobileWardrobe: false,
         nextPlan: "model",
-        // Deprecated mirror
+        // Fashion (€25.99) is the entry tier for the chatbot.
+        // 50 messages/day caps cost without feeling cramped at normal use.
+        hasOutfitAssistant: true,
+        maxAssistantMessagesPerDay: 50,
         maxWardrobeSaves: 40,
       };
     case "model":
       return {
-        // Wardrobe-first
         maxWardrobeItems: Infinity,
         maxPersonalPhotos: Infinity,
         outfitExperimentation: "full",
-        // Sizing-secondary
         maxScansPerMonth: Infinity,
         maxTryOnsPerMonth: Infinity,
-        // Cosmetic
         customOccasion: true,
         occasionPresets: OCCASION_PRESETS_EXTENDED,
         customColorPicker: true,
         crossBrand: true,
         mobileWardrobe: true,
         nextPlan: null,
-        // Deprecated mirror
+        // Model gets the assistant uncapped.
+        hasOutfitAssistant: true,
+        maxAssistantMessagesPerDay: Infinity,
         maxWardrobeSaves: Infinity,
       };
   }

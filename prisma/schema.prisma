@@ -79,6 +79,7 @@ model User {
   subscription Subscription?
   wardrobeItems WardrobeItem[]
   wardrobeOutfits WardrobeOutfit[]
+  wardrobeChatMessages WardrobeChatMessage[]
 }
 
 // ─── Legal / compliance ──────────────────────────────────────────────────────
@@ -432,6 +433,21 @@ model WardrobeItem {
   /// "size unknown" until edited.
   size              String?
 
+  /// Granular clothing type (T-shirt, Hoodie, Loafers, Denim jeans…).
+  /// More specific than `category` (which is the outfit-slot bucket —
+  /// top/bottom/etc). Free-form so "Other" lets users type anything.
+  /// Fed straight into the outfit chatbot prompt so it can reason about
+  /// silhouette + dress code more precisely than category alone.
+  type              String?
+  /// Free-text description (fit, pattern, styling notes, occasion).
+  /// Surfaced verbatim to the chatbot — "ribbed knit, cropped" changes
+  /// what gets recommended.
+  description       String?  @db.Text
+  /// Optional fabric / textile. Improves chatbot reasoning about
+  /// material compatibility (denim+cotton OK, leather+silk fussy) and
+  /// seasonality. Free-form so "Other" lets users type a specific blend.
+  material          String?
+
   /// Pipeline state. Only meaningful for user_photo items; certified items
   /// are written with `ready` directly. The wardrobe UI uses this to gate
   /// whether the item is selectable in the outfit builder (usableInOutfit
@@ -562,4 +578,30 @@ model EnterpriseEnquiry {
   @@index([createdAt])
   @@index([email])
   @@map("enterprise_enquiries")
+}
+
+// ─── Wardrobe Chat ───────────────────────────────────────────────────────────
+// Conversations with the AI outfit assistant. One row per message; we don't
+// model "threads" yet — every user has one rolling history. Premium-only
+// (Fashion / Model plans). The assistant's reply can carry references to
+// specific WardrobeItem ids in `recommendedItemIds` so the UI can render
+// "recommended pieces" chips below the message.
+
+model WardrobeChatMessage {
+  id                    String   @id @default(cuid())
+  userId                String   @map("user_id")
+  /// "user" or "assistant". No enum so it's cheap to add "system" or
+  /// "tool" later if the prompt scheme evolves.
+  role                  String
+  content               String   @db.Text
+  /// IDs of WardrobeItems the assistant cited in this reply. Plain string
+  /// array (no FK) so deleting an item later doesn't blow away history —
+  /// the UI just skips ids it can't resolve.
+  recommendedItemIds    String[] @default([]) @map("recommended_item_ids")
+  createdAt             DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("wardrobe_chat_messages")
 }

@@ -103,6 +103,13 @@ export type WardrobeItemListEntry = {
   /** The size the user owns the piece in (free-form: "M", "40", "L Tall"…).
    *  Null for pre-existing rows from before the column was added. */
   size: string | null;
+  /** Granular type (T-shirt, Hoodie, Boots…). More specific than category. */
+  type: string | null;
+  /** Free-text description used by the outfit chatbot for fit / pattern /
+   *  styling notes. */
+  description: string | null;
+  /** Fabric / textile. Optional. */
+  material: string | null;
   processingStatus:
     | "pending_upload" | "processing" | "needs_review" | "ready" | "failed";
   usableInOutfit: boolean;
@@ -126,6 +133,9 @@ export async function listWardrobeItems(
       brand: true,
       nickname: true,
       size: true,
+      type: true,
+      description: true,
+      material: true,
       processingStatus: true,
       processedAssetPath: true,
       frontImagePath: true,
@@ -169,6 +179,9 @@ export async function listWardrobeItems(
       brand: r.brand,
       nickname: r.nickname,
       size: r.size,
+      type: r.type,
+      description: r.description,
+      material: r.material,
       processingStatus: r.processingStatus,
       usableInOutfit: r.processingStatus === "ready",
       thumbUrl,

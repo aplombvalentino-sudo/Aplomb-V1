@@ -46,6 +46,13 @@ const metadataSchema = z
      *  new uploads going forward — the wardrobe-driven try-on needs it
      *  to render fit. Older rows pre-this-field stay valid. */
     size: z.string().trim().min(1).max(40),
+    /** Granular type ("T-shirt", "Loafers"…). Optional — Other-driven
+     *  free text lands here too. */
+    type: z.string().trim().max(80).optional(),
+    /** Free-text description used by the AI Outfit Assistant chatbot. */
+    description: z.string().trim().max(2000).optional(),
+    /** Fabric / textile. Optional. */
+    material: z.string().trim().max(80).optional(),
   })
   .strict();
 
@@ -75,6 +82,9 @@ export async function POST(req: NextRequest) {
     brand: form.get("brand") || undefined,
     nickname: form.get("nickname") || undefined,
     size: form.get("size"),
+    type: form.get("type") || undefined,
+    description: form.get("description") || undefined,
+    material: form.get("material") || undefined,
   });
   if (!metadataParsed.success) {
     return err(
@@ -134,6 +144,9 @@ export async function POST(req: NextRequest) {
       brand: metadataParsed.data.brand,
       nickname: metadataParsed.data.nickname,
       size: metadataParsed.data.size,
+      type: metadataParsed.data.type,
+      description: metadataParsed.data.description,
+      material: metadataParsed.data.material,
       processingStatus: "pending_upload",
     },
   });
