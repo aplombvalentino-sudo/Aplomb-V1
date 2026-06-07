@@ -34,23 +34,28 @@ import { GoogleGenerativeAI, type Part } from "@google/generative-ai";
 import type { TryOnInput, TryOnProvider, TryOnResult } from "../types";
 
 /**
- * Default model id. Known image-capable Gemini models, with notes:
+ * Default model id.
  *
- *   - `gemini-2.5-flash-image-preview` — DEFAULT. Preview of the GA
- *     image-gen model. Often runs on a separate (more permissive)
- *     quota pool from the GA on free-tier projects. Try this first.
- *   - `gemini-2.5-flash-image` — Current GA. Best output quality but
- *     strict per-project image-gen quota that Google sets to ~0 on
- *     free-tier projects without billing. Use this once billing is on.
- *   - `gemini-2.0-flash-exp` — Older experimental. RETIRED at Google
- *     (404 NOT_FOUND on the v1beta endpoint as of late 2025). Do not
- *     use as a default.
+ * The ONLY image-capable Gemini model still available on Google's API as
+ * of late 2025 is `gemini-2.5-flash-image` (the GA Nano Banana). Both
+ * `gemini-2.5-flash-image-preview` and `gemini-2.0-flash-exp` were
+ * retired and now return 404 NOT_FOUND regardless of account tier.
  *
- * If the default 404s for you, set GEMINI_TRYON_MODEL to one of the
- * other ids above. Find the live list at
- *   https://aistudio.google.com/  → "Models" panel
+ * REQUIRES BILLING ENABLED on the Google Cloud project tied to the
+ * API key. Free tier (no billing) sets the per-project image-gen quota
+ * to 0, so the first call returns 429 RESOURCE_EXHAUSTED ("limit usage")
+ * even with a brand-new key. Enabling billing flips the quota to the
+ * standard rate-limit and the model starts working.
+ *
+ * Cost: ~$0.039 per image (€0.036 at current rates). Existing rate
+ * limiter (LIMITS.tryon_minute + LIMITS.tryon_daily) covers per-user
+ * caps so one shopper can't burn the credits.
+ *
+ * If billing isn't an option, switch to fal.ai by setting
+ * TRYON_PROVIDER=fal — the provider is fully implemented in
+ * src/lib/ai/wardrobeTryOn/providers/fal.ts.
  */
-const DEFAULT_MODEL = "gemini-2.5-flash-image-preview";
+const DEFAULT_MODEL = "gemini-2.5-flash-image";
 
 function buildPrompt(input: TryOnInput): string {
   const pieces = input.items
