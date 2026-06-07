@@ -27,13 +27,24 @@ import {
 } from "@/lib/wardrobe/tryonStorage";
 import { getActiveTryOnProvider, type TryOnItem } from "@/lib/ai/wardrobeTryOn";
 
-/** Truncate / sanitise the provider's reason before persisting. */
+/** Truncate / sanitise the provider's reason before persisting.
+ *
+ *  Previously the path-scrubbing regex was aggressive enough to swallow
+ *  model ids and URL fragments that are actually useful for diagnosis
+ *  (e.g. "gemini-2.0-flash-exp:generateContent" was being replaced with
+ *  "<path>"). The provider already returns a short user-readable message
+ *  in most cases — we just strip credential-shaped tokens here, not URL
+ *  paths. */
 function sanitiseReason(input: string): string {
-  // Strip anything that looks like an API key, request id, or file path.
   const cleaned = input
-    .replace(/sk-[A-Za-z0-9_-]{8,}/g, "<redacted>")
+    // OpenAI-style keys (sk-xxx, paranoia even though we don't use OpenAI)
+    .replace(/sk-[A-Za-z0-9_-]{20,}/g, "<redacted>")
+    // JWTs / Supabase service-role tokens
     .replace(/eyJ[A-Za-z0-9_.-]{20,}/g, "<redacted>")
-    .replace(/\/[A-Za-z0-9_./-]{12,}/g, "<path>");
+    // Google API keys in query strings ("?key=AIzaSy...")
+    .replace(/([?&]key=)[A-Za-z0-9_-]+/gi, "$1<redacted>")
+    // Authorization Bearer tokens
+    .replace(/(Bearer\s+)[A-Za-z0-9._-]{12,}/gi, "$1<redacted>");
   return cleaned.slice(0, 480);
 }
 

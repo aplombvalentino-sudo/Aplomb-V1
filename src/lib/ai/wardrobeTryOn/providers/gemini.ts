@@ -34,22 +34,23 @@ import { GoogleGenerativeAI, type Part } from "@google/generative-ai";
 import type { TryOnInput, TryOnProvider, TryOnResult } from "../types";
 
 /**
- * Default model id. We intentionally pick the OLDER experimental
- * `gemini-2.0-flash-exp` over the current GA `gemini-2.5-flash-image`:
+ * Default model id. Known image-capable Gemini models, with notes:
  *
- *   - `gemini-2.5-flash-image` is on a strict per-project image-gen quota
- *     that Google sets to ~0 on free-tier API keys without billing. Even
- *     a brand-new key that has never made a single call returns 429
- *     RESOURCE_EXHAUSTED ("limit usage") on the first attempt.
- *   - `gemini-2.0-flash-exp` lives on a SEPARATE experimental quota pool
- *     that's more permissive on the free tier. Trade-off: it's a slightly
- *     older model with marginally lower output quality. Worth it for the
- *     "works without enabling billing" property.
+ *   - `gemini-2.5-flash-image-preview` — DEFAULT. Preview of the GA
+ *     image-gen model. Often runs on a separate (more permissive)
+ *     quota pool from the GA on free-tier projects. Try this first.
+ *   - `gemini-2.5-flash-image` — Current GA. Best output quality but
+ *     strict per-project image-gen quota that Google sets to ~0 on
+ *     free-tier projects without billing. Use this once billing is on.
+ *   - `gemini-2.0-flash-exp` — Older experimental. RETIRED at Google
+ *     (404 NOT_FOUND on the v1beta endpoint as of late 2025). Do not
+ *     use as a default.
  *
- * Override via GEMINI_TRYON_MODEL once billing is enabled — set it to
- * `gemini-2.5-flash-image` to get the better output quality.
+ * If the default 404s for you, set GEMINI_TRYON_MODEL to one of the
+ * other ids above. Find the live list at
+ *   https://aistudio.google.com/  → "Models" panel
  */
-const DEFAULT_MODEL = "gemini-2.0-flash-exp";
+const DEFAULT_MODEL = "gemini-2.5-flash-image-preview";
 
 function buildPrompt(input: TryOnInput): string {
   const pieces = input.items
@@ -99,27 +100,29 @@ function describeGoogleError(e: unknown): string {
   return raw;
 }
 
-/** Map a raw provider description to a short user-readable hint. */
-function userHint(description: string): string {
+/** Map a raw provider description to a short user-readable hint.
+ *  We append the attempted model id so the user can see which model
+ *  Google actually rejected — saves a round-trip when diagnosing. */
+function userHint(description: string, modelId: string): string {
   const lower = description.toLowerCase();
   if (lower.includes("not_found") || lower.includes("404")) {
-    return `The AI model isn't available to your account (${description.slice(0, 140)}). Check GEMINI_TRYON_MODEL.`;
+    return `Model "${modelId}" isn't available to your account (NOT_FOUND). Set GEMINI_TRYON_MODEL to a different image-capable model (try gemini-2.5-flash-image-preview or gemini-2.5-flash-image).`;
   }
   if (lower.includes("permission") || lower.includes("403")) {
-    return "The AI API key doesn't have access to the image model. Enable image generation on the Gemini API key.";
+    return `The Gemini API key doesn't have access to model "${modelId}". Enable image generation in Google AI Studio or Cloud Console.`;
   }
-  if (lower.includes("quota") || lower.includes("rate") || lower.includes("429")) {
-    return "Hit the AI rate limit. Try again in a minute.";
+  if (lower.includes("quota") || lower.includes("rate") || lower.includes("429") || lower.includes("resource_exhausted")) {
+    return `Image-gen quota exhausted for "${modelId}". Either enable billing on the Gemini project or set GEMINI_TRYON_MODEL to a different model with available quota.`;
   }
   if (lower.includes("invalid_argument") || lower.includes("400")) {
-    return `The AI request was rejected (${description.slice(0, 140)}). Try a clearer selfie or fewer items.`;
+    return `Gemini rejected the request to "${modelId}" (${description.slice(0, 140)}). Try a clearer selfie or fewer items.`;
   }
   if (lower.includes("safety") || lower.includes("blocked")) {
     return "The AI safety filter blocked this try-on. Try a different selfie or items.";
   }
   // Fallback — surface a short snippet so the user can act, not a generic
   // "service is busy".
-  return `AI generation failed: ${description.slice(0, 180)}`;
+  return `AI generation failed on "${modelId}": ${description.slice(0, 160)}`;
 }
 
 export const geminiTryOnProvider: TryOnProvider = {
@@ -221,11 +224,12 @@ export const geminiTryOnProvider: TryOnProvider = {
         description,
         raw: e instanceof Error ? e.message : String(e),
       });
-      // User-facing message: short, actionable. Includes a snippet of the
-      // real cause unless AI_DEBUG_ERRORS=1 surfaces it in full.
+      // User-facing message: short, actionable. Includes the attempted
+      // model + a snippet of the real cause unless AI_DEBUG_ERRORS=1
+      // surfaces it in full.
       const reason = debug
-        ? `[debug] ${description}`
-        : userHint(description);
+        ? `[debug] model=${modelId} :: ${description}`
+        : userHint(description, modelId);
       return { success: false, reason };
     }
   },
