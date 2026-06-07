@@ -42,6 +42,10 @@ const metadataSchema = z
     color: z.string().max(40).optional(),
     brand: z.string().max(120).optional(),
     nickname: z.string().max(80).optional(),
+    /** Free-form size string (e.g. "M", "40", "L Tall"). Required for
+     *  new uploads going forward — the wardrobe-driven try-on needs it
+     *  to render fit. Older rows pre-this-field stay valid. */
+    size: z.string().trim().min(1).max(40),
   })
   .strict();
 
@@ -70,6 +74,7 @@ export async function POST(req: NextRequest) {
     color: form.get("color") || undefined,
     brand: form.get("brand") || undefined,
     nickname: form.get("nickname") || undefined,
+    size: form.get("size"),
   });
   if (!metadataParsed.success) {
     return err(
@@ -128,6 +133,7 @@ export async function POST(req: NextRequest) {
       color: metadataParsed.data.color,
       brand: metadataParsed.data.brand,
       nickname: metadataParsed.data.nickname,
+      size: metadataParsed.data.size,
       processingStatus: "pending_upload",
     },
   });

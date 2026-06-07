@@ -28,6 +28,11 @@ export type TryOnItem = {
   category?: string;
   /** Short human label for the item (e.g. nickname or product name). */
   label?: string;
+  /** The size THIS user owns the piece in (free-form: "M", "40", …).
+   *  Passed to the AI so the rendered drape reflects fit at that size
+   *  on the user's frame — long-on-short, oversized-on-tall, etc. Null
+   *  when the wardrobe row pre-dates the size column. */
+  size?: string | null;
 };
 
 export type TryOnInput = {
@@ -39,6 +44,12 @@ export type TryOnInput = {
    *  (outerwear / top / bottom / shoes / accessory) — providers may use the
    *  order as a hint but mustn't depend on it for correctness. */
   items: TryOnItem[];
+  /** User's self-reported height in centimeters. Passed to the AI so a
+   *  given size renders in proportion to the body in the selfie (a "M"
+   *  hangs differently on 165cm vs 195cm). Null when the user hasn't
+   *  saved a height yet — providers should still produce a result but
+   *  the geometry won't be size-adjusted. */
+  userHeightCm?: number | null;
 };
 
 export type TryOnResult =

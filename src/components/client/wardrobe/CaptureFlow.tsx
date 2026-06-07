@@ -57,6 +57,10 @@ export function CaptureFlow({
   const [color, setColor] = useState<string>("");
   const [brand, setBrand] = useState<string>("");
   const [nickname, setNickname] = useState<string>("");
+  // Size is required by the AI try-on (renders the right drape for the
+  // size on the user's body). Free-form so brands using "38", "Tall L",
+  // or anything else all fit.
+  const [size, setSize] = useState<string>("");
 
   // Submit state
   const [submitting, setSubmitting] = useState(false);
@@ -68,6 +72,10 @@ export function CaptureFlow({
       setStep("review");
       return;
     }
+    if (!size.trim()) {
+      setError("Pick a size — the AI try-on needs it to render the right fit.");
+      return;
+    }
     setError("");
     setSubmitting(true);
     try {
@@ -75,6 +83,7 @@ export function CaptureFlow({
       form.set("frontImage", frontFile);
       form.set("backImage", backFile);
       form.set("category", category);
+      form.set("size", size.trim());
       if (color) form.set("color", color);
       if (brand) form.set("brand", brand);
       if (nickname) form.set("nickname", nickname);
@@ -181,6 +190,8 @@ export function CaptureFlow({
             setBrand={setBrand}
             nickname={nickname}
             setNickname={setNickname}
+            size={size}
+            setSize={setSize}
             onBack={() => setStep("review")}
             onSave={handleSubmit}
             submitting={submitting}
@@ -401,11 +412,17 @@ function ReviewSlot({
 
 // ─── Step 5: Confirm details ─────────────────────────────────────────────────
 
+// Common ready-made size pills — picking a pill is faster than typing
+// for the 99% case (S/M/L/XL or 38/40/42). Free-text input below the
+// pills covers everything else.
+const SIZE_PILLS = ["XS", "S", "M", "L", "XL", "XXL", "36", "38", "40", "42", "44"];
+
 function ConfirmStep({
   category, setCategory,
   color, setColor,
   brand, setBrand,
   nickname, setNickname,
+  size, setSize,
   onBack,
   onSave,
   submitting,
@@ -419,6 +436,8 @@ function ConfirmStep({
   setBrand: (v: string) => void;
   nickname: string;
   setNickname: (v: string) => void;
+  size: string;
+  setSize: (v: string) => void;
   onBack: () => void;
   onSave: () => void;
   submitting: boolean;
@@ -438,7 +457,8 @@ function ConfirmStep({
         A few quick details<span className="text-accent">.</span>
       </h2>
       <p className="mt-2 text-[14px] text-ink-muted">
-        Help us file this item correctly. Only the category is required.
+        Category and size are required — the AI try-on uses both to render
+        the right fit on you. Everything else is optional.
       </p>
 
       <div className="mt-7 space-y-5">
@@ -460,6 +480,39 @@ function ConfirmStep({
                 {opt.label}
               </button>
             ))}
+          </div>
+        </div>
+
+        {/* Size — required. Common pills + free-text for anything else. */}
+        <div>
+          <label className="block text-[11px] font-medium text-ink-muted mb-2">
+            Size <span className="text-[#C9653B]">*</span>
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {SIZE_PILLS.map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => setSize(size === s ? "" : s)}
+                className={`rounded-full px-3 py-1.5 text-[12px] font-medium border transition-all duration-200 ${
+                  size === s
+                    ? "bg-ink text-white border-ink"
+                    : "bg-white text-ink-muted border-black/[0.1] hover:border-black/20"
+                }`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+          <div className="mt-3">
+            <Input
+              label="Or type a size"
+              type="text"
+              value={size}
+              onChange={(e) => setSize(e.target.value)}
+              placeholder="e.g. M Tall, EU 42, US 8"
+              maxLength={40}
+            />
           </div>
         </div>
 

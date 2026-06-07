@@ -18,6 +18,10 @@ import { eraseUser } from "@/lib/userErasure";
 const patchSchema = z
   .object({
     name: z.string().min(1).max(120).optional(),
+    /** Self-reported height in centimeters. Used by the wardrobe-driven
+     *  AI try-on to render size proportions. Allow null to let the user
+     *  explicitly clear it (e.g. to be asked again next try-on). */
+    heightCm: z.number().int().min(100).max(250).nullable().optional(),
   })
   .strict();
 
@@ -37,6 +41,7 @@ export async function GET() {
       name: true,
       image: true,
       clientPlan: true,
+      heightCm: true,
       createdAt: true,
       _count: {
         select: {
@@ -69,20 +74,25 @@ export async function PATCH(req: NextRequest) {
   const parsed = await parseJsonBody(req, patchSchema);
   if (!parsed.ok) return parsed.response;
 
-  // If the body is empty (`{}`), nothing to do — return current state instead
-  // of 400 so the caller's logic stays simple.
-  if (!parsed.data.name) {
+  // If nothing actionable in the body, return current state — keeps the
+  // caller's logic simple (no 400 on empty PATCH).
+  const hasName = parsed.data.name !== undefined;
+  const hasHeight = parsed.data.heightCm !== undefined;
+  if (!hasName && !hasHeight) {
     const user = await db.user.findUnique({
       where: { id: session.user.id },
-      select: { id: true, name: true, email: true },
+      select: { id: true, name: true, email: true, heightCm: true },
     });
     return ok({ user });
   }
 
   const updated = await db.user.update({
     where: { id: session.user.id },
-    data: { name: parsed.data.name },
-    select: { id: true, name: true, email: true },
+    data: {
+      ...(hasName ? { name: parsed.data.name } : {}),
+      ...(hasHeight ? { heightCm: parsed.data.heightCm } : {}),
+    },
+    select: { id: true, name: true, email: true, heightCm: true },
   });
   return ok({ user: updated });
 }

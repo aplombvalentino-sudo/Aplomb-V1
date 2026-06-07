@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
 import { ok, err, unauthorized } from "@/lib/api";
 import { LIMITS, enforceLimits, tooManyRequests } from "@/lib/rateLimit-upstash";
 import { createWardrobeOutfit } from "@/lib/wardrobe/outfits";
@@ -36,6 +37,12 @@ const payloadSchema = z
   .object({
     title: z.string().trim().min(1).max(120),
     occasion: z.string().trim().max(120).optional(),
+    /** Self-reported user height in cm. Optional in this schema so the
+     *  UI can omit it for shoppers whose User.heightCm is already saved
+     *  (the server uses the stored value in that case). When supplied,
+     *  we ALSO persist it to User.heightCm so the next try-on can skip
+     *  the prompt. */
+    userHeightCm: z.number().int().min(100).max(250).optional(),
     items: z
       .array(
         z.object({
@@ -96,11 +103,32 @@ export async function POST(req: NextRequest) {
     return err("PHOTO_TYPE", "Selfie must be JPEG, PNG, or WebP.", 415);
   }
 
+  // Resolve the effective height: explicit on the payload wins, else fall
+  // back to whatever's stored on the user. Persist a NEW value back to the
+  // user row so the next try-on doesn't have to ask.
+  let effectiveHeightCm: number | undefined;
+  if (payload.userHeightCm) {
+    effectiveHeightCm = payload.userHeightCm;
+    await db.user
+      .update({
+        where: { id: userId },
+        data: { heightCm: payload.userHeightCm },
+      })
+      .catch(() => null);
+  } else {
+    const u = await db.user.findUnique({
+      where: { id: userId },
+      select: { heightCm: true },
+    });
+    effectiveHeightCm = u?.heightCm ?? undefined;
+  }
+
   // Create the outfit row — this is where item-ownership is verified. If
   // any item isn't owned, we refuse before reaching the AI.
   const created = await createWardrobeOutfit(userId, {
     title: payload.title,
     occasion: payload.occasion,
+    userHeightCm: effectiveHeightCm,
     items: payload.items,
   });
   if (!created.ok) {

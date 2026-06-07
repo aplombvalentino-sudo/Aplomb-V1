@@ -61,19 +61,31 @@ function buildPrompt(input: TryOnInput): string {
   const pieces = input.items
     .map((it, i) => {
       const tag = it.label ?? it.category ?? it.position;
-      return `Image ${i + 2} is the ${it.position}${tag && tag !== it.position ? ` ("${tag}")` : ""}.`;
+      const sizeBit = it.size ? `, owned in size ${it.size}` : "";
+      return `Image ${i + 2} is the ${it.position}${tag && tag !== it.position ? ` ("${tag}")` : ""}${sizeBit}.`;
     })
     .join(" ");
+
+  // Height is a strong fit signal: a "M" on 165cm hangs short; on 195cm
+  // the same M is cropped. Surface it so the model can adjust drape +
+  // proportion. If unknown, we just omit the line.
+  const heightLine = input.userHeightCm
+    ? `The person in image 1 is ${input.userHeightCm} cm tall — render garment proportions accordingly (length, sleeve drop, hem position).`
+    : "";
 
   return `Image 1 is a real photograph of a person. Replace the clothing they are wearing with the items shown in the following images, keeping every other aspect of the photograph the same.
 
 ${pieces}
 
+${heightLine}
+
 Hard requirements:
 - KEEP the person's face, skin tone, body proportions, hair, and pose EXACTLY as they are in image 1.
 - KEEP the original background and lighting from image 1.
 - The clothing items must fit the person's body naturally — realistic folds, shadows, drape, and seams.
-- Do not invent new garments. Use only the pieces shown in the supplied item images. If a piece does not naturally fit the person's silhouette (e.g. a child-sized item on an adult), scale it sensibly rather than refusing.
+- Take the stated SIZE of each piece into account when rendering fit: a smaller size sits closer to the body, larger sizes drape looser with more excess fabric at the hem and sleeves.
+- Take the stated HEIGHT of the person into account when positioning hems, sleeve ends, and overall proportion.
+- Do not invent new garments. Use only the pieces shown in the supplied item images. If a piece does not naturally fit the person's silhouette, scale it sensibly rather than refusing.
 - Produce a single, photorealistic image at high quality.
 
 Output: one image. No text.`;

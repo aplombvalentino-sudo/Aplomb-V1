@@ -168,6 +168,11 @@ export const falTryOnProvider: TryOnProvider = {
           model: "fashn/tryon/v1.6",
           garmentCalls: garments.length,
           skipped: sortedItems.length - garments.length,
+          // FASHN doesn't accept size or user-height inputs directly —
+          // record them on the row anyway so quality regressions or
+          // re-runs can correlate against them later.
+          userHeightCm: input.userHeightCm ?? null,
+          sizes: garments.map((g) => ({ position: g.position, size: g.size ?? null })),
         },
       };
     } catch (e) {

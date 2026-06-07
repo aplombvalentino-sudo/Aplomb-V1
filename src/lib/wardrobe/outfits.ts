@@ -24,6 +24,9 @@ export type WardrobeOutfitListEntry = {
   /** Pre-signed URL of the AI-generated image (null until status === ready). */
   generatedImageUrl: string | null;
   generationStatus: WardrobeOutfitGenerationStatus;
+  /** User's height snapshot at generation time (cm). Null on legacy
+   *  outfits and on drafts that haven't run a try-on yet. */
+  userHeightCm: number | null;
   items: Array<{
     id: string;             // outfit-item row id
     position: string;
@@ -32,6 +35,8 @@ export type WardrobeOutfitListEntry = {
     nickname: string | null;
     brand: string | null;
     sourceType: "certified" | "user_photo";
+    /** Size snapshot at outfit-build time. */
+    size: string | null;
     /** Pre-signed URL (user_photo) or public product CDN URL (certified). */
     thumbUrl: string | null;
   }>;
@@ -90,6 +95,7 @@ export async function listWardrobeOutfits(
     title: o.title,
     occasion: o.occasion,
     createdAt: o.createdAt,
+    userHeightCm: o.userHeightCm,
     generatedImageUrl: o.generatedImagePath
       ? signedTryon.get(o.generatedImagePath) ?? null
       : null,
@@ -111,6 +117,7 @@ export async function listWardrobeOutfits(
         nickname: wi.nickname,
         brand: wi.brand,
         sourceType: wi.sourceType,
+        size: oi.size,
         thumbUrl,
       };
     }),
@@ -180,6 +187,7 @@ export async function getWardrobeOutfit(
     title: o.title,
     occasion: o.occasion,
     createdAt: o.createdAt,
+    userHeightCm: o.userHeightCm,
     generatedImageUrl: generatedUrl,
     generationStatus: o.generationStatus as WardrobeOutfitGenerationStatus,
     generationError: o.generationError,
@@ -202,6 +210,7 @@ export async function getWardrobeOutfit(
         nickname: wi.nickname,
         brand: wi.brand,
         sourceType: wi.sourceType,
+        size: oi.size,
         thumbUrl,
       };
     }),
@@ -222,6 +231,10 @@ async function safeSignTryon(path: string): Promise<string | null> {
 export type CreateOutfitInput = {
   title: string;
   occasion?: string;
+  /** Self-reported user height (cm) at outfit-build time. Optional in the
+   *  schema for legacy compatibility, but the wardrobe-driven try-on
+   *  endpoint REQUIRES it from new shoppers — see runWardrobeTryOn. */
+  userHeightCm?: number;
   items: Array<{ wardrobeItemId: string; position: string }>;
 };
 
@@ -243,18 +256,21 @@ export async function createWardrobeOutfit(
     return { ok: false, reason: "no_items" };
   }
 
-  // Ownership check — pull the user's actual wardrobe item IDs and compare.
-  const userItemIds = await db.wardrobeItem.findMany({
+  // Ownership check — pull the user's actual wardrobe items AND their
+  // current sizes in one query. Size is snapshotted onto the outfit-item
+  // row at this moment so editing the wardrobe later doesn't rewrite
+  // history on every outfit that used the piece.
+  const ownedItems = await db.wardrobeItem.findMany({
     where: {
       userId,
       id: { in: input.items.map((i) => i.wardrobeItemId) },
     },
-    select: { id: true },
+    select: { id: true, size: true },
   });
-  const owned = new Set(userItemIds.map((r) => r.id));
+  const ownedById = new Map(ownedItems.map((r) => [r.id, r]));
   const missing = input.items
     .map((i) => i.wardrobeItemId)
-    .filter((id) => !owned.has(id));
+    .filter((id) => !ownedById.has(id));
   if (missing.length > 0) {
     return { ok: false, reason: "items_not_owned", missingIds: missing };
   }
@@ -265,6 +281,7 @@ export async function createWardrobeOutfit(
         userId,
         title: input.title,
         occasion: input.occasion,
+        userHeightCm: input.userHeightCm,
       },
       select: { id: true },
     });
@@ -273,6 +290,7 @@ export async function createWardrobeOutfit(
         outfitId: o.id,
         wardrobeItemId: i.wardrobeItemId,
         position: i.position,
+        size: ownedById.get(i.wardrobeItemId)?.size ?? null,
       })),
     });
     return o;

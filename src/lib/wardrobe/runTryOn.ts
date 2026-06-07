@@ -112,30 +112,39 @@ export async function runWardrobeTryOn(
     data: { generationStatus: "generating", generationError: null },
   });
 
-  // Pull the items + their image refs in one query.
-  const outfitItems = await db.wardrobeOutfitItem.findMany({
-    where: { outfitId, outfit: { userId } },
-    orderBy: { createdAt: "asc" },
-    include: {
-      wardrobeItem: {
-        select: {
-          sourceType: true,
-          processedAssetPath: true,
-          frontImagePath: true,
-          category: true,
-          nickname: true,
-          brand: true,
-          product: { select: { imageUrl: true } },
+  // Pull the items + the outfit's snapshotted height in one query each.
+  const [outfitItems, outfitMeta] = await Promise.all([
+    db.wardrobeOutfitItem.findMany({
+      where: { outfitId, outfit: { userId } },
+      orderBy: { createdAt: "asc" },
+      include: {
+        wardrobeItem: {
+          select: {
+            sourceType: true,
+            processedAssetPath: true,
+            frontImagePath: true,
+            category: true,
+            nickname: true,
+            brand: true,
+            product: { select: { imageUrl: true } },
+          },
         },
       },
-    },
-  });
+    }),
+    db.wardrobeOutfit.findUnique({
+      where: { id: outfitId },
+      select: { userHeightCm: true },
+    }),
+  ]);
   if (outfitItems.length === 0) {
     await markFailed(outfitId, "Outfit has no items to try on.");
     return { ok: false, reason: "Outfit has no items to try on." };
   }
 
   // Fetch every item image in parallel. One failure aborts the run.
+  // `size` is taken from the OUTFIT-ITEM row (a snapshot at build time),
+  // NOT the live wardrobe item, so re-rendering an old outfit uses the
+  // historical size even if the user has since edited the piece.
   let itemPayloads: TryOnItem[];
   try {
     const fetched = await Promise.all(
@@ -148,6 +157,7 @@ export async function runWardrobeTryOn(
           position: oi.position,
           category: wi.category ?? undefined,
           label: wi.nickname ?? wi.brand ?? undefined,
+          size: oi.size,
         } satisfies TryOnItem;
       }),
     );
@@ -173,12 +183,14 @@ export async function runWardrobeTryOn(
     data: { selfieImagePath: selfiePath },
   });
 
-  // Hand off to the active provider.
+  // Hand off to the active provider. userHeightCm is read off the
+  // outfit row (snapshotted at create time) — see WardrobeOutfit docstring.
   const provider = getActiveTryOnProvider();
   const result = await provider.generate({
     selfieBuffer: selfie.buffer,
     selfieMime: selfie.mime,
     items: itemPayloads,
+    userHeightCm: outfitMeta?.userHeightCm ?? null,
   });
 
   if (!result.success) {

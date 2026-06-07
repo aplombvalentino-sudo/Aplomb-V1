@@ -20,6 +20,8 @@ export type WardrobeGridItem = {
   color: string | null;
   brand: string | null;
   nickname: string | null;
+  /** Size the user owns the piece in. Null on legacy rows. */
+  size: string | null;
   processingStatus:
     | "pending_upload" | "processing" | "needs_review" | "ready" | "failed";
   usableInOutfit: boolean;
@@ -230,11 +232,19 @@ function WardrobeCard({ item }: { item: WardrobeGridItem }) {
         </button>
       </div>
 
-      {/* Card body */}
+      {/* Card body — size sits to the right of the name as a small badge.
+          Surfaces the most important AI-try-on input at a glance. */}
       <div className="px-3 py-2.5">
-        <p className="text-[13px] font-medium text-ink truncate">
-          {item.nickname || titleCase(item.category)}
-        </p>
+        <div className="flex items-baseline justify-between gap-2">
+          <p className="text-[13px] font-medium text-ink truncate">
+            {item.nickname || titleCase(item.category)}
+          </p>
+          {item.size && (
+            <span className="shrink-0 rounded-full bg-ink/[0.06] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] text-ink">
+              {item.size}
+            </span>
+          )}
+        </div>
         <p className="text-[11px] text-ink-subtle truncate">
           {item.brand || (item.sourceType === "user_photo" ? "Personal" : "Brand item")}
         </p>

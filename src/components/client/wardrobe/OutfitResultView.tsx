@@ -16,6 +16,7 @@ type ResultOutfit = {
   title: string;
   occasion: string | null;
   createdAt: string;
+  userHeightCm: number | null;
   generationStatus: Status;
   generationError: string | null;
   generationProvider: string | null;
@@ -29,6 +30,7 @@ type ResultOutfit = {
     nickname: string | null;
     brand: string | null;
     sourceType: "certified" | "user_photo";
+    size: string | null;
     thumbUrl: string | null;
   }>;
 };
@@ -257,9 +259,16 @@ function ItemsStrip({ outfit }: { outfit: ResultOutfit }) {
   if (outfit.items.length === 0) return null;
   return (
     <div className="rounded-2xl border border-hairline bg-surface p-5">
-      <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-subtle mb-4">
-        Pieces in this outfit
-      </p>
+      <div className="mb-4 flex items-baseline justify-between gap-3">
+        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-subtle">
+          Pieces in this outfit
+        </p>
+        {outfit.userHeightCm && (
+          <p className="text-[11px] text-ink-subtle">
+            Rendered for {outfit.userHeightCm} cm
+          </p>
+        )}
+      </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {outfit.items.map((it) => (
           <div key={it.id} className="space-y-1.5">
@@ -288,9 +297,16 @@ function ItemsStrip({ outfit }: { outfit: ResultOutfit }) {
                 {it.sourceType === "user_photo" ? "Mine" : "Brand"}
               </span>
             </div>
-            <p className="text-[12px] font-medium text-ink truncate">
-              {it.nickname || titleCase(it.category)}
-            </p>
+            <div className="flex items-baseline justify-between gap-2">
+              <p className="text-[12px] font-medium text-ink truncate">
+                {it.nickname || titleCase(it.category)}
+              </p>
+              {it.size && (
+                <span className="shrink-0 rounded-full bg-ink/[0.06] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.06em] text-ink">
+                  {it.size}
+                </span>
+              )}
+            </div>
             <p className="text-[10px] text-ink-subtle truncate">
               {it.brand || (it.sourceType === "user_photo" ? "Personal" : "Brand")}
             </p>

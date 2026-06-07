@@ -100,6 +100,9 @@ export type WardrobeItemListEntry = {
   color: string | null;
   brand: string | null;
   nickname: string | null;
+  /** The size the user owns the piece in (free-form: "M", "40", "L Tall"…).
+   *  Null for pre-existing rows from before the column was added. */
+  size: string | null;
   processingStatus:
     | "pending_upload" | "processing" | "needs_review" | "ready" | "failed";
   usableInOutfit: boolean;
@@ -122,6 +125,7 @@ export async function listWardrobeItems(
       color: true,
       brand: true,
       nickname: true,
+      size: true,
       processingStatus: true,
       processedAssetPath: true,
       frontImagePath: true,
@@ -164,6 +168,7 @@ export async function listWardrobeItems(
       color: r.color,
       brand: r.brand,
       nickname: r.nickname,
+      size: r.size,
       processingStatus: r.processingStatus,
       usableInOutfit: r.processingStatus === "ready",
       thumbUrl,

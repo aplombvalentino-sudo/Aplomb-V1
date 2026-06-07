@@ -62,6 +62,14 @@ model User {
   stripeCustomerId String? @unique @map("stripe_customer_id")
   clientPlan       String  @default("essential") @map("client_plan")
 
+  /// Self-reported height in centimeters. Used as an input to the wardrobe-
+  /// driven AI try-on so the model can render the selected size in
+  /// proportion to the user's body (long-on-short, oversized-on-tall, etc.).
+  /// Asked ONCE — either from the profile page or as a blocker in the first
+  /// try-on selfie step — then reused. Nullable so existing users don't
+  /// need a backfill; the try-on UI prompts when missing.
+  heightCm         Int?    @map("height_cm")
+
   accounts     Account[]
   sessions     Session[]
   brandUsers   BrandUser[]
@@ -416,6 +424,13 @@ model WardrobeItem {
   color             String?
   brand             String?
   nickname          String?
+  /// The size THIS user owns the piece in. Free-form so brands using
+  /// non-standard taxonomies (38/40, XS/S/M/L, "petite small") all fit.
+  /// New user_photo uploads require it via the CaptureFlow; certified
+  /// items inherit it from the selected ProductVariant. Pre-existing rows
+  /// (saved before this column shipped) stay nullable; UI shows them as
+  /// "size unknown" until edited.
+  size              String?
 
   /// Pipeline state. Only meaningful for user_photo items; certified items
   /// are written with `ready` directly. The wardrobe UI uses this to gate
@@ -466,6 +481,12 @@ model WardrobeOutfit {
   title     String
   occasion  String?
 
+  /// Snapshot of the user's height (cm) at the moment this outfit was
+  /// generated. Decoupled from User.heightCm so re-rendering an old outfit
+  /// uses the height the user actually had at generation time, not their
+  /// current value. Nullable for legacy outfits saved before this column.
+  userHeightCm       Int?    @map("user_height_cm")
+
   /// Private-bucket path to the SELFIE the user uploaded as the base
   /// image for the AI try-on. Never returned raw to clients — signed at
   /// read time, same posture as wardrobe-items photos.
@@ -501,6 +522,10 @@ model WardrobeOutfitItem {
   /// Logical slot for this item in the look. Free-form so the UI can evolve
   /// without a migration — typical values: "top", "bottom", "shoes", "accessory".
   position        String
+  /// Snapshot of the WardrobeItem.size at the time the outfit was built.
+  /// Decoupled from the live item so editing/replacing the wardrobe item
+  /// later doesn't rewrite history on every outfit that used it.
+  size            String?
   createdAt       DateTime @default(now()) @map("created_at")
 
   outfit       WardrobeOutfit @relation(fields: [outfitId], references: [id], onDelete: Cascade)

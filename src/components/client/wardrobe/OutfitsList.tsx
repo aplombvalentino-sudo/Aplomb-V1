@@ -27,6 +27,8 @@ export type OutfitListItem = {
     nickname: string | null;
     brand: string | null;
     sourceType: "certified" | "user_photo";
+    /** Size snapshot from outfit creation time. */
+    size: string | null;
     /** Pre-resolved server-side: signed Supabase URL for user_photo,
      *  public product CDN URL for certified. */
     thumbUrl: string | null;

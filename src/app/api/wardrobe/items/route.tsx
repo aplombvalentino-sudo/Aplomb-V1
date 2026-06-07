@@ -27,6 +27,10 @@ const createCertifiedSchema = z
     productId: zCuid,
     productVariantId: zCuid.optional(),
     nickname: z.string().min(1).max(80).optional(),
+    /** Free-form size the user owns this piece in (e.g. "M", "40").
+     *  If a productVariantId with a sizeLabel is supplied, the server
+     *  prefers that label and ignores this field. */
+    size: z.string().trim().min(1).max(40).optional(),
   })
   .strict();
 
@@ -90,15 +94,31 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Resolve the catalog product so we can copy its metadata onto the
-  // wardrobe row (so wardrobe display works even if the brand later
-  // hides/renames the product).
+  // Resolve the catalog product + (optionally) the picked variant so we
+  // can copy their metadata onto the wardrobe row — wardrobe display
+  // stays correct even if the brand later hides / renames the product.
   const product = await db.product.findUnique({
     where: { id: parsed.data.productId },
     include: { brand: { select: { name: true } } },
   });
   if (!product || !product.isActive) {
     return err("PRODUCT_NOT_AVAILABLE", "That product is no longer available.", 404);
+  }
+
+  // Pull the variant's sizeLabel when one was picked. If a variant is
+  // supplied, IT is the source of truth for size (prevents the client
+  // from stuffing arbitrary text). Otherwise fall back to the free-form
+  // `size` from the request body.
+  let resolvedSize: string | null = parsed.data.size ?? null;
+  if (parsed.data.productVariantId) {
+    const variant = await db.productVariant.findUnique({
+      where: { id: parsed.data.productVariantId },
+      select: { sizeLabel: true, productId: true },
+    });
+    if (!variant || variant.productId !== product.id) {
+      return err("VARIANT_INVALID", "That size isn't available for this product.", 400);
+    }
+    if (variant.sizeLabel) resolvedSize = variant.sizeLabel;
   }
 
   const item = await db.wardrobeItem.create({
@@ -111,6 +131,7 @@ export async function POST(req: NextRequest) {
       subcategory: product.subcategory,
       brand: product.brand.name,
       nickname: parsed.data.nickname,
+      size: resolvedSize,
       // Certified items skip the processing pipeline — we already have the
       // catalog image as the canonical asset.
       processingStatus: "ready",

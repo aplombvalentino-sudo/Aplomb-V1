@@ -35,6 +35,9 @@ export type BuilderItem = {
   color: string | null;
   brand: string | null;
   nickname: string | null;
+  /** Size the user owns the piece in. Shown on every picked item +
+   *  baked into the AI prompt so the try-on renders the right fit. */
+  size: string | null;
   processingStatus: string;
   usableInOutfit: boolean;
   /** Pre-resolved thumbnail URL from listWardrobeItems — signed for
@@ -69,7 +72,17 @@ const SLOT_ORDER: Slot[] = ["top", "bottom", "shoes", "accessory"];
 
 // ─── Main builder ────────────────────────────────────────────────────────────
 
-export function OutfitBuilder({ availableItems }: { availableItems: BuilderItem[] }) {
+export function OutfitBuilder({
+  availableItems,
+  initialHeightCm,
+}: {
+  availableItems: BuilderItem[];
+  /** Saved height from the user's profile. Empty when the user hasn't set
+   *  one yet — the selfie step then prompts. The server persists whatever
+   *  the user types here back to User.heightCm so the next try-on can
+   *  skip the prompt. */
+  initialHeightCm: number | null;
+}) {
   const router = useRouter();
   const [step, setStep] = useState<BuilderStep>("items");
   const [title, setTitle] = useState("");
@@ -83,6 +96,12 @@ export function OutfitBuilder({ availableItems }: { availableItems: BuilderItem[
 
   // Selfie state — captured by the SelfieStep child.
   const [selfieFile, setSelfieFile] = useState<File | null>(null);
+
+  // Height in cm. Pre-fills from the user's profile when present; the
+  // selfie step prompts when missing.
+  const [heightCm, setHeightCm] = useState<string>(
+    initialHeightCm ? String(initialHeightCm) : "",
+  );
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -127,6 +146,22 @@ export function OutfitBuilder({ availableItems }: { availableItems: BuilderItem[
       setError("Please add a selfie first.");
       return;
     }
+    // Height: parse + validate. Strict enough to refuse garbage but loose
+    // enough to accept "175", "175cm", "1.75" → all read as 175 cm.
+    const heightTrimmed = heightCm.trim();
+    const heightInt = (() => {
+      const cleaned = heightTrimmed.replace(/[^\d.]/g, "");
+      if (!cleaned) return null;
+      const asFloat = parseFloat(cleaned);
+      if (!Number.isFinite(asFloat)) return null;
+      // "1.75" → 175 cm (user typed meters by accident).
+      const value = asFloat < 3 ? Math.round(asFloat * 100) : Math.round(asFloat);
+      return value >= 100 && value <= 250 ? value : null;
+    })();
+    if (!heightInt) {
+      setError("Please enter your height in cm so the AI can render the fit (between 100 and 250).");
+      return;
+    }
     setError("");
     setSubmitting(true);
     setStep("generating");
@@ -142,6 +177,7 @@ export function OutfitBuilder({ availableItems }: { availableItems: BuilderItem[
         JSON.stringify({
           title: title.trim(),
           occasion: occasion.trim() || undefined,
+          userHeightCm: heightInt,
           items,
         }),
       );
@@ -289,6 +325,9 @@ export function OutfitBuilder({ availableItems }: { availableItems: BuilderItem[
             picked={picked}
             selfieFile={selfieFile}
             onSelfie={(f) => setSelfieFile(f)}
+            heightCm={heightCm}
+            onHeight={setHeightCm}
+            heightPrefilled={Boolean(initialHeightCm)}
             onBack={() => setStep("items")}
             onGenerate={handleGenerate}
             submitting={submitting}
@@ -495,6 +534,9 @@ function SelfieStep({
   picked,
   selfieFile,
   onSelfie,
+  heightCm,
+  onHeight,
+  heightPrefilled,
   onBack,
   onGenerate,
   submitting,
@@ -503,6 +545,9 @@ function SelfieStep({
   picked: Array<{ slot: Slot; item: BuilderItem }>;
   selfieFile: File | null;
   onSelfie: (f: File | null) => void;
+  heightCm: string;
+  onHeight: (v: string) => void;
+  heightPrefilled: boolean;
   onBack: () => void;
   onGenerate: () => void;
   submitting: boolean;
@@ -607,7 +652,36 @@ function SelfieStep({
         />
       </div>
 
-      {/* What we're about to try on */}
+      {/* Height — required, baked into the AI prompt so the size renders
+          in proportion to your body. Pre-filled from profile when set. */}
+      <div className="rounded-2xl border border-hairline bg-surface p-4">
+        <label className="block text-[11px] font-medium uppercase tracking-[0.14em] text-ink-subtle mb-2">
+          Your height
+        </label>
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            inputMode="decimal"
+            value={heightCm}
+            onChange={(e) => onHeight(e.target.value)}
+            placeholder="e.g. 175"
+            className="w-32 rounded-xl border border-hairline-strong bg-white px-3 py-2 text-[14px] text-ink
+                       placeholder:text-ink-subtle focus:border-ink focus:outline-none focus:ring-1 focus:ring-ink
+                       transition-colors duration-200"
+          />
+          <span className="text-[13px] text-ink-muted">cm</span>
+          {heightPrefilled && (
+            <span className="ml-auto text-[11px] text-ink-subtle">From your profile · edit if needed</span>
+          )}
+        </div>
+        <p className="mt-2 text-[12px] text-ink-subtle">
+          The AI uses your height to render the size correctly on your body —
+          a M on 165cm hangs differently than a M on 190cm.
+        </p>
+      </div>
+
+      {/* What we're about to try on — each picked item shows its size so
+          you can verify before generating. */}
       <div className="rounded-2xl border border-hairline bg-surface p-4">
         <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-subtle mb-3">
           You&apos;ll be wearing
@@ -617,6 +691,18 @@ function SelfieStep({
             <PickedThumb key={p.slot} item={p.item} />
           ))}
         </div>
+        <ul className="mt-4 space-y-1 text-[12px] text-ink-muted">
+          {picked.map((p) => (
+            <li key={p.slot} className="flex items-center justify-between gap-3">
+              <span className="truncate">
+                {SLOT_LABELS[p.slot]}: {p.item.nickname || titleCase(p.item.category)}
+              </span>
+              <span className="shrink-0 rounded-full bg-ink/[0.06] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] text-ink">
+                {p.item.size ?? "no size"}
+              </span>
+            </li>
+          ))}
+        </ul>
       </div>
 
       {error && (

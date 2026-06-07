@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
 import { listWardrobeItems } from "@/lib/wardrobe/items";
 import { Logo } from "@/components/brand/Logo";
 import { OutfitBuilder } from "@/components/client/wardrobe/OutfitBuilder";
@@ -22,7 +23,15 @@ export default async function NewOutfitPage() {
     redirect("/login?callbackUrl=/app/outfits/new");
   }
 
-  const items = await listWardrobeItems(session.user.id);
+  // Fetch wardrobe + the user's saved height in parallel — height pre-fills
+  // the selfie step so returning users don't get re-prompted.
+  const [items, user] = await Promise.all([
+    listWardrobeItems(session.user.id),
+    db.user.findUnique({
+      where: { id: session.user.id },
+      select: { heightCm: true },
+    }),
+  ]);
   const usable = items.filter((i) => i.usableInOutfit);
 
   // Bail if the wardrobe is empty — no point rendering an empty picker.
@@ -58,7 +67,7 @@ export default async function NewOutfitPage() {
       </header>
 
       <main className="mx-auto max-w-3xl px-6 py-12">
-        <OutfitBuilder availableItems={serialised} />
+        <OutfitBuilder availableItems={serialised} initialHeightCm={user?.heightCm ?? null} />
       </main>
     </div>
   );
