@@ -1,13 +1,29 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 
 const ease = [0.16, 1, 0.3, 1] as const;
+
+/**
+ * Multistep flow:
+ *   "items"      → pick wardrobe pieces, name the outfit
+ *   "selfie"     → capture or upload the photo we'll put the outfit on
+ *   "generating" → fire the AI request (selfie + items) and wait for the
+ *                  generated try-on image. On success we navigate the user
+ *                  to /app/outfits/[id] where the result page renders the
+ *                  hero image; on failure we fall back to the same page
+ *                  (status=failed) so the user can re-try with a new selfie.
+ *
+ * The outfit row + storage objects are created server-side atomically in
+ * POST /api/outfits/wardrobe/try-on — see that route's docstring for the
+ * full pipeline.
+ */
+type BuilderStep = "items" | "selfie" | "generating";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -55,6 +71,7 @@ const SLOT_ORDER: Slot[] = ["top", "bottom", "shoes", "accessory"];
 
 export function OutfitBuilder({ availableItems }: { availableItems: BuilderItem[] }) {
   const router = useRouter();
+  const [step, setStep] = useState<BuilderStep>("items");
   const [title, setTitle] = useState("");
   const [occasion, setOccasion] = useState("");
 
@@ -63,6 +80,9 @@ export function OutfitBuilder({ availableItems }: { availableItems: BuilderItem[
 
   // Which slot is currently expanded to the picker. Null = nothing open.
   const [openSlot, setOpenSlot] = useState<Slot | null>(null);
+
+  // Selfie state — captured by the SelfieStep child.
+  const [selfieFile, setSelfieFile] = useState<File | null>(null);
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -82,116 +102,202 @@ export function OutfitBuilder({ availableItems }: { availableItems: BuilderItem[
     });
   }
 
-  async function handleSave() {
+  function goToSelfie() {
+    setError("");
     if (!title.trim()) {
       setError("Give your outfit a name first.");
       return;
     }
     if (itemCount === 0) {
-      setError("Add at least one item to save this outfit.");
+      setError("Pick at least one item to try on.");
       return;
     }
+    setStep("selfie");
+  }
 
+  /**
+   * Fire the atomic create-and-try-on request. On success the outfit row,
+   * selfie upload, AI generation, and stored result all land together —
+   * we just navigate to /app/outfits/[id]. On AI failure the row still
+   * exists (status=failed) so we navigate to it anyway and let the result
+   * page show the error + a "Try again" affordance.
+   */
+  async function handleGenerate() {
+    if (!selfieFile) {
+      setError("Please add a selfie first.");
+      return;
+    }
     setError("");
     setSubmitting(true);
+    setStep("generating");
     try {
       const items = SLOT_ORDER
         .filter((s) => picks[s])
         .map((s) => ({ wardrobeItemId: picks[s]!.id, position: s }));
 
-      const res = await fetch("/api/outfits/wardrobe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      const form = new FormData();
+      form.set("selfie", selfieFile);
+      form.set(
+        "payload",
+        JSON.stringify({
           title: title.trim(),
           occasion: occasion.trim() || undefined,
           items,
         }),
+      );
+
+      const res = await fetch("/api/outfits/wardrobe/try-on", {
+        method: "POST",
+        body: form,
       });
       const json = await res.json();
-      if (!json.success) {
-        setError(json.error?.message ?? "Could not save this outfit.");
+
+      // The route returns `outfitId` on success AND on TRYON_FAILED — both
+      // cases mean the row exists. Navigate to the detail page either way.
+      const outfitId: string | undefined =
+        json?.data?.outfitId ?? json?.error?.outfitId;
+
+      if (!json?.success && !outfitId) {
+        setError(json?.error?.message ?? "Could not start the try-on.");
         setSubmitting(false);
+        setStep("selfie");
         return;
       }
-      router.push("/app/outfits");
-      router.refresh();
+
+      if (outfitId) {
+        router.push(`/app/outfits/${outfitId}`);
+        router.refresh();
+        return;
+      }
+
+      // Unknown shape — be defensive.
+      setError("Unexpected response from the try-on service.");
+      setStep("selfie");
+      setSubmitting(false);
     } catch {
-      setError("Unexpected error. Please try again.");
+      setError("Network error. Please try again.");
+      setStep("selfie");
       setSubmitting(false);
     }
   }
 
+  // Picked items, in slot order — used by Selfie + Generating steps.
+  const picked = SLOT_ORDER.filter((s) => picks[s]).map((s) => ({ slot: s, item: picks[s]! }));
+
   return (
     <div className="space-y-10">
-      {/* Heading */}
-      <div>
-        <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-ink-subtle">
-          New outfit
-        </p>
-        <h1 className="mt-2 font-serif text-[clamp(2rem,4vw,2.4rem)] font-medium leading-[1.05] tracking-[-0.02em] text-ink">
-          Build an <em className="italic">outfit</em>
-          <span className="text-accent">.</span>
-        </h1>
-        <p className="mt-3 text-[14px] text-ink-muted max-w-[52ch]">
-          Build an outfit from the clothing items you already own and the
-          certified brand pieces saved in your wardrobe. Combine a top, a
-          bottom, shoes and a finishing accessory.
-        </p>
+      {/* Progress dots — three steps */}
+      <div className="flex items-center gap-2">
+        {(["items", "selfie", "generating"] as BuilderStep[]).map((s, i) => {
+          const active = ["items", "selfie", "generating"].indexOf(step) >= i;
+          return (
+            <span
+              key={s}
+              className={`h-1.5 rounded-full transition-all duration-300 ${
+                active ? "w-6 bg-ink" : "w-1.5 bg-ink/15"
+              }`}
+              aria-hidden
+            />
+          );
+        })}
       </div>
 
-      {/* Title + occasion */}
-      <div className="space-y-4">
-        <Input
-          label="Outfit name"
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="e.g. Sunday brunch"
-          maxLength={120}
-        />
-        <Input
-          label="Occasion (optional)"
-          type="text"
-          value={occasion}
-          onChange={(e) => setOccasion(e.target.value)}
-          placeholder="e.g. Weekend, Office day, Dinner"
-          maxLength={120}
-        />
-      </div>
+      <AnimatePresence mode="wait">
+        {step === "items" && (
+          <motion.section
+            key="items"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.35, ease }}
+            className="space-y-10"
+          >
+            {/* Heading */}
+            <div>
+              <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-ink-subtle">
+                Step 1 of 3 · Pick pieces
+              </p>
+              <h1 className="mt-2 font-serif text-[clamp(2rem,4vw,2.4rem)] font-medium leading-[1.05] tracking-[-0.02em] text-ink">
+                Build an <em className="italic">outfit</em>
+                <span className="text-accent">.</span>
+              </h1>
+              <p className="mt-3 text-[14px] text-ink-muted max-w-[52ch]">
+                Pick pieces from your wardrobe — your own clothes and certified
+                brand items mix freely. Next step: take a selfie and we&apos;ll
+                generate a picture of you wearing this outfit.
+              </p>
+            </div>
 
-      {/* Slots — rendered top → bottom → shoes → accessory */}
-      <div className="space-y-3">
-        {SLOT_ORDER.map((slot) => (
-          <SlotRow
-            key={slot}
-            slot={slot}
-            picked={picks[slot] ?? null}
-            isOpen={openSlot === slot}
-            availableItems={availableItems.filter((i) =>
-              SLOT_RULES[slot].includes(i.category),
+            {/* Title + occasion */}
+            <div className="space-y-4">
+              <Input
+                label="Outfit name"
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g. Sunday brunch"
+                maxLength={120}
+              />
+              <Input
+                label="Occasion (optional)"
+                type="text"
+                value={occasion}
+                onChange={(e) => setOccasion(e.target.value)}
+                placeholder="e.g. Weekend, Office day, Dinner"
+                maxLength={120}
+              />
+            </div>
+
+            {/* Slots */}
+            <div className="space-y-3">
+              {SLOT_ORDER.map((slot) => (
+                <SlotRow
+                  key={slot}
+                  slot={slot}
+                  picked={picks[slot] ?? null}
+                  isOpen={openSlot === slot}
+                  availableItems={availableItems.filter((i) =>
+                    SLOT_RULES[slot].includes(i.category),
+                  )}
+                  onToggle={() => setOpenSlot((cur) => (cur === slot ? null : slot))}
+                  onPick={(item) => pick(slot, item)}
+                  onClear={() => clear(slot)}
+                />
+              ))}
+            </div>
+
+            {error && (
+              <div className="rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">
+                {error}
+              </div>
             )}
-            onToggle={() => setOpenSlot((cur) => (cur === slot ? null : slot))}
-            onPick={(item) => pick(slot, item)}
-            onClear={() => clear(slot)}
+
+            <div className="flex items-center gap-3">
+              <Button onClick={goToSelfie} disabled={itemCount === 0 || !title.trim()}>
+                Next — take a selfie
+              </Button>
+              <span className="text-[12px] text-ink-subtle">
+                {itemCount} {itemCount === 1 ? "item" : "items"} selected
+              </span>
+            </div>
+          </motion.section>
+        )}
+
+        {step === "selfie" && (
+          <SelfieStep
+            key="selfie"
+            picked={picked}
+            selfieFile={selfieFile}
+            onSelfie={(f) => setSelfieFile(f)}
+            onBack={() => setStep("items")}
+            onGenerate={handleGenerate}
+            submitting={submitting}
+            error={error}
           />
-        ))}
-      </div>
+        )}
 
-      {error && (
-        <div className="rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
-      )}
-
-      <div className="flex items-center gap-3">
-        <Button onClick={handleSave} loading={submitting} disabled={itemCount === 0 || !title.trim()}>
-          Save outfit
-        </Button>
-        <span className="text-[12px] text-ink-subtle">
-          {itemCount} {itemCount === 1 ? "item" : "items"} selected
-        </span>
-      </div>
+        {step === "generating" && <GeneratingStep key="generating" picked={picked} />}
+      </AnimatePresence>
     </div>
   );
 }
@@ -378,6 +484,258 @@ function PickableItem({
       </div>
     </button>
   );
+}
+
+// ─── Step 2: Selfie capture ────────────────────────────────────────────────
+
+const MAX_SELFIE_BYTES = 8 * 1024 * 1024;
+const ACCEPTED_SELFIE_MIME = ["image/jpeg", "image/png", "image/webp"];
+
+function SelfieStep({
+  picked,
+  selfieFile,
+  onSelfie,
+  onBack,
+  onGenerate,
+  submitting,
+  error,
+}: {
+  picked: Array<{ slot: Slot; item: BuilderItem }>;
+  selfieFile: File | null;
+  onSelfie: (f: File | null) => void;
+  onBack: () => void;
+  onGenerate: () => void;
+  submitting: boolean;
+  error: string;
+}) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const [reject, setReject] = useState<string>("");
+  const url = useObjectUrl(selfieFile);
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0] ?? null;
+    setReject("");
+    if (!f) {
+      onSelfie(null);
+      return;
+    }
+    if (f.size > MAX_SELFIE_BYTES) {
+      setReject("Selfie must be under 8 MB.");
+      return;
+    }
+    if (!ACCEPTED_SELFIE_MIME.includes(f.type)) {
+      setReject("Selfie must be JPEG, PNG, or WebP.");
+      return;
+    }
+    onSelfie(f);
+  }
+
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      transition={{ duration: 0.35, ease }}
+      className="space-y-8"
+    >
+      <div>
+        <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-ink-subtle">
+          Step 2 of 3 · Your selfie
+        </p>
+        <h1 className="mt-2 font-serif text-[clamp(2rem,4vw,2.4rem)] font-medium leading-[1.05] tracking-[-0.02em] text-ink">
+          Add a picture of <em className="italic">you</em>
+          <span className="text-accent">.</span>
+        </h1>
+        <p className="mt-3 text-[14px] text-ink-muted max-w-[52ch]">
+          The AI uses your photo as the base and dresses you in the pieces you
+          picked. Full body in a simple pose works best — face visible,
+          plain background, even daylight.
+        </p>
+      </div>
+
+      <ul className="space-y-2 text-[13px] text-ink">
+        <BulletLi>Stand against a plain wall in daylight</BulletLi>
+        <BulletLi>Full body, face visible, arms relaxed</BulletLi>
+        <BulletLi>Wear close-fitting clothes so the AI sees your silhouette</BulletLi>
+      </ul>
+
+      {/* Picker tile */}
+      <div>
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          className={`relative w-full overflow-hidden rounded-xl border bg-white transition-all duration-200 ${
+            selfieFile ? "border-ink" : "border-dashed border-black/20 hover:border-black/40"
+          }`}
+          style={{ aspectRatio: "3 / 4" }}
+        >
+          {url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={url} alt="Selfie preview" className="absolute inset-0 h-full w-full object-cover" />
+          ) : (
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <rect x="3" y="6" width="18" height="14" rx="2" stroke="#6B6965" strokeWidth="1.5" />
+                <circle cx="12" cy="13" r="3.5" stroke="#6B6965" strokeWidth="1.5" />
+                <path d="M7 6l1.5-2h7L17 6" stroke="#6B6965" strokeWidth="1.5" strokeLinejoin="round" />
+              </svg>
+              <p className="mt-3 text-[13px] font-medium text-ink">Add selfie</p>
+              <p className="mt-0.5 text-[11px] text-ink-subtle">JPEG / PNG / WebP, up to 8 MB</p>
+            </div>
+          )}
+        </button>
+        {selfieFile && (
+          <button
+            type="button"
+            onClick={() => {
+              onSelfie(null);
+              if (inputRef.current) inputRef.current.value = "";
+            }}
+            className="mt-2 text-[12px] text-ink-subtle hover:text-ink transition-colors underline underline-offset-2"
+          >
+            Replace selfie
+          </button>
+        )}
+        {reject && <p className="mt-2 text-[11px] text-[#C9653B]">{reject}</p>}
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          capture="user"
+          className="hidden"
+          onChange={handleChange}
+        />
+      </div>
+
+      {/* What we're about to try on */}
+      <div className="rounded-2xl border border-hairline bg-surface p-4">
+        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-subtle mb-3">
+          You&apos;ll be wearing
+        </p>
+        <div className="grid grid-cols-4 gap-2">
+          {picked.map((p) => (
+            <PickedThumb key={p.slot} item={p.item} />
+          ))}
+        </div>
+      </div>
+
+      {error && (
+        <div className="rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={onBack}
+          disabled={submitting}
+          className="rounded-full border border-hairline-strong bg-white px-5 py-2.5 text-sm
+                     font-medium text-ink-muted hover:bg-white/80 transition-all duration-200
+                     disabled:opacity-50"
+        >
+          Back
+        </button>
+        <Button onClick={onGenerate} disabled={!selfieFile || submitting} loading={submitting}>
+          Generate try-on
+        </Button>
+      </div>
+    </motion.section>
+  );
+}
+
+function PickedThumb({ item }: { item: BuilderItem }) {
+  const url = item.thumbUrl;
+  return (
+    <div className="relative aspect-[3/4] rounded-lg overflow-hidden bg-[#F6F3EE] ring-1 ring-black/[0.06]">
+      {url ? (
+        <Image
+          src={url}
+          alt={item.nickname || item.category}
+          fill
+          sizes="80px"
+          className="object-cover"
+        />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center text-[9px] uppercase tracking-[0.1em] text-ink-subtle">
+          {item.category}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function BulletLi({ children }: { children: React.ReactNode }) {
+  return (
+    <li className="flex items-start gap-2.5 leading-relaxed">
+      <span aria-hidden className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-[#C9A882]" />
+      <span>{children}</span>
+    </li>
+  );
+}
+
+// ─── Step 3: Generating (waiting on the AI) ────────────────────────────────
+
+function GeneratingStep({ picked }: { picked: Array<{ slot: Slot; item: BuilderItem }> }) {
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      transition={{ duration: 0.35, ease }}
+      className="space-y-8"
+    >
+      <div>
+        <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-ink-subtle">
+          Step 3 of 3 · Generating
+        </p>
+        <h1 className="mt-2 font-serif text-[clamp(2rem,4vw,2.4rem)] font-medium leading-[1.05] tracking-[-0.02em] text-ink">
+          Putting the outfit <em className="italic">on you</em>
+          <span className="text-accent">…</span>
+        </h1>
+        <p className="mt-3 text-[14px] text-ink-muted max-w-[52ch]">
+          The AI is rendering you in {picked.length} {picked.length === 1 ? "piece" : "pieces"}.
+          This usually takes 15–30 seconds. We&apos;ll take you to the result
+          as soon as it&apos;s ready.
+        </p>
+      </div>
+
+      {/* Indeterminate progress bar */}
+      <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-ink/[0.06]">
+        <motion.span
+          className="absolute inset-y-0 left-0 w-1/3 rounded-full bg-accent"
+          animate={{ x: ["-100%", "300%"] }}
+          transition={{ duration: 1.6, repeat: Infinity, ease: "linear" }}
+        />
+      </div>
+
+      <div className="rounded-2xl border border-hairline bg-surface p-4">
+        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-subtle mb-3">
+          We&apos;re dressing you in
+        </p>
+        <div className="grid grid-cols-4 gap-2">
+          {picked.map((p) => (
+            <PickedThumb key={p.slot} item={p.item} />
+          ))}
+        </div>
+      </div>
+    </motion.section>
+  );
+}
+
+/** Object URL for File preview; revoked on unmount. */
+function useObjectUrl(file: File | null): string | null {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (!file) {
+      setUrl(null);
+      return;
+    }
+    const u = URL.createObjectURL(file);
+    setUrl(u);
+    return () => URL.revokeObjectURL(u);
+  }, [file]);
+  return url;
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────

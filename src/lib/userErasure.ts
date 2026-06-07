@@ -2,6 +2,7 @@ import "server-only";
 import { db } from "@/lib/db";
 import { deleteBodyScan } from "@/lib/ai/storage";
 import { deleteWardrobePhoto } from "@/lib/wardrobe/storage";
+import { deleteOutfitTryonObjects } from "@/lib/wardrobe/tryonStorage";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 
 /**
@@ -95,6 +96,22 @@ export async function eraseUser(userId: string): Promise<EraseResult> {
     if (w.processedAssetPath) {
       await deleteWardrobePhoto(w.processedAssetPath);
       deletedPhotos++;
+    }
+  }
+
+  // ── 3c. Wardrobe outfit try-on objects (selfies + AI-generated images)
+  // Same posture: scrub storage first, then let the DB row cascade away
+  // with the User below. We delete by listing the per-outfit prefix so a
+  // single call removes both selfie + generated for each outfit.
+  const outfits = await db.wardrobeOutfit.findMany({
+    where: { userId },
+    select: { id: true, selfieImagePath: true, generatedImagePath: true },
+  });
+  for (const o of outfits) {
+    if (o.selfieImagePath || o.generatedImagePath) {
+      await deleteOutfitTryonObjects(userId, o.id);
+      if (o.selfieImagePath) deletedPhotos++;
+      if (o.generatedImagePath) deletedPhotos++;
     }
   }
 

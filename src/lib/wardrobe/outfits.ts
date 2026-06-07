@@ -2,6 +2,7 @@ import "server-only";
 
 import { db } from "@/lib/db";
 import { getSignedWardrobeUrls } from "@/lib/wardrobe/storage";
+import { getSignedTryonUrls, getSignedTryonUrl } from "@/lib/wardrobe/tryonStorage";
 
 /**
  * Wardrobe-driven outfit storage. Each outfit belongs to the user, references
@@ -12,11 +13,17 @@ import { getSignedWardrobeUrls } from "@/lib/wardrobe/storage";
 
 // ─── List helpers ────────────────────────────────────────────────────────────
 
+export type WardrobeOutfitGenerationStatus =
+  | "none" | "pending" | "generating" | "ready" | "failed";
+
 export type WardrobeOutfitListEntry = {
   id: string;
   title: string;
   occasion: string | null;
   createdAt: Date;
+  /** Pre-signed URL of the AI-generated image (null until status === ready). */
+  generatedImageUrl: string | null;
+  generationStatus: WardrobeOutfitGenerationStatus;
   items: Array<{
     id: string;             // outfit-item row id
     position: string;
@@ -71,11 +78,22 @@ export async function listWardrobeOutfits(
   }
   const signed = await getSignedWardrobeUrls(pathsToSign);
 
+  // Same batch-sign trick for the AI-generated outfit hero images — one
+  // Supabase call covers the whole list page.
+  const tryonPaths = rows
+    .map((o) => o.generatedImagePath)
+    .filter((p): p is string => Boolean(p));
+  const signedTryon = await getSignedTryonUrls(tryonPaths);
+
   return rows.map((o) => ({
     id: o.id,
     title: o.title,
     occasion: o.occasion,
     createdAt: o.createdAt,
+    generatedImageUrl: o.generatedImagePath
+      ? signedTryon.get(o.generatedImagePath) ?? null
+      : null,
+    generationStatus: o.generationStatus as WardrobeOutfitGenerationStatus,
     items: o.items.map((oi) => {
       const wi = oi.wardrobeItem;
       let thumbUrl: string | null = null;
@@ -97,6 +115,106 @@ export async function listWardrobeOutfits(
       };
     }),
   }));
+}
+
+// ─── Single outfit (detail view) ─────────────────────────────────────────────
+
+export type WardrobeOutfitDetail = WardrobeOutfitListEntry & {
+  /** Pre-signed URL of the user's selfie, used for "remix this with a
+   *  new selfie" UI. Null when the outfit was created without a selfie
+   *  (legacy outfits saved before AI try-on shipped). */
+  selfieImageUrl: string | null;
+  generationError: string | null;
+  generationProvider: string | null;
+};
+
+/** Fetch one outfit and sign all its display URLs. Returns null when the
+ *  outfit doesn't exist OR isn't owned by this user (single check for both
+ *  so we don't leak existence). */
+export async function getWardrobeOutfit(
+  userId: string,
+  outfitId: string,
+): Promise<WardrobeOutfitDetail | null> {
+  const o = await db.wardrobeOutfit.findFirst({
+    where: { id: outfitId, userId },
+    include: {
+      items: {
+        orderBy: { createdAt: "asc" },
+        include: {
+          wardrobeItem: {
+            select: {
+              id: true,
+              category: true,
+              nickname: true,
+              brand: true,
+              sourceType: true,
+              processedAssetPath: true,
+              frontImagePath: true,
+              product: { select: { imageUrl: true } },
+            },
+          },
+        },
+      },
+    },
+  });
+  if (!o) return null;
+
+  // Sign item thumbs (user_photo only).
+  const itemPathsToSign = o.items
+    .map((oi) => {
+      if (oi.wardrobeItem.sourceType !== "user_photo") return null;
+      return oi.wardrobeItem.processedAssetPath ?? oi.wardrobeItem.frontImagePath ?? null;
+    })
+    .filter((p): p is string => Boolean(p));
+  const signedItems = await getSignedWardrobeUrls(itemPathsToSign);
+
+  // Sign selfie + generated independently — each is one round-trip, and
+  // they're small, so we don't bother with batching here.
+  const [selfieUrl, generatedUrl] = await Promise.all([
+    o.selfieImagePath ? safeSignTryon(o.selfieImagePath) : Promise.resolve(null),
+    o.generatedImagePath ? safeSignTryon(o.generatedImagePath) : Promise.resolve(null),
+  ]);
+
+  return {
+    id: o.id,
+    title: o.title,
+    occasion: o.occasion,
+    createdAt: o.createdAt,
+    generatedImageUrl: generatedUrl,
+    generationStatus: o.generationStatus as WardrobeOutfitGenerationStatus,
+    generationError: o.generationError,
+    generationProvider: o.generationProvider,
+    selfieImageUrl: selfieUrl,
+    items: o.items.map((oi) => {
+      const wi = oi.wardrobeItem;
+      let thumbUrl: string | null = null;
+      if (wi.sourceType === "user_photo") {
+        const path = wi.processedAssetPath ?? wi.frontImagePath ?? null;
+        thumbUrl = path ? signedItems.get(path) ?? null : null;
+      } else {
+        thumbUrl = wi.product?.imageUrl ?? null;
+      }
+      return {
+        id: oi.id,
+        position: oi.position,
+        wardrobeItemId: oi.wardrobeItemId,
+        category: wi.category,
+        nickname: wi.nickname,
+        brand: wi.brand,
+        sourceType: wi.sourceType,
+        thumbUrl,
+      };
+    }),
+  };
+}
+
+async function safeSignTryon(path: string): Promise<string | null> {
+  try {
+    return await getSignedTryonUrl(path);
+  } catch (e) {
+    console.warn("[outfits] selfie/generated sign failed:", e instanceof Error ? e.message : e);
+    return null;
+  }
 }
 
 // ─── Create input ────────────────────────────────────────────────────────────

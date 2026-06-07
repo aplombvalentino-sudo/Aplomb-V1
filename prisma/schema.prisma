@@ -439,15 +439,51 @@ model WardrobeItem {
 
 // ─── Wardrobe Outfits ────────────────────────────────────────────────────────
 // A saved "look" — a combination of wardrobe items the user assembled. Lives
-// on the user (not on a brand) — replaces the previous localStorage-only
-// saved outfits, so a shopper can come back from another device and find
-// their wardrobe + their outfits intact.
+// on the user (not on a brand). The outfit's value isn't a styling
+// recipe — it's the AI-generated picture of the SHOPPER wearing those
+// pieces, produced from a selfie they uploaded. Without the generated
+// image an outfit is half a product; the columns below capture that step.
+
+enum WardrobeOutfitGenerationStatus {
+  /// No try-on attempted yet (legacy outfits saved before AI try-on, or
+  /// drafts where the user hasn't uploaded a selfie).
+  none
+  /// Selfie uploaded, AI call about to start.
+  pending
+  /// AI provider request in flight.
+  generating
+  /// Generated image is in the bucket; outfit is showable.
+  ready
+  /// Last attempt failed — see `generationError`.
+  failed
+
+  @@map("wardrobe_outfit_generation_status")
+}
 
 model WardrobeOutfit {
   id        String   @id @default(cuid())
   userId    String   @map("user_id")
   title     String
   occasion  String?
+
+  /// Private-bucket path to the SELFIE the user uploaded as the base
+  /// image for the AI try-on. Never returned raw to clients — signed at
+  /// read time, same posture as wardrobe-items photos.
+  selfieImagePath    String? @map("selfie_image_path")
+  /// Private-bucket path to the AI-generated image of the user wearing
+  /// the selected items. Same signed-URL posture.
+  generatedImagePath String? @map("generated_image_path")
+  /// Current state of the try-on pipeline. `ready` means generatedImagePath
+  /// can be signed and rendered to the user.
+  generationStatus   WardrobeOutfitGenerationStatus @default(none) @map("generation_status")
+  /// Provider-reported error string when status = failed. Capped and
+  /// scrubbed before storage so no provider PII / keys leak in.
+  generationError    String? @map("generation_error")
+  /// Which provider produced the current generated image — "gemini" today,
+  /// "fal" once that's wired. Lets us track quality per provider over time.
+  generationProvider String? @map("generation_provider")
+  generatedAt        DateTime? @map("generated_at")
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 

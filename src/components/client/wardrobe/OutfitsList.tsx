@@ -13,6 +13,12 @@ export type OutfitListItem = {
   title: string;
   occasion: string | null;
   createdAt: string;
+  /** Status of the AI try-on. `ready` means generatedImageUrl is set and
+   *  becomes the card's hero image; everything else falls back to the
+   *  composed item-tile strip. */
+  generationStatus: "none" | "pending" | "generating" | "ready" | "failed";
+  /** Pre-signed URL of the AI-generated image when ready, otherwise null. */
+  generatedImageUrl: string | null;
   items: Array<{
     id: string;
     position: string;
@@ -110,37 +116,86 @@ function OutfitCard({ outfit }: { outfit: OutfitListItem }) {
     setDeleting(false);
   }
 
+  const hasHero = outfit.generationStatus === "ready" && outfit.generatedImageUrl;
+
   return (
     <li className="group rounded-2xl border border-hairline bg-surface overflow-hidden
                    hover:shadow-[0_4px_24px_rgba(0,0,0,0.06)] transition-shadow duration-300">
-      {/* Composite thumbnail strip — overlapping tiles of the items */}
-      <div className="relative h-44 bg-[#F6F3EE] overflow-hidden flex items-end justify-center pb-4 px-4 gap-2">
-        {outfit.items.slice(0, 4).map((it) => (
-          <OutfitItemThumb key={it.id} item={it} />
-        ))}
+      {/* Hero — the AI-generated try-on image takes the whole top of the
+          card when available. Falls back to the composed item-tile strip
+          for outfits without a generated image (legacy / failed / still
+          generating). */}
+      <Link href={`/app/outfits/${outfit.id}`} className="block">
+        {hasHero ? (
+          <div className="relative aspect-[3/4] bg-[#F6F3EE] overflow-hidden">
+            <Image
+              src={outfit.generatedImageUrl!}
+              alt={`You wearing ${outfit.title}`}
+              fill
+              sizes="(max-width: 640px) 100vw, 33vw"
+              className="object-cover"
+            />
+            {/* Delete button — top-right on hover */}
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                handleDelete();
+              }}
+              disabled={deleting}
+              aria-label="Delete outfit"
+              className="absolute top-2 right-2 h-7 w-7 rounded-full bg-white/95 flex items-center justify-center
+                         opacity-0 group-hover:opacity-100 focus-visible:opacity-100
+                         transition-opacity duration-200 ring-1 ring-black/10 hover:bg-white
+                         disabled:opacity-50 disabled:cursor-wait"
+            >
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden>
+                <path d="M2.5 2.5l6 6M8.5 2.5l-6 6" stroke="#111010" strokeWidth="1.4" strokeLinecap="round"/>
+              </svg>
+            </button>
+          </div>
+        ) : (
+          <div className="relative h-44 bg-[#F6F3EE] overflow-hidden flex items-end justify-center pb-4 px-4 gap-2">
+            {outfit.items.slice(0, 4).map((it) => (
+              <OutfitItemThumb key={it.id} item={it} />
+            ))}
 
-        {/* Delete button — top-right on hover */}
-        <button
-          onClick={handleDelete}
-          disabled={deleting}
-          aria-label="Delete outfit"
-          className="absolute top-2 right-2 h-7 w-7 rounded-full bg-white/95 flex items-center justify-center
-                     opacity-0 group-hover:opacity-100 focus-visible:opacity-100
-                     transition-opacity duration-200 ring-1 ring-black/10 hover:bg-white
-                     disabled:opacity-50 disabled:cursor-wait"
-        >
-          <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden>
-            <path d="M2.5 2.5l6 6M8.5 2.5l-6 6" stroke="#111010" strokeWidth="1.4" strokeLinecap="round"/>
-          </svg>
-        </button>
-      </div>
+            {/* Generating overlay when the AI is still working */}
+            {(outfit.generationStatus === "generating" || outfit.generationStatus === "pending") && (
+              <div className="absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-[2px]">
+                <span className="text-[10px] font-medium uppercase tracking-[0.14em] text-ink">
+                  Generating…
+                </span>
+              </div>
+            )}
+
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                handleDelete();
+              }}
+              disabled={deleting}
+              aria-label="Delete outfit"
+              className="absolute top-2 right-2 h-7 w-7 rounded-full bg-white/95 flex items-center justify-center
+                         opacity-0 group-hover:opacity-100 focus-visible:opacity-100
+                         transition-opacity duration-200 ring-1 ring-black/10 hover:bg-white
+                         disabled:opacity-50 disabled:cursor-wait"
+            >
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden>
+                <path d="M2.5 2.5l6 6M8.5 2.5l-6 6" stroke="#111010" strokeWidth="1.4" strokeLinecap="round"/>
+              </svg>
+            </button>
+          </div>
+        )}
+      </Link>
 
       {/* Card body */}
       <div className="px-4 py-3">
-        <p className="text-[14px] font-medium text-ink truncate">{outfit.title}</p>
-        <p className="mt-0.5 text-[11px] text-ink-subtle truncate">
-          {outfit.occasion ?? `${outfit.items.length} item${outfit.items.length === 1 ? "" : "s"}`}
-        </p>
+        <Link href={`/app/outfits/${outfit.id}`} className="block">
+          <p className="text-[14px] font-medium text-ink truncate">{outfit.title}</p>
+          <p className="mt-0.5 text-[11px] text-ink-subtle truncate">
+            {outfit.occasion ?? `${outfit.items.length} item${outfit.items.length === 1 ? "" : "s"}`}
+          </p>
+        </Link>
       </div>
     </li>
   );
