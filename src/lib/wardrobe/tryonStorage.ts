@@ -40,7 +40,17 @@ export async function uploadOutfitTryonObject(
       upsert: true,
     });
   if (error) {
-    throw new Error(`Outfit try-on upload failed: ${error.message}`);
+    // Detect the canonical "bucket missing" case and surface a clearer
+    // message — most common reason a deploy fails the first time is the
+    // bucket name in Supabase being misspelled vs the TRYON_BUCKET constant
+    // (must be exactly `outfit-tryons`, lowercase, hyphen-separated).
+    const msg = error.message ?? "";
+    if (/bucket not found|bucket_not_found/i.test(msg)) {
+      throw new Error(
+        `Supabase bucket "${TRYON_BUCKET}" not found. Create a private bucket with that exact name in your Supabase project.`,
+      );
+    }
+    throw new Error(`Outfit try-on upload failed: ${msg}`);
   }
 }
 
