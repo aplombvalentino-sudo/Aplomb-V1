@@ -75,11 +75,11 @@ export const brandPlans: Plan[] = [
   },
 ];
 
-// Shopper plans — framed wardrobe-first. Each plan sells on
-// (a) how many items fit in your wardrobe, (b) how many of those can be
-// your own photographed clothes, (c) how deep the outfit-building toolkit
-// goes. Sizing features (scans, try-ons) appear as a single optional line
-// at the bottom of each card — fit support is secondary to the wardrobe.
+// Shopper plans — wardrobe-first, restructured around the three core
+// differentiators (try-on quota / AI recommendations quota / cross-brand
+// search). The Model plan's headline advantage is the cross-brand
+// assistant: it can recommend pieces from EVERY active brand on the
+// platform, not just the user's own wardrobe.
 export const clientPlans: Plan[] = [
   {
     name: "Essential",
@@ -91,9 +91,9 @@ export const clientPlans: Plan[] = [
     features: [
       "10 wardrobe slots",
       "Up to 3 of your own clothing items",
+      "5 AI outfit try-ons per month",
+      "Build and save outfits from your wardrobe",
       "Mix your clothes with certified brand pieces",
-      "Build and test essential outfits",
-      "Optional fit insights",
     ],
     cta: "Start my wardrobe — free",
     href: "/signup?audience=client&plan=essential",
@@ -102,14 +102,14 @@ export const clientPlans: Plan[] = [
     name: "Fashion",
     price: "25.99",
     period: "/mo",
-    description: "A bigger wardrobe and the full outfit toolkit.",
+    description: "Your AI stylist working from your saved wardrobe.",
     features: [
       "40 wardrobe slots",
       "Up to 15 of your own clothing items",
-      "Layer outerwear, shoes, bags and accessories",
-      "Cross-brand mixing for every outfit",
+      "50 AI outfit try-ons per month",
+      "50 AI outfit recommendations per month",
+      "Recommendations from your wardrobe only",
       "Custom occasions & moods",
-      "Fit insights when you want them",
     ],
     cta: "Choose Fashion",
     href: "/signup?audience=client&plan=fashion",
@@ -118,14 +118,14 @@ export const clientPlans: Plan[] = [
     name: "Model",
     price: "29.99",
     period: "/mo",
-    description: "Unlimited wardrobe. The full styling toolkit.",
+    description: "Cross-brand AI styling across every Aplomb brand.",
     features: [
       "Unlimited wardrobe slots",
       "Unlimited personal clothing items",
-      "Full outfit experimentation",
-      "Mobile wardrobe sync",
-      "Custom colour picker",
-      "Priority fit recommendations",
+      "200 AI outfit try-ons per month",
+      "Unlimited AI outfit recommendations",
+      "Cross-brand recommendations across all brands",
+      "Best-match product discovery from the full catalogue",
     ],
     cta: "Choose Model",
     href: "/signup?audience=client&plan=model",

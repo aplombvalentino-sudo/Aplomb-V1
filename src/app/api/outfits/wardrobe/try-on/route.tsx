@@ -6,6 +6,8 @@ import { ok, err, unauthorized } from "@/lib/api";
 import { LIMITS, enforceLimits, tooManyRequests } from "@/lib/rateLimit-upstash";
 import { createWardrobeOutfit } from "@/lib/wardrobe/outfits";
 import { runWardrobeTryOn } from "@/lib/wardrobe/runTryOn";
+import { getMonthlyUsage } from "@/lib/wardrobe/usage";
+import { isValidClientPlan } from "@/lib/planLimits";
 
 /**
  * POST /api/outfits/wardrobe/try-on
@@ -66,6 +68,24 @@ export async function POST(req: NextRequest) {
     LIMITS.tryon_daily,
   ]);
   if (!guard.allowed) return tooManyRequests(guard.retryAfterSeconds);
+
+  // Monthly plan quota check — refuse before we spend the AI call when
+  // the user has already used their allowance this calendar month. The
+  // 402 PAYMENT_REQUIRED code is the canonical "feature locked behind a
+  // plan limit" signal; the UI renders an upgrade card on this status.
+  const planUser = await db.user.findUnique({
+    where: { id: userId },
+    select: { clientPlan: true },
+  });
+  const plan = isValidClientPlan(planUser?.clientPlan) ? planUser!.clientPlan : "essential";
+  const usage = await getMonthlyUsage(userId, plan);
+  if (!usage.canTryOn) {
+    return err(
+      "MONTHLY_LIMIT",
+      `You've reached your monthly try-on limit (${usage.tryOnsLimit}). Upgrade for more.`,
+      402,
+    );
+  }
 
   // Multipart parse
   let form: FormData;

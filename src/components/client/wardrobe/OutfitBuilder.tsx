@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
@@ -75,6 +76,7 @@ const SLOT_ORDER: Slot[] = ["top", "bottom", "shoes", "accessory"];
 export function OutfitBuilder({
   availableItems,
   initialHeightCm,
+  tryOnUsage,
 }: {
   availableItems: BuilderItem[];
   /** Saved height from the user's profile. Empty when the user hasn't set
@@ -82,6 +84,16 @@ export function OutfitBuilder({
    *  the user types here back to User.heightCm so the next try-on can
    *  skip the prompt. */
   initialHeightCm: number | null;
+  /** Monthly try-on quota state. When `canTryOn === false` the builder
+   *  shows a hard block on step 1 with an upgrade CTA instead of letting
+   *  the user upload a selfie they can't spend. */
+  tryOnUsage: {
+    used: number;
+    /** null = unlimited (Model... currently capped at 200, but kept for
+     *  forward-compat). */
+    limit: number | null;
+    canTryOn: boolean;
+  };
 }) {
   const router = useRouter();
   const [step, setStep] = useState<BuilderStep>("items");
@@ -308,8 +320,40 @@ export function OutfitBuilder({
               </div>
             )}
 
+            {/* Monthly try-on quota panel — visible if user has hit the
+                cap; the button is also disabled. Otherwise just a quiet
+                "X / Y this month" badge. */}
+            {!tryOnUsage.canTryOn ? (
+              <div className="rounded-2xl border border-red-100 bg-red-50/40 px-4 py-4">
+                <p className="font-serif text-[1.05rem] font-medium text-ink">
+                  You&apos;ve reached your monthly try-on limit.
+                </p>
+                <p className="mt-1.5 text-[12px] text-ink-muted">
+                  {tryOnUsage.limit
+                    ? `Your plan includes ${tryOnUsage.limit} try-ons per month. Upgrade for more.`
+                    : "Upgrade your plan to unlock more try-ons."}
+                </p>
+                <Link
+                  href="/app/pricing"
+                  className="mt-3 inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2
+                             text-[12px] font-medium text-white hover:bg-[#2a2622] transition-colors"
+                >
+                  See upgrade options
+                </Link>
+              </div>
+            ) : (
+              tryOnUsage.limit !== null && (
+                <p className="text-[11px] text-ink-subtle text-right">
+                  {tryOnUsage.used} / {tryOnUsage.limit} try-ons used this month
+                </p>
+              )
+            )}
+
             <div className="flex items-center gap-3">
-              <Button onClick={goToSelfie} disabled={itemCount === 0 || !title.trim()}>
+              <Button
+                onClick={goToSelfie}
+                disabled={itemCount === 0 || !title.trim() || !tryOnUsage.canTryOn}
+              >
                 Next — take a selfie
               </Button>
               <span className="text-[12px] text-ink-subtle">

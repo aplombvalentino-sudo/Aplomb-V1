@@ -29,15 +29,30 @@ type WardrobePiece = {
 
 // ─── Top-level chat surface ────────────────────────────────────────────────
 
+type Usage = {
+  recsUsed: number;
+  /** null = unlimited (Model plan). */
+  recsLimit: number | null;
+  /** Server-computed gate — when false the composer is hard-disabled. */
+  canAsk: boolean;
+};
+
 export function WardrobeChat({
   wardrobe,
   initialMessages,
-  dailyCap,
+  plan,
+  crossBrandEnabled,
+  usage: initialUsage,
 }: {
   wardrobe: WardrobePiece[];
   initialMessages: ChatMessage[];
-  dailyCap: number | null;
+  plan: "essential" | "fashion" | "model";
+  crossBrandEnabled: boolean;
+  usage: Usage;
 }) {
+  // Usage is server-derived but mutates as the user sends messages —
+  // track it locally so the badge updates without a route refresh.
+  const [usage, setUsage] = useState<Usage>(initialUsage);
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -54,6 +69,12 @@ export function WardrobeChat({
 
   async function handleSend(content: string) {
     if (!content.trim() || submitting) return;
+    if (!usage.canAsk) {
+      // Defence in depth — server also refuses with 402, but this saves
+      // the round-trip when we know the cap is hit.
+      setError(monthlyLimitMessage(plan, usage.recsLimit));
+      return;
+    }
     setError(null);
     setSubmitting(true);
 
@@ -84,13 +105,21 @@ export function WardrobeChat({
         return;
       }
 
-      // Replace the optimistic id if the server returned one.
+      // Replace the optimistic id if the server returned one. Combine
+      // wardrobe ids + brand product ids into one array using the same
+      // `brand:` prefix convention the server uses for persisted history
+      // — the bubble component splits them again at render time.
       const serverUserId: string | undefined = json.data.userMessageId;
+      const wardrobeIds: string[] = json.data.recommendedItemIds ?? [];
+      const brandIds: string[] = json.data.recommendedBrandProductIds ?? [];
       const assistantReply: ChatMessage = {
         id: `srv-${Date.now()}`,
         role: "assistant",
         content: json.data.reply,
-        recommendedItemIds: json.data.recommendedItemIds ?? [],
+        recommendedItemIds: [
+          ...wardrobeIds,
+          ...brandIds.map((id) => `brand:${id}`),
+        ],
         createdAt: new Date().toISOString(),
       };
 
@@ -103,6 +132,15 @@ export function WardrobeChat({
           )
           .concat(assistantReply),
       );
+
+      // Bump local usage counter so the badge stays accurate without a
+      // page refresh.
+      setUsage((u) => ({
+        ...u,
+        recsUsed: u.recsUsed + 1,
+        canAsk:
+          u.recsLimit === null ? true : u.recsUsed + 1 < u.recsLimit,
+      }));
     } catch {
       setMessages((m) => m.filter((x) => x.id !== optimisticUser.id));
       setError("Network error. Please try again.");
@@ -113,20 +151,32 @@ export function WardrobeChat({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Header */}
+      {/* Header — copy + plan badge differ by tier so Model users see
+          the cross-brand promise; Fashion users see the wardrobe-only
+          framing. Pulls the brief's recommended UX verbatim. */}
       <div>
-        <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-ink-subtle">
-          AI Outfit Assistant
-        </p>
+        <div className="flex items-baseline gap-3 flex-wrap">
+          <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-ink-subtle">
+            AI Outfit Assistant
+          </p>
+          <span
+            className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] ${
+              crossBrandEnabled
+                ? "bg-accent text-white"
+                : "bg-ink/[0.06] text-ink"
+            }`}
+          >
+            {crossBrandEnabled ? "Model · Cross-brand" : "Fashion · Wardrobe-only"}
+          </span>
+        </div>
         <h1 className="mt-2 font-serif text-[clamp(2rem,4vw,2.6rem)] font-medium leading-[1.05] tracking-[-0.02em] text-ink">
           Ask your <em className="italic">wardrobe</em>
           <span className="text-accent">.</span>
         </h1>
         <p className="mt-2 text-[13px] text-ink-muted max-w-[58ch]">
-          Mixes outfits from the {wardrobe.length}{" "}
-          {wardrobe.length === 1 ? "piece" : "pieces"} in your wardrobe. The more
-          detail you save on each piece (type, color, material, description), the
-          sharper the recommendations.
+          {crossBrandEnabled
+            ? `Your AI assistant can recommend from your ${wardrobe.length} saved ${wardrobe.length === 1 ? "piece" : "pieces"} AND across every active brand on Aplomb — surfacing best matches you don't own yet.`
+            : `Your AI assistant recommends outfits from your ${wardrobe.length} saved ${wardrobe.length === 1 ? "piece" : "pieces"}. Upgrade to Model to also discover best matches from every brand on Aplomb.`}
         </p>
       </div>
 
@@ -153,13 +203,13 @@ export function WardrobeChat({
         {submitting && <ThinkingBubble />}
       </div>
 
-      {/* Composer */}
+      {/* Composer — also disabled when monthly cap is hit. */}
       <Composer
         value={input}
         onChange={setInput}
         onSubmit={() => handleSend(input)}
         submitting={submitting}
-        disabled={wardrobe.length === 0}
+        disabled={wardrobe.length === 0 || !usage.canAsk}
       />
 
       {error && (
@@ -168,13 +218,27 @@ export function WardrobeChat({
         </p>
       )}
 
-      {dailyCap !== null && (
-        <p className="text-[11px] text-ink-subtle text-right">
-          Daily cap: up to {dailyCap} messages
-        </p>
-      )}
+      {/* Monthly usage badge — Model (no cap) shows "Unlimited"; Fashion
+          shows "X / Y this month" so the user always knows where they stand
+          before hitting the gate. */}
+      <p className="text-[11px] text-ink-subtle text-right">
+        {usage.recsLimit === null
+          ? "Unlimited recommendations this month"
+          : `${usage.recsUsed} / ${usage.recsLimit} AI recommendations this month`}
+      </p>
     </div>
   );
+}
+
+/** Short upgrade-prompting message for the monthly recommendation cap. */
+function monthlyLimitMessage(
+  plan: "essential" | "fashion" | "model",
+  limit: number | null,
+): string {
+  if (plan === "fashion") {
+    return `You've used all ${limit ?? "?"} AI outfit recommendations included in Fashion this month. Upgrade to Model for unlimited recommendations and cross-brand matches.`;
+  }
+  return `You've used your assistant recommendations for this month. Upgrade for more.`;
 }
 
 // ─── Pieces ────────────────────────────────────────────────────────────────
@@ -220,48 +284,124 @@ function RecommendedItemsStrip({
   ids: string[];
   wardrobeById: Map<string, WardrobePiece>;
 }) {
-  const items = ids
-    .map((id) => wardrobeById.get(id))
-    .filter((x): x is WardrobePiece => Boolean(x));
-  if (items.length === 0) return null;
+  // Split ids into two buckets:
+  //   - wardrobe ids (raw cuid, resolvable via wardrobeById)
+  //   - brand product ids (prefixed `brand:` by the server to disambiguate
+  //     them from wardrobe items in the same column). We render those as
+  //     a separate "Suggested from brands" group below the wardrobe row
+  //     so the user immediately sees Model's added value.
+  const wardrobeItems: WardrobePiece[] = [];
+  const brandIds: string[] = [];
+  for (const id of ids) {
+    if (id.startsWith("brand:")) {
+      brandIds.push(id.slice("brand:".length));
+      continue;
+    }
+    const w = wardrobeById.get(id);
+    if (w) wardrobeItems.push(w);
+  }
+
+  if (wardrobeItems.length === 0 && brandIds.length === 0) return null;
+
   return (
-    <div className="mt-3 -mx-2 flex flex-wrap gap-2">
-      {items.map((it) => (
-        <Link
-          key={it.id}
-          href="/app/wardrobe"
-          className="group flex items-center gap-2 rounded-xl border border-hairline bg-surface px-2 py-1.5
-                     hover:border-ink/30 transition-colors"
-        >
-          <div className="relative h-10 w-10 rounded-md overflow-hidden bg-[#F6F3EE] ring-1 ring-black/[0.06] shrink-0">
-            {it.thumbUrl ? (
-              <Image
-                src={it.thumbUrl}
-                alt={it.nickname ?? it.type ?? it.category}
-                fill
-                sizes="40px"
-                className="object-cover"
-              />
-            ) : (
-              <span
-                className="absolute inset-0 flex items-center justify-center text-[8px]
-                           uppercase tracking-[0.08em] text-ink-subtle"
-              >
-                {it.category}
-              </span>
-            )}
-          </div>
-          <div className="min-w-0 pr-1">
-            <p className="text-[11px] font-medium text-ink truncate max-w-[140px]">
-              {it.nickname ?? it.type ?? titleCase(it.category)}
-            </p>
-            <p className="text-[9px] text-ink-subtle truncate max-w-[140px]">
-              {[it.color, it.brand].filter(Boolean).join(" · ") || "—"}
-            </p>
-          </div>
-        </Link>
-      ))}
+    <div className="mt-3 space-y-2.5">
+      {wardrobeItems.length > 0 && (
+        <ChipGroup label="From your wardrobe">
+          {wardrobeItems.map((it) => (
+            <WardrobeChip key={it.id} item={it} />
+          ))}
+        </ChipGroup>
+      )}
+      {brandIds.length > 0 && (
+        <ChipGroup label="Suggested from brands">
+          {brandIds.map((id) => (
+            <BrandChip key={id} productId={id} />
+          ))}
+        </ChipGroup>
+      )}
     </div>
+  );
+}
+
+function ChipGroup({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-ink-subtle mb-1.5">
+        {label}
+      </p>
+      <div className="-mx-2 flex flex-wrap gap-2">{children}</div>
+    </div>
+  );
+}
+
+function WardrobeChip({ item: it }: { item: WardrobePiece }) {
+  return (
+    <Link
+      href="/app/wardrobe"
+      className="group flex items-center gap-2 rounded-xl border border-hairline bg-surface px-2 py-1.5
+                 hover:border-ink/30 transition-colors"
+    >
+      <div className="relative h-10 w-10 rounded-md overflow-hidden bg-[#F6F3EE] ring-1 ring-black/[0.06] shrink-0">
+        {it.thumbUrl ? (
+          <Image
+            src={it.thumbUrl}
+            alt={it.nickname ?? it.type ?? it.category}
+            fill
+            sizes="40px"
+            className="object-cover"
+          />
+        ) : (
+          <span
+            className="absolute inset-0 flex items-center justify-center text-[8px]
+                       uppercase tracking-[0.08em] text-ink-subtle"
+          >
+            {it.category}
+          </span>
+        )}
+      </div>
+      <div className="min-w-0 pr-1">
+        <p className="text-[11px] font-medium text-ink truncate max-w-[140px]">
+          {it.nickname ?? it.type ?? titleCase(it.category)}
+        </p>
+        <p className="text-[9px] text-ink-subtle truncate max-w-[140px]">
+          {[it.color, it.brand].filter(Boolean).join(" · ") || "—"}
+        </p>
+      </div>
+    </Link>
+  );
+}
+
+/**
+ * Brand-product chip — the Model-plan cross-brand suggestion. We don't
+ * have product metadata cached in this component (the chat page only
+ * sends wardrobe), so the chip is intentionally minimal: a "Brand" badge
+ * + the truncated product id. The chip links to /app/discover so the
+ * user can browse the platform catalogue (where they'll find the actual
+ * product); v2 can drop a real thumb when we plumb product lookups.
+ */
+function BrandChip({ productId }: { productId: string }) {
+  return (
+    <Link
+      href="/app/discover"
+      className="group flex items-center gap-2 rounded-xl border border-accent/30 bg-accent/[0.06]
+                 px-2.5 py-1.5 hover:border-accent transition-colors"
+    >
+      <span
+        className="rounded-full bg-accent/15 px-1.5 py-0.5 text-[8px] font-bold uppercase
+                   tracking-[0.08em] text-accent shrink-0"
+      >
+        Brand
+      </span>
+      <span className="text-[11px] font-medium text-ink truncate max-w-[140px]">
+        Suggested piece {productId.slice(-6)}
+      </span>
+    </Link>
   );
 }
 

@@ -11,6 +11,8 @@ import {
   getClientPlanLimits,
 } from "@/lib/planLimits";
 import { generateWardrobeChatReply } from "@/lib/ai/wardrobeChat";
+import { getMonthlyUsage, startOfBillingMonth } from "@/lib/wardrobe/usage";
+import { listBrandCatalogForChat } from "@/lib/wardrobe/brandCatalog";
 
 /**
  * AI Outfit Assistant — chat endpoint.
@@ -101,17 +103,21 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Per-day message cap. Counts USER messages, not assistant replies.
-  if (limits.maxAssistantMessagesPerDay !== Infinity) {
-    const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const usedToday = await db.wardrobeChatMessage.count({
+  // Monthly assistant-recommendation cap. Counts USER messages in the
+  // current calendar month — assistant replies don't count (the user
+  // pays per ask, not per answer length).
+  if (limits.maxAssistantRecommendationsPerMonth !== Infinity) {
+    const since = startOfBillingMonth();
+    const usedThisMonth = await db.wardrobeChatMessage.count({
       where: { userId, role: "user", createdAt: { gte: since } },
     });
-    if (usedToday >= limits.maxAssistantMessagesPerDay) {
+    if (usedThisMonth >= limits.maxAssistantRecommendationsPerMonth) {
       return err(
-        "DAILY_CAP",
-        `You've used your ${limits.maxAssistantMessagesPerDay} assistant messages for today. The cap resets in 24h or upgrade for more.`,
-        429,
+        "MONTHLY_LIMIT",
+        plan === "fashion"
+          ? `You've used all ${limits.maxAssistantRecommendationsPerMonth} AI outfit recommendations included in Fashion this month. Upgrade to Model for unlimited recommendations and cross-brand matches.`
+          : `You've used your ${limits.maxAssistantRecommendationsPerMonth} assistant recommendations for this month. Upgrade for more.`,
+        402,
       );
     }
   }
@@ -120,9 +126,11 @@ export async function POST(req: NextRequest) {
   if (!parsed.ok) return parsed.response;
 
   // Pull the wardrobe + the last N turns of history in parallel.
-  const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
-  void since24h;
-  const [wardrobe, recentMessages] = await Promise.all([
+  // For Model users, also pull a sample of the brand catalog so the
+  // assistant can suggest pieces the user doesn't own yet (the Model
+  // plan's headline differentiator). Fashion + Essential SKIP this load
+  // entirely so there's zero chance of cross-brand leakage.
+  const [wardrobe, recentMessages, brandCatalog] = await Promise.all([
     listWardrobeItems(userId),
     db.wardrobeChatMessage.findMany({
       where: { userId },
@@ -130,6 +138,9 @@ export async function POST(req: NextRequest) {
       take: MAX_HISTORY_TURNS,
       select: { role: true, content: true },
     }),
+    limits.crossBrandRecommendations
+      ? listBrandCatalogForChat()
+      : Promise.resolve([]),
   ]);
   // findMany returned newest-first; flip so it reads oldest→newest.
   const history = recentMessages.reverse().map((m) => ({
@@ -163,6 +174,8 @@ export async function POST(req: NextRequest) {
 
   const result = await generateWardrobeChatReply({
     wardrobe,
+    brandCatalog,
+    crossBrandEnabled: limits.crossBrandRecommendations,
     history,
     userMessage: parsed.data.content,
   });
@@ -187,7 +200,14 @@ export async function POST(req: NextRequest) {
       userId,
       role: "assistant",
       content: result.reply,
-      recommendedItemIds: result.recommendedItemIds,
+      // We store BOTH wardrobe + brand product ids in the same column —
+      // the UI looks them up against its own resolved maps. This avoids
+      // a schema change just to split the two; the client component
+      // decides how to render each.
+      recommendedItemIds: [
+        ...result.recommendedItemIds,
+        ...result.recommendedBrandProductIds.map((id) => `brand:${id}`),
+      ],
     },
   });
 
@@ -196,6 +216,7 @@ export async function POST(req: NextRequest) {
       userMessageId: userMessageRow.id,
       reply: result.reply,
       recommendedItemIds: result.recommendedItemIds,
+      recommendedBrandProductIds: result.recommendedBrandProductIds,
     },
     201,
   );

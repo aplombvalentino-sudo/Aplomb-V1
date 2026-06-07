@@ -42,7 +42,19 @@ export type ClientPlanLimits = {
 
   /** Max body scans per calendar month. Infinity = unlimited. */
   maxScansPerMonth: number;
-  /** Max try-on image generations per month. */
+  /**
+   * Max wardrobe-driven AI try-on generations per month. Counts every
+   * WardrobeOutfit row created in the current calendar month — each
+   * outfit costs one AI call regardless of whether the user keeps it.
+   *
+   * Tiers (per the plan-restructure brief):
+   *   Essential = 5 / month
+   *   Fashion   = 50 / month
+   *   Model     = 200 / month
+   *
+   * Enforced by /api/outfits/wardrobe/try-on (refuses with 402 when
+   * over) AND surfaced in the usage panel so shoppers see "3 / 5 used".
+   */
   maxTryOnsPerMonth: number;
 
   // ─── Cosmetic / soft-gated options (unchanged from previous shape) ─────────
@@ -63,12 +75,37 @@ export type ClientPlanLimits = {
    */
   hasOutfitAssistant: boolean;
   /**
-   * Daily ceiling on assistant messages the user can send. Infinity =
-   * uncapped. Caps the cost of a free-form chat surface and stops a single
-   * shopper burning the Gemini quota. UI shows "X / Y today" on the chat
-   * page when the cap is finite.
+   * Monthly ceiling on assistant outfit-recommendation requests.
+   * Tiers (per the plan-restructure brief):
+   *   Essential = 0   (no assistant — feature locked)
+   *   Fashion   = 50  (wardrobe-only recommendations)
+   *   Model     = Inf (uncapped; cross-brand recommendations)
+   *
+   * Counted by user-role messages in the current calendar month.
+   * Replaces the earlier `maxAssistantMessagesPerDay` daily cap so users
+   * can spread their budget across the month however suits them.
    */
-  maxAssistantMessagesPerDay: number;
+  maxAssistantRecommendationsPerMonth: number;
+  /**
+   * Whether the AI Outfit Assistant can recommend items from the GLOBAL
+   * brand catalog in addition to the user's saved wardrobe. The critical
+   * Model-vs-Fashion product differentiator from the plan-restructure
+   * brief.
+   *
+   *   Essential = false   (no assistant at all)
+   *   Fashion   = false   (assistant works, but recommends ONLY from the
+   *                        user's saved wardrobe — no cross-brand search)
+   *   Model     = true    (assistant can search every active brand
+   *                        product on the platform and surface
+   *                        "Suggested from brands" chips alongside
+   *                        the user's own pieces)
+   *
+   * Enforced server-side (the chat route refuses to include brand
+   * products in the prompt context for non-Model plans) AND surfaced
+   * in the UI (Model users see a different assistant intro + the
+   * "From brands" chip variant).
+   */
+  crossBrandRecommendations: boolean;
 
   /**
    * @deprecated Replaced by `maxWardrobeItems`. Still populated so legacy
@@ -91,16 +128,18 @@ export function getClientPlanLimits(plan: ClientPlan): ClientPlanLimits {
         maxPersonalPhotos: 3,
         outfitExperimentation: "basic",
         maxScansPerMonth: 5,
-        maxTryOnsPerMonth: 3,
+        maxTryOnsPerMonth: 5, // ↑ from 3 per plan-restructure brief
         customOccasion: false,
         occasionPresets: OCCASION_PRESETS_BASIC,
         customColorPicker: false,
         crossBrand: false,
         mobileWardrobe: false,
         nextPlan: "fashion",
-        // AI Outfit Assistant locked on Essential — upgrade gate.
+        // Essential: assistant locked. The lock-card upgrade flow on
+        // /app/chat handles the entry point.
         hasOutfitAssistant: false,
-        maxAssistantMessagesPerDay: 0,
+        maxAssistantRecommendationsPerMonth: 0,
+        crossBrandRecommendations: false,
         maxWardrobeSaves: 10,
       };
     case "fashion":
@@ -109,17 +148,18 @@ export function getClientPlanLimits(plan: ClientPlan): ClientPlanLimits {
         maxPersonalPhotos: 15,
         outfitExperimentation: "full",
         maxScansPerMonth: 15,
-        maxTryOnsPerMonth: 25,
+        maxTryOnsPerMonth: 50, // ↑ from 25 per plan-restructure brief
         customOccasion: true,
         occasionPresets: OCCASION_PRESETS_EXTENDED,
         customColorPicker: false,
         crossBrand: false,
         mobileWardrobe: false,
         nextPlan: "model",
-        // Fashion (€25.99) is the entry tier for the chatbot.
-        // 50 messages/day caps cost without feeling cramped at normal use.
+        // Fashion: assistant ON, but capped at 50 recommendations/month
+        // AND restricted to the user's own wardrobe (no cross-brand).
         hasOutfitAssistant: true,
-        maxAssistantMessagesPerDay: 50,
+        maxAssistantRecommendationsPerMonth: 50,
+        crossBrandRecommendations: false,
         maxWardrobeSaves: 40,
       };
     case "model":
@@ -128,16 +168,18 @@ export function getClientPlanLimits(plan: ClientPlan): ClientPlanLimits {
         maxPersonalPhotos: Infinity,
         outfitExperimentation: "full",
         maxScansPerMonth: Infinity,
-        maxTryOnsPerMonth: Infinity,
+        maxTryOnsPerMonth: 200, // capped per brief (was Infinity)
         customOccasion: true,
         occasionPresets: OCCASION_PRESETS_EXTENDED,
         customColorPicker: true,
         crossBrand: true,
         mobileWardrobe: true,
         nextPlan: null,
-        // Model gets the assistant uncapped.
+        // Model: uncapped assistant + cross-brand. The brief's headline
+        // differentiator vs Fashion.
         hasOutfitAssistant: true,
-        maxAssistantMessagesPerDay: Infinity,
+        maxAssistantRecommendationsPerMonth: Infinity,
+        crossBrandRecommendations: true,
         maxWardrobeSaves: Infinity,
       };
   }

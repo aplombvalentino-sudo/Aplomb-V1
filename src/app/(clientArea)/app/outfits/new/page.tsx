@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { listWardrobeItems } from "@/lib/wardrobe/items";
+import { getMonthlyUsage } from "@/lib/wardrobe/usage";
+import { isValidClientPlan } from "@/lib/planLimits";
 import { Logo } from "@/components/brand/Logo";
 import { OutfitBuilder } from "@/components/client/wardrobe/OutfitBuilder";
 
@@ -23,15 +25,19 @@ export default async function NewOutfitPage() {
     redirect("/login?callbackUrl=/app/outfits/new");
   }
 
-  // Fetch wardrobe + the user's saved height in parallel — height pre-fills
-  // the selfie step so returning users don't get re-prompted.
+  // Fetch wardrobe + the user's saved height + monthly try-on usage in
+  // parallel — usage lets the builder show "3 / 5 try-ons this month" and
+  // block the Generate button if the cap is hit before the user wastes a
+  // selfie upload.
   const [items, user] = await Promise.all([
     listWardrobeItems(session.user.id),
     db.user.findUnique({
       where: { id: session.user.id },
-      select: { heightCm: true },
+      select: { heightCm: true, clientPlan: true },
     }),
   ]);
+  const plan = isValidClientPlan(user?.clientPlan) ? user!.clientPlan : "essential";
+  const usage = await getMonthlyUsage(session.user.id, plan);
   const usable = items.filter((i) => i.usableInOutfit);
 
   // Bail if the wardrobe is empty — no point rendering an empty picker.
@@ -67,7 +73,15 @@ export default async function NewOutfitPage() {
       </header>
 
       <main className="mx-auto max-w-3xl px-6 py-12">
-        <OutfitBuilder availableItems={serialised} initialHeightCm={user?.heightCm ?? null} />
+        <OutfitBuilder
+          availableItems={serialised}
+          initialHeightCm={user?.heightCm ?? null}
+          tryOnUsage={{
+            used: usage.tryOnsUsed,
+            limit: usage.tryOnsLimit === Infinity ? null : usage.tryOnsLimit,
+            canTryOn: usage.canTryOn,
+          }}
+        />
       </main>
     </div>
   );

@@ -5,6 +5,8 @@ import { ok, err, unauthorized, forbidden, notFound } from "@/lib/api";
 import { zCuid } from "@/lib/validate";
 import { LIMITS, enforceLimits, tooManyRequests } from "@/lib/rateLimit-upstash";
 import { runWardrobeTryOn } from "@/lib/wardrobe/runTryOn";
+import { getMonthlyUsage } from "@/lib/wardrobe/usage";
+import { isValidClientPlan } from "@/lib/planLimits";
 
 /**
  * POST /api/outfits/wardrobe/[id]/regenerate
@@ -48,6 +50,22 @@ export async function POST(
   });
   if (!outfit) return notFound("Outfit");
   if (outfit.userId !== userId) return forbidden();
+
+  // Monthly try-on quota check — regenerate counts as a try-on too since
+  // it spends an AI call.
+  const planUser = await db.user.findUnique({
+    where: { id: userId },
+    select: { clientPlan: true },
+  });
+  const plan = isValidClientPlan(planUser?.clientPlan) ? planUser!.clientPlan : "essential";
+  const usage = await getMonthlyUsage(userId, plan);
+  if (!usage.canTryOn) {
+    return err(
+      "MONTHLY_LIMIT",
+      `You've reached your monthly try-on limit (${usage.tryOnsLimit}). Upgrade for more.`,
+      402,
+    );
+  }
 
   // Multipart parse.
   let form: FormData;

@@ -53,18 +53,46 @@ describe("getClientPlanLimits — wardrobe-first dimensions (DO NOT BREAK)", () 
   });
 });
 
-describe("getClientPlanLimits — sizing dimensions (kept as secondary)", () => {
-  it("essential still has tight scan + try-on quotas (sizing didn't disappear)", () => {
+describe("getClientPlanLimits — sizing + try-on quotas (per restructure brief)", () => {
+  it("essential = 5 try-ons / month, scans stay tight", () => {
     const p = getClientPlanLimits("essential");
     expect(p.maxScansPerMonth).toBe(5);
-    expect(p.maxTryOnsPerMonth).toBe(3);
+    expect(p.maxTryOnsPerMonth).toBe(5); // ↑ from 3 per brief
     expect(p.customOccasion).toBe(false);
   });
 
-  it("model unlocks unlimited scans + try-ons", () => {
+  it("fashion = 50 try-ons / month", () => {
+    const p = getClientPlanLimits("fashion");
+    expect(p.maxTryOnsPerMonth).toBe(50);
+  });
+
+  it("model = 200 try-ons / month (capped per brief, no longer unlimited)", () => {
     const p = getClientPlanLimits("model");
     expect(p.maxScansPerMonth).toBe(Infinity);
-    expect(p.maxTryOnsPerMonth).toBe(Infinity);
+    expect(p.maxTryOnsPerMonth).toBe(200);
+  });
+});
+
+describe("getClientPlanLimits — AI Outfit Assistant tiering", () => {
+  it("essential has the assistant locked + no recommendation quota", () => {
+    const p = getClientPlanLimits("essential");
+    expect(p.hasOutfitAssistant).toBe(false);
+    expect(p.maxAssistantRecommendationsPerMonth).toBe(0);
+    expect(p.crossBrandRecommendations).toBe(false);
+  });
+
+  it("fashion = 50 monthly recommendations, wardrobe-only (no cross-brand)", () => {
+    const p = getClientPlanLimits("fashion");
+    expect(p.hasOutfitAssistant).toBe(true);
+    expect(p.maxAssistantRecommendationsPerMonth).toBe(50);
+    expect(p.crossBrandRecommendations).toBe(false);
+  });
+
+  it("model = unlimited recommendations + cross-brand unlocked", () => {
+    const p = getClientPlanLimits("model");
+    expect(p.hasOutfitAssistant).toBe(true);
+    expect(p.maxAssistantRecommendationsPerMonth).toBe(Infinity);
+    expect(p.crossBrandRecommendations).toBe(true);
   });
 });
 

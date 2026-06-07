@@ -11,6 +11,7 @@ import {
   type ClientPlan,
 } from "@/lib/planLimits";
 import { listWardrobeItems } from "@/lib/wardrobe/items";
+import { getMonthlyUsage } from "@/lib/wardrobe/usage";
 import { WardrobeChat } from "@/components/client/wardrobe/WardrobeChat";
 import { ChatUpgradeLock } from "@/components/client/wardrobe/ChatUpgradeLock";
 
@@ -71,8 +72,8 @@ export default async function ChatPage() {
     return shell(<ChatUpgradeLock currentPlan={plan} />);
   }
 
-  // Eligible plan — load the wardrobe + history.
-  const [wardrobe, messages] = await Promise.all([
+  // Eligible plan — load the wardrobe + history + usage in parallel.
+  const [wardrobe, messages, usage] = await Promise.all([
     listWardrobeItems(userId),
     db.wardrobeChatMessage.findMany({
       where: { userId },
@@ -86,6 +87,7 @@ export default async function ChatPage() {
       },
       take: 200,
     }),
+    getMonthlyUsage(userId, plan),
   ]);
 
   // Trim wardrobe payload to what the chat UI needs for chip thumbs.
@@ -108,11 +110,14 @@ export default async function ChatPage() {
         ...m,
         createdAt: m.createdAt.toISOString(),
       }))}
-      dailyCap={
-        limits.maxAssistantMessagesPerDay === Infinity
-          ? null
-          : limits.maxAssistantMessagesPerDay
-      }
+      plan={plan}
+      crossBrandEnabled={limits.crossBrandRecommendations}
+      usage={{
+        recsUsed: usage.assistantRecsUsed,
+        recsLimit:
+          usage.assistantRecsLimit === Infinity ? null : usage.assistantRecsLimit,
+        canAsk: usage.canAskAssistant,
+      }}
     />,
   );
 }
