@@ -113,6 +113,10 @@ export async function runWardrobeTryOn(
   });
 
   // Pull the items + the outfit's snapshotted height in one query each.
+  // We include EVERY user-supplied metadata field on the wardrobe item
+  // (type, color, material, description) so the Gemini prompt can name
+  // each piece precisely — the AI's best chance at rendering a real
+  // change rather than echoing the selfie back.
   const [outfitItems, outfitMeta] = await Promise.all([
     db.wardrobeOutfitItem.findMany({
       where: { outfitId, outfit: { userId } },
@@ -126,6 +130,10 @@ export async function runWardrobeTryOn(
             category: true,
             nickname: true,
             brand: true,
+            type: true,
+            color: true,
+            material: true,
+            description: true,
             product: { select: { imageUrl: true } },
           },
         },
@@ -151,6 +159,11 @@ export async function runWardrobeTryOn(
       outfitItems.map(async (oi) => {
         const wi = oi.wardrobeItem;
         const { buffer, mime } = await fetchItemImage(wi);
+        // Pass EVERY available metadata field straight through. The
+        // provider decides how to use them — Gemini bakes them all into
+        // the text prompt; fal records them on providerMeta. `size` is
+        // the snapshot from the outfit-item row (historical), the rest
+        // come off the live wardrobe item (current).
         return {
           imageBuffer: buffer,
           imageMime: mime,
@@ -158,6 +171,10 @@ export async function runWardrobeTryOn(
           category: wi.category ?? undefined,
           label: wi.nickname ?? wi.brand ?? undefined,
           size: oi.size,
+          type: wi.type,
+          color: wi.color,
+          material: wi.material,
+          description: wi.description,
         } satisfies TryOnItem;
       }),
     );

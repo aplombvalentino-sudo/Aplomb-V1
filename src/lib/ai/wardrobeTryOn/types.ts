@@ -33,6 +33,21 @@ export type TryOnItem = {
    *  on the user's frame — long-on-short, oversized-on-tall, etc. Null
    *  when the wardrobe row pre-dates the size column. */
   size?: string | null;
+  /** Granular clothing type (T-shirt, Hoodie, Loafers…). More specific
+   *  than `position` (the slot bucket) and `category` (the broad group).
+   *  Lets the prompt name the silhouette precisely. */
+  type?: string | null;
+  /** Main color the user picked (or typed via "Other"). Helps the model
+   *  preserve hue when it might otherwise interpret the reference photo
+   *  under different lighting. */
+  color?: string | null;
+  /** Fabric / textile. Drives drape, weight, shine — a satin shirt sits
+   *  differently from a cotton one even at the same size. */
+  material?: string | null;
+  /** Free-text styling notes the user added on capture
+   *  ("oversized fit", "cropped", "wide-leg", "structured shoulders"…).
+   *  Highest-signal field when present. */
+  description?: string | null;
 };
 
 export type TryOnInput = {

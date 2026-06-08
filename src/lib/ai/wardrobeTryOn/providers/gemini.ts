@@ -57,38 +57,63 @@ import type { TryOnInput, TryOnProvider, TryOnResult } from "../types";
  */
 const DEFAULT_MODEL = "gemini-2.5-flash-image";
 
-function buildPrompt(input: TryOnInput): string {
-  const pieces = input.items
-    .map((it, i) => {
-      const tag = it.label ?? it.category ?? it.position;
-      const sizeBit = it.size ? `, owned in size ${it.size}` : "";
-      return `Image ${i + 2} is the ${it.position}${tag && tag !== it.position ? ` ("${tag}")` : ""}${sizeBit}.`;
-    })
-    .join(" ");
+/**
+ * Render one piece into a dense, model-readable bullet that names EVERY
+ * known attribute the user saved at capture time. The more fields we
+ * surface, the harder it is for the model to fall back to "echo image 1
+ * unchanged" — each attribute is one more signal that the rendered
+ * piece must visibly differ from whatever the person is wearing in the
+ * selfie.
+ *
+ *   Image 3 is the bottom (slot: bottom, type: Jeans, label: "Levi's
+ *   511", brand: "Levi's", color: Indigo, material: Denim, size: 32,
+ *   notes: "slim leg, dark wash, ankle-cropped").
+ */
+function describeItem(it: TryOnInput["items"][number], i: number): string {
+  const attrs: string[] = [`slot: ${it.position}`];
+  if (it.type) attrs.push(`type: ${it.type}`);
+  if (it.label) attrs.push(`label: "${it.label}"`);
+  if (it.category && it.category !== it.position && it.category !== it.type) {
+    attrs.push(`category: ${it.category}`);
+  }
+  if (it.color) attrs.push(`color: ${it.color}`);
+  if (it.material) attrs.push(`material: ${it.material}`);
+  if (it.size) attrs.push(`size: ${it.size}`);
+  if (it.description) attrs.push(`notes: "${it.description}"`);
+  return `Image ${i + 2} is the ${it.position} — ${attrs.join(", ")}.`;
+}
 
-  // Height is a strong fit signal: a "M" on 165cm hangs short; on 195cm
-  // the same M is cropped. Surface it so the model can adjust drape +
-  // proportion. If unknown, we just omit the line.
+function buildPrompt(input: TryOnInput): string {
+  const pieces = input.items.map((it, i) => describeItem(it, i)).join("\n");
+
   const heightLine = input.userHeightCm
     ? `The person in image 1 is ${input.userHeightCm} cm tall — render garment proportions accordingly (length, sleeve drop, hem position).`
     : "";
 
-  return `Image 1 is a real photograph of a person. Replace the clothing they are wearing with the items shown in the following images, keeping every other aspect of the photograph the same.
+  return `Image 1 is a real photograph of a person. Generate a NEW photorealistic image where the person is wearing the clothing items described below, all of which are also provided as reference photos. The person's face, body, pose, background, and lighting must stay identical; ONLY the clothing changes.
 
+Items the person is now wearing (every attribute below is authoritative — render it):
 ${pieces}
 
 ${heightLine}
 
-Hard requirements:
-- KEEP the person's face, skin tone, body proportions, hair, and pose EXACTLY as they are in image 1.
+ABSOLUTELY MANDATORY behaviour:
+- You MUST visibly change the clothing on the person. Returning the original photo unchanged, or with only minor tweaks, is a FAILURE. Every garment shown in images 2..N MUST replace what the person is wearing in image 1, even if the original outfit and the new outfit look superficially similar.
+- KEEP the person's face, skin tone, hair, body proportions, and pose EXACTLY as in image 1.
 - KEEP the original background and lighting from image 1.
-- The clothing items must fit the person's body naturally — realistic folds, shadows, drape, and seams.
-- Take the stated SIZE of each piece into account when rendering fit: a smaller size sits closer to the body, larger sizes drape looser with more excess fabric at the hem and sleeves.
-- Take the stated HEIGHT of the person into account when positioning hems, sleeve ends, and overall proportion.
-- Do not invent new garments. Use only the pieces shown in the supplied item images. If a piece does not naturally fit the person's silhouette, scale it sensibly rather than refusing.
-- Produce a single, photorealistic image at high quality.
+- Render each piece truthfully to its declared attributes — match the stated COLOR, MATERIAL (drape, weight, sheen), TYPE (silhouette), SIZE (fit/looseness/length), and the notes field. The reference photos in images 2..N are the visual source of truth; the attributes above resolve ambiguity when the photo is unclear.
+- Take SIZE into account: smaller sizes sit closer to the body, larger sizes drape looser with more fabric at hem and sleeves.
+- Take HEIGHT into account when positioning hems, sleeve ends, trouser breaks, and overall proportion.
+- Material matters: denim and cotton crease, satin and silk flow, leather creases at joints, knit clings. Use the stated material to set drape and shine.
+- Do NOT invent new garments. Use only the pieces provided. If a piece looks awkward on the silhouette, scale it sensibly — never refuse the swap.
 
-Output: one image. No text.`;
+Quality requirements:
+- Photorealistic. Sharp focus. Natural skin texture. Realistic fabric texture, folds, shadows, seams, and stitching.
+- 4K-grade output: high resolution, fine detail, no soft blurriness, no plasticky surfaces.
+- Lighting and white balance must match image 1. No additional lighting, no studio flatness if the source is candid.
+- The final image must look like a real photograph of the person taken in image 1's setting, wearing the new clothes — not a render, not a collage.
+
+Output: ONE image, nothing else. Do not return text.`;
 }
 
 /** Extract something user-readable from a Google SDK error. The SDK throws
