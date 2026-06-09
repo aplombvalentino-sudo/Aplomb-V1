@@ -835,7 +835,23 @@ function PhotoSlot({
   );
 }
 
-/** Memoised object-URL — created on file change, revoked on unmount. */
+/**
+ * Memoised object-URL — created on file change, revoked on unmount.
+ *
+ * Why every consumer renders the result via a raw <img> (and NOT
+ * next/image): the URL is a `blob:` from URL.createObjectURL(). It
+ * isn't a network resource — there's no host to add to
+ * next.config.ts `remotePatterns`, no upstream to fetch from, and the
+ * blob lifecycle is tied to this component's mount. Next/Image with
+ * `unoptimized` would technically render it but adds zero value (no
+ * optimization happens for blob URLs, no caching, no CDN). The raw
+ * <img> is the right tool here.
+ *
+ * All <img> uses elsewhere in this file (ReviewSlot, PhotoSlot) AND
+ * in OutfitBuilder.tsx (SelfieStep) follow this same pattern. They
+ * each have a `// eslint-disable-next-line @next/next/no-img-element`
+ * comment to silence the rule explicitly.
+ */
 function useObjectUrl(file: File | null): string | null {
   const [url, setUrl] = useState<string | null>(null);
   useEffect(() => {

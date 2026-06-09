@@ -148,7 +148,12 @@ function describeGoogleError(e: unknown): string {
 function userHint(description: string, modelId: string): string {
   const lower = description.toLowerCase();
   if (lower.includes("not_found") || lower.includes("404")) {
-    return `Model "${modelId}" isn't available to your account (NOT_FOUND). Set GEMINI_TRYON_MODEL to a different image-capable model (try gemini-2.5-flash-image-preview or gemini-2.5-flash-image).`;
+    // Only suggest models that actually exist. As of late 2025 the GA
+    // `gemini-2.5-flash-image` is the only image-capable model still
+    // served; the preview / 2.0-flash-exp variants were retired and
+    // return 404 themselves. Pointing users at the preview here would
+    // just send them chasing another NOT_FOUND.
+    return `Model "${modelId}" isn't available to your account (NOT_FOUND). Set GEMINI_TRYON_MODEL to gemini-2.5-flash-image (the current GA image model) — note it requires billing enabled on the Gemini Cloud project.`;
   }
   if (lower.includes("permission") || lower.includes("403")) {
     return `The Gemini API key doesn't have access to model "${modelId}". Enable image generation in Google AI Studio or Cloud Console.`;
