@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import type { ClientPlan } from "@/lib/planLimits";
+import { useObjectUrl } from "./shared/useObjectUrl";
+import { BulletLi } from "./shared/BulletLi";
+import { ACCEPTED_PHOTO_MIME, validatePhotoFile } from "./shared/validators";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
@@ -32,8 +35,9 @@ const COLOR_OPTIONS = [
   "Navy", "Red", "Pink", "Green", "Yellow", "Orange", "Purple", "Other",
 ];
 
-const MAX_BYTES = 8 * 1024 * 1024;
-const ACCEPTED = ["image/jpeg", "image/png", "image/webp"];
+// Photo-size + MIME caps live in shared/validators.ts so the capture flow
+// and the outfit-builder selfie picker (and any future upload surface)
+// reject the same files for the same reasons.
 
 // ─── Main component ──────────────────────────────────────────────────────────
 
@@ -256,11 +260,11 @@ function IntroStep({
       </p>
 
       <ul className="mt-7 space-y-2.5 text-[13px] text-ink">
-        <Bullet>Lay the item flat on a plain floor or surface — no hanger, no hands</Bullet>
-        <Bullet>Make the whole item visible — top to bottom, sleeves and straps out</Bullet>
-        <Bullet>One front photo, then flip it for the back</Bullet>
-        <Bullet>Skip folded fabric, dark shadows, and overlap with other clothes</Bullet>
-        <Bullet>Even daylight works best</Bullet>
+        <BulletLi>Lay the item flat on a plain floor or surface — no hanger, no hands</BulletLi>
+        <BulletLi>Make the whole item visible — top to bottom, sleeves and straps out</BulletLi>
+        <BulletLi>One front photo, then flip it for the back</BulletLi>
+        <BulletLi>Skip folded fabric, dark shadows, and overlap with other clothes</BulletLi>
+        <BulletLi>Even daylight works best</BulletLi>
       </ul>
 
       <div className="mt-9">
@@ -738,15 +742,8 @@ function ConfirmStep({
 }
 
 // ─── Reusable bits ───────────────────────────────────────────────────────────
-
-function Bullet({ children }: { children: React.ReactNode }) {
-  return (
-    <li className="flex items-start gap-2.5 leading-relaxed">
-      <span aria-hidden className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-[#C9A882]" />
-      <span>{children}</span>
-    </li>
-  );
-}
+// The Bullet helper was lifted to ./shared/BulletLi for reuse with the
+// outfit-builder selfie tips.
 
 /**
  * One-photo input — camera-friendly on mobile, file-picker on desktop. Owns
@@ -772,12 +769,9 @@ function PhotoSlot({
       onFile(null);
       return;
     }
-    if (f.size > MAX_BYTES) {
-      setReject("Photo must be under 8 MB.");
-      return;
-    }
-    if (!ACCEPTED.includes(f.type)) {
-      setReject("Photo must be JPEG, PNG, or WebP.");
+    const v = validatePhotoFile(f);
+    if (!v.ok) {
+      setReject(v.reason);
       return;
     }
     onFile(f);
@@ -826,7 +820,7 @@ function PhotoSlot({
       <input
         ref={inputRef}
         type="file"
-        accept="image/jpeg,image/png,image/webp"
+        accept={ACCEPTED_PHOTO_MIME.join(",")}
         capture="environment"
         className="hidden"
         onChange={handleChange}
@@ -835,33 +829,5 @@ function PhotoSlot({
   );
 }
 
-/**
- * Memoised object-URL — created on file change, revoked on unmount.
- *
- * Why every consumer renders the result via a raw <img> (and NOT
- * next/image): the URL is a `blob:` from URL.createObjectURL(). It
- * isn't a network resource — there's no host to add to
- * next.config.ts `remotePatterns`, no upstream to fetch from, and the
- * blob lifecycle is tied to this component's mount. Next/Image with
- * `unoptimized` would technically render it but adds zero value (no
- * optimization happens for blob URLs, no caching, no CDN). The raw
- * <img> is the right tool here.
- *
- * All <img> uses elsewhere in this file (ReviewSlot, PhotoSlot) AND
- * in OutfitBuilder.tsx (SelfieStep) follow this same pattern. They
- * each have a `// eslint-disable-next-line @next/next/no-img-element`
- * comment to silence the rule explicitly.
- */
-function useObjectUrl(file: File | null): string | null {
-  const [url, setUrl] = useState<string | null>(null);
-  useEffect(() => {
-    if (!file) {
-      setUrl(null);
-      return;
-    }
-    const u = URL.createObjectURL(file);
-    setUrl(u);
-    return () => URL.revokeObjectURL(u);
-  }, [file]);
-  return url;
-}
+// useObjectUrl moved to ./shared/useObjectUrl — see the docstring there
+// for the rationale on blob previews + raw <img> usage.

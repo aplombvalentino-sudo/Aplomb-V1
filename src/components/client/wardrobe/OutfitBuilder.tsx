@@ -2,11 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { useObjectUrl } from "./shared/useObjectUrl";
+import { BulletLi } from "./shared/BulletLi";
+import { ACCEPTED_PHOTO_MIME, validatePhotoFile } from "./shared/validators";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
@@ -571,8 +574,8 @@ function PickableItem({
 
 // ─── Step 2: Selfie capture ────────────────────────────────────────────────
 
-const MAX_SELFIE_BYTES = 8 * 1024 * 1024;
-const ACCEPTED_SELFIE_MIME = ["image/jpeg", "image/png", "image/webp"];
+// Selfie-photo limits live in shared/validators.ts alongside the
+// capture-flow limits so both upload surfaces reject identical files.
 
 function SelfieStep({
   picked,
@@ -608,12 +611,12 @@ function SelfieStep({
       onSelfie(null);
       return;
     }
-    if (f.size > MAX_SELFIE_BYTES) {
-      setReject("Selfie must be under 8 MB.");
-      return;
-    }
-    if (!ACCEPTED_SELFIE_MIME.includes(f.type)) {
-      setReject("Selfie must be JPEG, PNG, or WebP.");
+    const v = validatePhotoFile(f);
+    if (!v.ok) {
+      // Same validator the capture flow uses — caps + MIME list match.
+      // Re-frame the message as "Selfie must be …" so it reads naturally
+      // in this context.
+      setReject(v.reason.replace("Photo", "Selfie"));
       return;
     }
     onSelfie(f);
@@ -689,7 +692,7 @@ function SelfieStep({
         <input
           ref={inputRef}
           type="file"
-          accept="image/jpeg,image/png,image/webp"
+          accept={ACCEPTED_PHOTO_MIME.join(",")}
           capture="user"
           className="hidden"
           onChange={handleChange}
@@ -795,14 +798,7 @@ function PickedThumb({ item }: { item: BuilderItem }) {
   );
 }
 
-function BulletLi({ children }: { children: React.ReactNode }) {
-  return (
-    <li className="flex items-start gap-2.5 leading-relaxed">
-      <span aria-hidden className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-[#C9A882]" />
-      <span>{children}</span>
-    </li>
-  );
-}
+// BulletLi moved to ./shared/BulletLi.
 
 // ─── Step 3: Generating (waiting on the AI) ────────────────────────────────
 
@@ -853,20 +849,8 @@ function GeneratingStep({ picked }: { picked: Array<{ slot: Slot; item: BuilderI
   );
 }
 
-/** Object URL for File preview; revoked on unmount. */
-function useObjectUrl(file: File | null): string | null {
-  const [url, setUrl] = useState<string | null>(null);
-  useEffect(() => {
-    if (!file) {
-      setUrl(null);
-      return;
-    }
-    const u = URL.createObjectURL(file);
-    setUrl(u);
-    return () => URL.revokeObjectURL(u);
-  }, [file]);
-  return url;
-}
+// useObjectUrl moved to ./shared/useObjectUrl — see the docstring there
+// for the rationale on blob previews + raw <img> usage.
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
