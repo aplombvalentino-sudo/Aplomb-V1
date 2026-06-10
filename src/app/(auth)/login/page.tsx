@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { LoginContent } from "./LoginContent";
 
 // Login is for existing users — we don't want it ranking instead of the
@@ -11,6 +12,13 @@ export const metadata: Metadata = {
   robots: { index: false, follow: true },
 };
 
+// LoginContent now uses useSearchParams (to read `?audience=…` and any
+// `?callbackUrl=…`), which requires a Suspense boundary at the page
+// level so the static shell can prerender. Mirrors the signup page.
 export default function LoginPage() {
-  return <LoginContent />;
+  return (
+    <Suspense fallback={<div className="text-sm text-ink-subtle">Loading…</div>}>
+      <LoginContent />
+    </Suspense>
+  );
 }

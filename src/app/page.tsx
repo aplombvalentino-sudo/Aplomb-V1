@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { CLIENT_PLAN_COOKIE, isValidClientPlan } from "@/lib/planLimits";
 import { PublicHeader } from "@/components/public/PublicHeader";
 import { PublicFooter } from "@/components/public/PublicFooter";
 import { HeroSection } from "@/components/public/HeroSection";
@@ -25,19 +23,24 @@ export default async function LandingPage() {
   const session = await auth();
 
   if (session?.user?.id) {
-    // 1) If they already manage a brand, go to the pro dashboard.
+    // 1) Brand membership IS the brand signal — owners + staff land on the
+    //    pro dashboard. This branch covers the "logged into the brand
+    //    workspace" case regardless of how they got here (login, signup,
+    //    homepage visit).
     const membership = await db.brandUser.findFirst({
       where: { userId: session.user.id },
     });
     if (membership) redirect("/pro/dashboard");
 
-    // 2) If they signed up as a shopper (client plan cookie set), go to /app.
-    const cookieStore = await cookies();
-    const rawPlan = cookieStore.get(CLIENT_PLAN_COOKIE)?.value;
-    if (isValidClientPlan(rawPlan)) redirect("/app");
-
-    // 3) Otherwise it's a brand owner mid-signup — push them to onboarding.
-    redirect("/pro/onboarding");
+    // 2) Anyone authenticated without a brand membership is a shopper.
+    //    Go straight to /app. Previously this branch was guarded by
+    //    the client-plan cookie and fell through to /pro/onboarding
+    //    when absent — which is what sent freshly-logged-in shoppers
+    //    (cookie not yet rehydrated) into the brand workspace. The
+    //    cookie is still set by other surfaces as a fast plan-tier
+    //    hint, but routing is now data-driven from brand membership
+    //    alone.
+    redirect("/app");
   }
 
   return (
