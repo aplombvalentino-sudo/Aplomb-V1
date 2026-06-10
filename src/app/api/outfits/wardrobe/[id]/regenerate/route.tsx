@@ -22,8 +22,11 @@ import { isValidClientPlan } from "@/lib/planLimits";
 
 export const maxDuration = 60;
 
-const MAX_SELFIE_BYTES = 8 * 1024 * 1024;
-const ACCEPTED_MIME = ["image/jpeg", "image/png", "image/webp"];
+import {
+  MAX_PHOTO_BYTES,
+  MAX_PHOTO_LABEL,
+  isAcceptedPhotoMime,
+} from "@/lib/wardrobe/photoLimits";
 
 export async function POST(
   req: NextRequest,
@@ -79,14 +82,14 @@ export async function POST(
   if (!(selfie instanceof File)) {
     return err("VALIDATION_ERROR", "Selfie photo is required.", 400);
   }
-  if (selfie.size > MAX_SELFIE_BYTES) {
+  if (selfie.size > MAX_PHOTO_BYTES) {
     return err(
       "PHOTO_TOO_LARGE",
-      `Selfie must be under 8 MB (got ${Math.round(selfie.size / 1024 / 1024)} MB).`,
+      `Selfie must be under ${MAX_PHOTO_LABEL} (got ${Math.round(selfie.size / 1024 / 1024)} MB).`,
       413,
     );
   }
-  if (!ACCEPTED_MIME.includes(selfie.type)) {
+  if (!isAcceptedPhotoMime(selfie.type)) {
     return err("PHOTO_TYPE", "Selfie must be JPEG, PNG, or WebP.", 415);
   }
 

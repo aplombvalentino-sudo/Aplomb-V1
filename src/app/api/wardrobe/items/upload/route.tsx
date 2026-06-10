@@ -32,8 +32,11 @@ import { isValidClientPlan } from "@/lib/planLimits";
  * background worker / direct call will move it to `ready` or `needs_review`.
  */
 
-const MAX_PHOTO_BYTES = 8 * 1024 * 1024; // 8 MB — matches /api/measurements
-const ACCEPTED_MIME = ["image/jpeg", "image/png", "image/webp"];
+import {
+  MAX_PHOTO_BYTES,
+  MAX_PHOTO_LABEL,
+  isAcceptedPhotoMime,
+} from "@/lib/wardrobe/photoLimits";
 
 const metadataSchema = z
   .object({
@@ -106,11 +109,11 @@ export async function POST(req: NextRequest) {
     if (f.size > MAX_PHOTO_BYTES) {
       return err(
         "PHOTO_TOO_LARGE",
-        `Each photo must be under 8 MB (${label} is ${Math.round(f.size / 1024 / 1024)} MB).`,
+        `Each photo must be under ${MAX_PHOTO_LABEL} (${label} is ${Math.round(f.size / 1024 / 1024)} MB).`,
         413,
       );
     }
-    if (!ACCEPTED_MIME.includes(f.type)) {
+    if (!isAcceptedPhotoMime(f.type)) {
       return err("PHOTO_TYPE", "Photos must be JPEG, PNG, or WebP.", 415);
     }
   }

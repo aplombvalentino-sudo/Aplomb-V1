@@ -1,22 +1,24 @@
 /**
- * Photo upload validators shared across the wardrobe flow (wardrobe-item
- * capture + outfit-builder selfie). The limits MUST match the server's
- * Zod schemas in:
- *   - POST /api/wardrobe/items/upload   (front + back, 8 MB cap)
- *   - POST /api/outfits/wardrobe/try-on (selfie, 8 MB cap)
- * If either route's cap changes, change it here too — keep the client's
- * client-side block consistent with the server's reject so the user
- * never sees an upload start only to get rejected after the bytes hit
- * the wire.
+ * Client-side photo validation for the wardrobe flow. Limits + MIME list
+ * are RE-EXPORTED from the canonical neutral module at
+ * `src/lib/wardrobe/photoLimits.ts` so the client reject and the server
+ * reject use the same values literally — change the constant there,
+ * both sides update.
+ *
+ * Endpoints kept in sync via this shared module:
+ *   - POST /api/wardrobe/items/upload   (front + back item photos)
+ *   - POST /api/outfits/wardrobe/try-on (selfie + try-on, multipart)
+ *   - POST /api/outfits/wardrobe/[id]/regenerate (selfie regenerate)
  */
 
-export const MAX_PHOTO_BYTES = 8 * 1024 * 1024; // 8 MB
+import {
+  MAX_PHOTO_BYTES,
+  ACCEPTED_PHOTO_MIME,
+  MAX_PHOTO_LABEL,
+  isAcceptedPhotoMime,
+} from "@/lib/wardrobe/photoLimits";
 
-export const ACCEPTED_PHOTO_MIME = [
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-] as const;
+export { MAX_PHOTO_BYTES, ACCEPTED_PHOTO_MIME, MAX_PHOTO_LABEL };
 
 export type PhotoValidationResult =
   | { ok: true }
@@ -26,16 +28,15 @@ export type PhotoValidationResult =
  * Client-side guard before a File hits any upload-related state. Returns
  * a structured result so the caller can render the reason inline.
  *
- * Caller usage:
  *   const r = validatePhotoFile(f);
  *   if (!r.ok) { setReject(r.reason); return; }
  *   onFile(f);
  */
 export function validatePhotoFile(file: File): PhotoValidationResult {
   if (file.size > MAX_PHOTO_BYTES) {
-    return { ok: false, reason: "Photo must be under 8 MB." };
+    return { ok: false, reason: `Photo must be under ${MAX_PHOTO_LABEL}.` };
   }
-  if (!(ACCEPTED_PHOTO_MIME as readonly string[]).includes(file.type)) {
+  if (!isAcceptedPhotoMime(file.type)) {
     return { ok: false, reason: "Photo must be JPEG, PNG, or WebP." };
   }
   return { ok: true };
