@@ -4,8 +4,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { listWardrobeOutfits } from "@/lib/wardrobe/outfits";
 import { db } from "@/lib/db";
-import { Logo } from "@/components/brand/Logo";
-import { ClientSignOutLink } from "@/components/client/ClientSignOutLink";
+import { ClientNav } from "@/components/client/ClientNav";
 import { OutfitsList } from "@/components/client/wardrobe/OutfitsList";
 
 export const metadata: Metadata = {
@@ -31,21 +30,7 @@ export default async function OutfitsPage() {
 
   return (
     <div className="min-h-[100dvh] bg-canvas">
-      <header className="border-b border-hairline bg-canvas/90 backdrop-blur-md
-                          sticky top-0 z-10 px-6 py-4 flex items-center justify-between">
-        <Link href="/app/wardrobe" aria-label="Aplomb — wardrobe" className="text-ink hover:opacity-60 transition-opacity duration-200">
-          <Logo className="text-[17px]" />
-        </Link>
-        <nav className="flex items-center gap-4">
-          <Link href="/app/wardrobe" className="text-[12px] text-ink-subtle hover:text-ink transition-colors duration-200">Wardrobe</Link>
-          <Link href="/app/outfits" className="text-[12px] font-medium text-ink transition-colors">Outfits</Link>
-          <Link href="/app/chat" className="text-[12px] text-ink-subtle hover:text-ink transition-colors duration-200">Assistant</Link>
-          <Link href="/app/discover" className="text-[12px] text-ink-subtle hover:text-ink transition-colors duration-200">Discover</Link>
-          <Link href="/app/account" className="text-[12px] text-ink-subtle hover:text-ink transition-colors duration-200">Profile</Link>
-          <span aria-hidden className="h-3 w-px bg-hairline-strong" />
-          <ClientSignOutLink />
-        </nav>
-      </header>
+      <ClientNav active="outfits" />
 
       <main className="mx-auto max-w-5xl px-6 py-12">
         <div className="mb-10 flex items-end justify-between gap-6 flex-wrap">
@@ -63,7 +48,7 @@ export default async function OutfitsPage() {
             <Link
               href="/app/outfits/new"
               className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5
-                         text-[13px] font-medium text-white hover:bg-[#2a2622] transition-colors"
+                         text-[13px] font-medium text-on-ink hover:bg-ink/90 transition-colors"
             >
               Build a new outfit
             </Link>

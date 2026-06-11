@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "motion/react";
-
-const ease = [0.16, 1, 0.3, 1] as const;
+import { motion, useReducedMotion } from "motion/react";
+import { ease } from "@/lib/motion";
 
 /**
  * First step of signup: pick "I'm a brand" or "I'm a shopper". Routes the
@@ -34,11 +33,13 @@ export function AudienceChooser({
         </p>
       </motion.div>
 
-      <div className="mt-8 grid gap-3">
+      {/* perspective-stage: the two tiles share one vanishing point for the
+          slight rotateY on hover — they're card-objects, not buttons. */}
+      <div className="perspective-stage mt-8 grid gap-3">
         <ChooserButton
           onClick={() => onChoose("brand")}
           delay={0.16}
-          iconBg="bg-[#111010]"
+          iconBg="bg-ink text-on-ink"
           title="I'm a brand"
           body="Add Aplomb to your store. Upload size charts, embed the widget, see fit sessions."
           icon={
@@ -52,7 +53,8 @@ export function AudienceChooser({
         <ChooserButton
           onClick={() => onChoose("client")}
           delay={0.23}
-          iconBg="bg-[#C9A882]"
+          // stays white: champagne is a warm midtone in both themes
+          iconBg="bg-champagne text-[#1d1a16]" /* dark glyph: champagne is a theme-invariant midtone; white was ~2.2:1 */
           title="I'm a shopper"
           body="Build your digital wardrobe. Add the clothes you already own, mix them with certified brand pieces, and try new outfits on yourself."
           icon={
@@ -104,22 +106,23 @@ function ChooserButton({
   icon: React.ReactNode;
   accent: "dark" | "gold";
 }) {
+  const reduce = useReducedMotion();
   return (
     <motion.button
       onClick={onClick}
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, delay, ease }}
-      whileHover={{ y: -2 }}
+      whileHover={reduce ? undefined : { y: -2, rotateY: 2, scale: 1.01 }}
       className={`group relative overflow-hidden rounded-2xl border p-5 text-left transition-all duration-300
                   ${
                     accent === "gold"
-                      ? "border-champagne/40 bg-[var(--champagne-tint)] hover:border-champagne hover:shadow-[0_10px_34px_-12px_rgba(182,146,106,0.30)]"
-                      : "border-hairline bg-surface hover:border-ink/20 hover:shadow-[0_10px_34px_-16px_rgba(17,16,16,0.16)]"
+                      ? "border-champagne/40 bg-[var(--champagne-tint)] hover:border-champagne hover:shadow-float"
+                      : "border-hairline bg-surface hover:border-ink/20 hover:shadow-float"
                   }`}
     >
       <div className="flex items-start gap-4">
-        <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white ${iconBg}`}>
+        <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${iconBg}`}>
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
             {icon}
           </svg>

@@ -1,9 +1,7 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { Logo } from "@/components/brand/Logo";
-import { ClientSignOutLink } from "@/components/client/ClientSignOutLink";
+import { ClientNav } from "@/components/client/ClientNav";
 import { AccountPanel } from "@/components/client/AccountPanel";
 
 export const metadata = { title: "Your account — Aplomb" };
@@ -87,21 +85,7 @@ export default async function AccountPage() {
 
   return (
     <div className="min-h-[100dvh] bg-canvas">
-      {/* Header — wardrobe-first nav, consistent with /app/wardrobe + /app/outfits */}
-      <header className="border-b border-hairline bg-canvas/90 backdrop-blur-md
-                          sticky top-0 z-10 px-6 py-4 flex items-center justify-between">
-        <Link href="/app/wardrobe" aria-label="Aplomb — wardrobe" className="text-ink hover:opacity-60 transition-opacity duration-200">
-          <Logo className="text-[17px]" />
-        </Link>
-        <nav className="flex items-center gap-4">
-          <Link href="/app/wardrobe" className="text-[12px] text-ink-subtle hover:text-ink transition-colors duration-200">Wardrobe</Link>
-          <Link href="/app/outfits" className="text-[12px] text-ink-subtle hover:text-ink transition-colors duration-200">Outfits</Link>
-          <Link href="/app/discover" className="text-[12px] text-ink-subtle hover:text-ink transition-colors duration-200">Discover</Link>
-          <Link href="/app/account" className="text-[12px] font-medium text-ink transition-colors">Profile</Link>
-          <span aria-hidden className="h-3 w-px bg-hairline-strong" />
-          <ClientSignOutLink />
-        </nav>
-      </header>
+      <ClientNav active="profile" />
 
       <main className="mx-auto max-w-2xl px-6 py-12">
         <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-ink-subtle">

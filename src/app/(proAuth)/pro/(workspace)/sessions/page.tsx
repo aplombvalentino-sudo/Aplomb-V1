@@ -55,7 +55,7 @@ export default async function ProSessionsPage() {
         </div>
       ) : (
         <div className="overflow-hidden rounded-2xl border border-hairline bg-surface
-                        shadow-[0_2px_16px_rgba(0,0,0,0.04)]">
+                        shadow-card">
           <table className="w-full text-sm">
             <thead className="border-b border-hairline bg-surface-raised">
               <tr>

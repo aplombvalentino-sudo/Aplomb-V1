@@ -30,7 +30,7 @@ const LazyOverviewCharts = dynamic(
     ssr: false,
     loading: () => (
       <div
-        className="h-[240px] w-full animate-pulse rounded-md bg-[#f4f4f5]"
+        className="h-[240px] w-full animate-pulse rounded-md bg-ink/5"
         aria-hidden
       />
     ),

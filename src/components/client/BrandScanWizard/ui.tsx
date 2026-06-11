@@ -20,10 +20,10 @@ export function StepDots({ total, current }: { total: number; current: number })
           key={i}
           className={`rounded-full transition-all duration-300 ${
             i === current
-              ? "h-1.5 w-5 bg-[#111010]"
+              ? "h-1.5 w-5 bg-ink"
               : i < current
-                ? "h-1.5 w-1.5 bg-[#111010]/30"
-                : "h-1.5 w-1.5 bg-black/10"
+                ? "h-1.5 w-1.5 bg-ink/30"
+                : "h-1.5 w-1.5 bg-ink/10"
           }`}
         />
       ))}
@@ -35,7 +35,7 @@ export function StepDots({ total, current }: { total: number; current: number })
 
 export function Dot() {
   return (
-    <span aria-hidden className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-[#C9A882]" />
+    <span aria-hidden className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-champagne" />
   );
 }
 
@@ -75,8 +75,8 @@ export function ModeCard({
       onClick={onClick}
       className={`group text-left rounded-2xl border p-5 transition-all duration-200 ${
         active
-          ? "border-[#111010] bg-white shadow-[0_2px_24px_rgba(0,0,0,0.06)]"
-          : "border-hairline bg-white hover:border-black/20"
+          ? "border-ink bg-surface shadow-card"
+          : "border-hairline bg-surface hover:border-ink/20"
       }`}
     >
       <div className="flex items-start justify-between gap-3">
@@ -86,7 +86,7 @@ export function ModeCard({
         <span
           aria-hidden
           className={`h-4 w-4 rounded-full border-2 transition-colors duration-200 ${
-            active ? "border-[#111010] bg-[#111010]" : "border-black/20 bg-white"
+            active ? "border-ink bg-ink" : "border-ink/20 bg-surface"
           }`}
         />
       </div>
@@ -95,7 +95,7 @@ export function ModeCard({
         {tags.map((t) => (
           <span
             key={t}
-            className="inline-flex items-center rounded-full bg-[#F6F3EE] px-2.5 py-0.5
+            className="inline-flex items-center rounded-full bg-canvas px-2.5 py-0.5
                        text-[10px] font-medium uppercase tracking-[0.12em] text-ink-muted"
           >
             {t}
@@ -132,8 +132,8 @@ export function NumField({
         max={max}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full rounded-xl border border-black/[0.1] bg-white px-4 py-3 text-sm
-                   text-ink focus:outline-none focus:ring-2 focus:ring-[#111010]/10"
+        className="w-full rounded-xl border border-ink/[0.1] bg-surface px-4 py-3 text-sm
+                   text-ink focus:outline-none focus:ring-2 focus:ring-ink/10"
       />
       {help && <p className="mt-1 text-[11px] text-ink-subtle leading-[1.4]">{help}</p>}
     </div>
@@ -174,8 +174,8 @@ export function PhotoField({
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
-        className={`relative w-full overflow-hidden rounded-xl border bg-white transition-all duration-200 ${
-          file ? "border-[#111010]" : "border-dashed border-black/20 hover:border-black/40"
+        className={`relative w-full overflow-hidden rounded-xl border bg-surface transition-all duration-200 ${
+          file ? "border-ink" : "border-dashed border-ink/20 hover:border-ink/40"
         }`}
         style={{ aspectRatio: "3 / 4" }}
       >
@@ -192,10 +192,10 @@ export function PhotoField({
           />
         ) : (
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-3">
-            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden>
-              <rect x="3" y="6" width="16" height="12" rx="2" stroke="#6B6965" strokeWidth="1.5" />
-              <circle cx="11" cy="12" r="3" stroke="#6B6965" strokeWidth="1.5" />
-              <path d="M7 6l1.5-2h5L15 6" stroke="#6B6965" strokeWidth="1.5" strokeLinejoin="round" />
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden className="text-ink-subtle">
+              <rect x="3" y="6" width="16" height="12" rx="2" stroke="currentColor" strokeWidth="1.5" />
+              <circle cx="11" cy="12" r="3" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M7 6l1.5-2h5L15 6" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
             </svg>
             <p className="mt-2 text-[12px] font-medium text-ink">Add photo</p>
             <p className="mt-0.5 text-[10px] text-ink-subtle leading-[1.4] max-w-[20ch]">{guidance}</p>

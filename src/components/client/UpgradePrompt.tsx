@@ -36,7 +36,7 @@ export function UpgradePrompt({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40
+        className="fixed inset-0 z-50 flex items-center justify-center bg-scrim/55
                    backdrop-blur-sm px-4"
         onClick={(e) => e.target === e.currentTarget && onDismiss?.()}
       >
@@ -46,7 +46,7 @@ export function UpgradePrompt({
           exit={{ opacity: 0, scale: 0.96 }}
           transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
           className="w-full max-w-sm rounded-2xl bg-surface border border-hairline
-                     shadow-[0_32px_64px_-24px_rgba(17,16,16,0.24)] p-7 text-center"
+                     shadow-float p-7 text-center"
         >
           {/* Champagne accent ring */}
           <div className="mx-auto mb-5 h-14 w-14 rounded-full flex items-center
@@ -66,7 +66,7 @@ export function UpgradePrompt({
             <Link
               href={`/app/pricing`}
               className="block w-full rounded-full bg-ink py-3 text-sm font-medium
-                         text-white hover:bg-[#2a2622] transition-colors duration-200"
+                         text-on-ink hover:bg-ink/90 transition-colors duration-200"
             >
               See plans — from {PLAN_PRICES[targetPlan]}
             </Link>

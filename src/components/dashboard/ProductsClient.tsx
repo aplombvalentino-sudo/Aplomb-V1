@@ -133,7 +133,7 @@ export function ProductsClient({ brandId }: { brandId: string }) {
             </Button>
           </Card>
         ) : (
-          <div className="overflow-hidden rounded-xl border border-hairline bg-white">
+          <div className="overflow-hidden rounded-xl border border-hairline bg-surface shadow-card">
             <table className="w-full text-sm">
               <thead className="border-b border-hairline bg-surface-raised">
                 <tr>
@@ -144,7 +144,7 @@ export function ProductsClient({ brandId }: { brandId: string }) {
                   <th className="px-4 py-3" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-hairline">
                 {products.map((p) => (
                   <tr key={p.id} className="hover:bg-surface-raised">
                     <td className="px-4 py-3">
@@ -183,7 +183,7 @@ export function ProductsClient({ brandId }: { brandId: string }) {
                         </button>
                         <button
                           onClick={() => handleDelete(p.id)}
-                          className="rounded p-1 text-ink-subtle hover:bg-red-50 hover:text-red-600"
+                          className="rounded p-1 text-ink-subtle hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-300"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -200,7 +200,7 @@ export function ProductsClient({ brandId }: { brandId: string }) {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4">
-          <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
+          <div className="w-full max-w-lg rounded-xl bg-surface p-6 shadow-float">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">
                 {editing ? "Edit product" : "Add product"}
@@ -214,7 +214,7 @@ export function ProductsClient({ brandId }: { brandId: string }) {
             </div>
 
             {error && (
-              <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+              <p className="mt-3 rounded-lg bg-red-500/10 border border-red-500/20 px-3 py-2 text-sm text-red-700 dark:text-red-300">
                 {error}
               </p>
             )}
@@ -262,7 +262,7 @@ export function ProductsClient({ brandId }: { brandId: string }) {
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                   rows={3}
-                  className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black"
+                  className="mt-1 w-full rounded-lg border border-hairline bg-surface px-3 py-2 text-sm text-ink focus:border-ink focus:outline-none focus:ring-1 focus:ring-ink"
                 />
               </div>
             </div>

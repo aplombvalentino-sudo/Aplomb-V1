@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "motion/react";
-
-const ease = [0.16, 1, 0.3, 1] as const;
+import { ease } from "@/lib/motion";
 
 export function CtaSection() {
   return (
@@ -60,9 +59,9 @@ export function CtaSection() {
               <Link
                 href="/signup?audience=client"
                 className="group inline-flex items-center gap-2.5 rounded-full bg-ink
-                           pl-6 pr-2.5 py-3 text-sm font-medium text-white
+                           pl-6 pr-2.5 py-3 text-sm font-medium text-on-ink
                            transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
-                           hover:bg-[#2a2622]"
+                           hover:bg-ink/90"
               >
                 Start my wardrobe
                 <span className="flex h-7 w-7 items-center justify-center rounded-full
@@ -103,7 +102,7 @@ export function CtaSection() {
             { stat: "0", label: "fitting rooms" },
           ].map((s) => (
             <div key={s.stat} className="text-right">
-              <p className="font-serif text-[2rem] font-medium tracking-[-0.02em] text-ink leading-none">
+              <p className="font-serif text-[2rem] font-medium tracking-[-0.02em] text-ink leading-none nums">
                 {s.stat}
               </p>
               <p className="mt-1 text-[12px] text-ink-subtle">{s.label}</p>

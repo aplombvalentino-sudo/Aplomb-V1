@@ -2,6 +2,6 @@
 
 import { PageTransition } from "@/components/motion/PageTransition";
 
-export default function AuthTemplate({ children }: { children: React.ReactNode }) {
+export default function ProAuthTemplate({ children }: { children: React.ReactNode }) {
   return <PageTransition variant="dolly">{children}</PageTransition>;
 }

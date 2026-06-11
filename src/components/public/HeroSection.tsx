@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
-
-const ease = [0.16, 1, 0.3, 1] as const;
+import { TiltCard } from "@/components/fx/TiltCard";
+import { ease } from "@/lib/motion";
 
 export function HeroSection() {
   // Respect the OS "reduce motion" setting (WCAG 2.3.3). When true, we skip
@@ -67,9 +67,9 @@ export function HeroSection() {
                 <Link
                   href="/signup?audience=client"
                   className="group inline-flex items-center gap-2.5 rounded-full bg-ink
-                             pl-6 pr-2.5 py-3 text-sm font-medium text-white
+                             pl-6 pr-2.5 py-3 text-sm font-medium text-on-ink
                              transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
-                             hover:bg-[#2a2622]
+                             hover:bg-ink/90
                              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
                 >
                   Start my wardrobe
@@ -115,14 +115,14 @@ export function HeroSection() {
                 ].map(({ bg, initials }, i) => (
                   <div
                     key={i}
-                    className="h-7 w-7 rounded-full ring-2 ring-[#F6F3EE] flex items-center justify-center"
+                    className="h-7 w-7 rounded-full ring-2 ring-canvas flex items-center justify-center"
                     style={{ background: bg }}
                   >
                     <span className="text-[8px] font-semibold text-white/90 tracking-tight">{initials}</span>
                   </div>
                 ))}
               </div>
-              <p className="text-[12px] text-[#6B6965]">
+              <p className="text-[12px] text-ink-muted">
                 Your clothes and certified brand pieces, all in one digital closet.
               </p>
             </motion.div>
@@ -136,20 +136,30 @@ export function HeroSection() {
             initial={enter({ opacity: 0, y: 40 })}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 0.18, ease }}
-            className="flex justify-center lg:justify-end"
+            className="perspective-stage flex justify-center lg:justify-end"
             aria-hidden="true"
           >
+            <div className="relative preserve-3d">
+              {/* Soft background plane — a step back in Z so the mock reads as a
+                  physical object floating over the canvas. */}
+              <div
+                aria-hidden
+                className="absolute -right-5 -bottom-4 left-8 top-10 rounded-[2.5rem]
+                           bg-stone/60 rotate-[1.5deg]"
+              />
+
+              {/* The mock is the page's single sheen group. */}
+              <TiltCard sheen className="rounded-[2rem] shadow-card">
             {/* Outer shell */}
-            <div className="relative rounded-[2rem] bg-black/[0.04] p-2 ring-1 ring-black/[0.06]
-                            shadow-[0_8px_64px_-16px_rgba(0,0,0,0.12)]">
+            <div className="relative rounded-[2rem] bg-ink/[0.04] p-2 ring-1 ring-ink/[0.06]">
               {/* Inner core */}
               <div className="relative w-[min(320px,80vw)] sm:w-[320px] lg:w-[360px] overflow-hidden rounded-[calc(2rem-0.5rem)]
-                              bg-white shadow-[inset_0_1px_1px_rgba(255,255,255,0.8)]">
+                              bg-surface">
 
                 {/* Mock header bar */}
-                <div className="flex items-center justify-between border-b border-black/[0.06] px-5 py-4">
-                  <span className="text-[13px] font-semibold text-[#111010]">My wardrobe</span>
-                  <span className="text-[10px] font-medium text-[#6B6965]">
+                <div className="flex items-center justify-between border-b border-ink/[0.06] px-5 py-4">
+                  <span className="text-[13px] font-semibold text-ink">My wardrobe</span>
+                  <span className="text-[10px] font-medium text-ink-muted">
                     7 / 10 items
                   </span>
                 </div>
@@ -174,6 +184,7 @@ export function HeroSection() {
                         style={{ background: tile.bg }}
                       >
                         {tile.kind === "mine" && (
+                          // stays white: sits on imagery (tile swatch), not on a theme surface
                           <span
                             className="absolute top-1 right-1 rounded-full bg-white/95 px-1.5 py-0.5
                                        text-[8px] font-semibold uppercase tracking-[0.08em] text-[#111010]"
@@ -186,8 +197,8 @@ export function HeroSection() {
                   </div>
 
                   {/* Today's-outfit strip — composed from items above */}
-                  <div className="rounded-xl border border-black/[0.06] bg-[#FBFAF7] p-3.5">
-                    <p className="text-[10px] font-medium uppercase tracking-[0.15em] text-[#6B6965] mb-2.5">
+                  <div className="rounded-xl border border-ink/[0.06] bg-surface-raised p-3.5">
+                    <p className="text-[10px] font-medium uppercase tracking-[0.15em] text-ink-muted mb-2.5">
                       Today&apos;s outfit
                     </p>
                     <div className="flex items-center gap-3">
@@ -195,14 +206,14 @@ export function HeroSection() {
                         {["#C9B8A8", "#4A3F35", "#8A7A6A"].map((c, i) => (
                           <div
                             key={i}
-                            className="h-9 w-9 rounded-lg ring-2 ring-[#FBFAF7] shadow-sm"
+                            className="h-9 w-9 rounded-lg ring-2 ring-surface-raised shadow-sm"
                             style={{ background: c }}
                           />
                         ))}
                       </div>
                       <div>
-                        <p className="text-[12px] font-medium text-[#111010]">Sunday brunch</p>
-                        <p className="text-[11px] text-[#6B6965]">Mine + Atelier Verdú</p>
+                        <p className="text-[12px] font-medium text-ink">Sunday brunch</p>
+                        <p className="text-[11px] text-ink-muted">Mine + Atelier Verdú</p>
                       </div>
                     </div>
                   </div>
@@ -210,8 +221,8 @@ export function HeroSection() {
                   {/* CTA — sends visitors into the shopper signup flow */}
                   <Link
                     href="/signup?audience=client"
-                    className="block text-center w-full rounded-xl bg-[#111010] py-3 text-[13px] font-medium
-                               text-white transition-opacity hover:opacity-80"
+                    className="block text-center w-full rounded-xl bg-ink py-3 text-[13px] font-medium
+                               text-on-ink transition-opacity hover:opacity-80"
                     tabIndex={-1}
                   >
                     Try this outfit on me
@@ -219,11 +230,13 @@ export function HeroSection() {
                 </div>
 
                 {/* Mock bottom bar */}
-                <div className="border-t border-black/[0.06] px-5 py-3 flex items-center justify-center">
-                  <span className="text-[10px] text-[#6B6965]">Powered by Aplomb</span>
+                <div className="border-t border-ink/[0.06] px-5 py-3 flex items-center justify-center">
+                  <span className="text-[10px] text-ink-muted">Powered by Aplomb</span>
                 </div>
               </div>
 
+            </div>
+              </TiltCard>
             </div>
           </motion.div>
 

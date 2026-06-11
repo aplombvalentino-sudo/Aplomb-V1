@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { TiltCard } from "@/components/fx/TiltCard";
 import type { ClientPlan } from "@/lib/planLimits";
 
 /**
@@ -32,8 +33,14 @@ export function ChatUpgradeLock({ currentPlan }: { currentPlan: ClientPlan }) {
         </p>
       </div>
 
-      {/* Premium lock card */}
-      <div className="relative overflow-hidden rounded-3xl border border-hairline bg-surface p-8 shadow-[0_4px_32px_rgba(0,0,0,0.04)]">
+      {/* Premium lock card — the sell surface gets the 3D object treatment:
+          one TiltCard (with the view's single sheen group) on a shared stage. */}
+      <div className="perspective-stage">
+        <TiltCard
+          maxTilt={3}
+          sheen
+          className="overflow-hidden rounded-3xl border border-hairline bg-surface p-8 shadow-float"
+        >
         <span className="inline-flex items-center rounded-full border border-accent/30 bg-accent/[0.07]
                          px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-accent">
           Premium feature
@@ -60,17 +67,18 @@ export function ChatUpgradeLock({ currentPlan }: { currentPlan: ClientPlan }) {
           <Link
             href="/app/pricing"
             className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-[13px]
-                       font-medium text-white hover:bg-[#2a2622] transition-colors"
+                       font-medium text-on-ink hover:bg-ink/90 transition-colors"
           >
             See upgrade options
           </Link>
           <Link
             href="/app/wardrobe"
-            className="text-[12px] text-ink-subtle hover:text-ink underline underline-offset-2"
+            className="text-[12px] text-ink-subtle hover:text-ink underline underline-offset-2 transition-colors duration-200"
           >
             Back to wardrobe
           </Link>
         </div>
+        </TiltCard>
       </div>
     </div>
   );

@@ -33,10 +33,10 @@ export function ProcessingStep({ processingStage }: { processingStage: number })
             <span
               className={`h-2 w-2 rounded-full transition-colors duration-300 ${
                 i < processingStage
-                  ? "bg-[#346538]"
+                  ? "bg-emerald-600 dark:bg-emerald-400"
                   : i === processingStage
-                    ? "bg-[#C9A882] animate-pulse"
-                    : "bg-black/10"
+                    ? "bg-champagne animate-pulse"
+                    : "bg-ink/10"
               }`}
             />
             <span

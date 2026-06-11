@@ -58,7 +58,7 @@ export function SizeResultStep({
             return (
               <div
                 key={k as string}
-                className="rounded-xl bg-white border border-hairline px-4 py-3.5"
+                className="rounded-xl bg-surface border border-hairline px-4 py-3.5"
               >
                 <p className="text-[10px] uppercase tracking-[0.1em] text-ink-subtle capitalize mb-0.5">
                   {k as string}
@@ -107,7 +107,7 @@ export function SizeResultStep({
       )}
 
       {error && (
-        <div className="mt-4 rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">
+        <div className="mt-4 rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-700 dark:text-red-300">
           {error}
         </div>
       )}
@@ -116,8 +116,8 @@ export function SizeResultStep({
         <button
           onClick={onGenerate}
           disabled={loading}
-          className="inline-flex items-center gap-2.5 rounded-full bg-[#111010] pl-6 pr-2.5 py-3
-                     text-sm font-medium text-white hover:bg-[#2a2622] transition-all duration-300
+          className="inline-flex items-center gap-2.5 rounded-full bg-ink pl-6 pr-2.5 py-3
+                     text-sm font-medium text-on-ink hover:bg-ink/90 transition-all duration-300
                      disabled:opacity-50 disabled:cursor-wait"
         >
           {loading ? "Building outfits…" : "See outfit ideas"}

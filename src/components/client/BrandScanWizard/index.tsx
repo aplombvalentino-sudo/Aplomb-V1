@@ -304,13 +304,13 @@ export function BrandScanWizard({
   // ─── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-[100dvh] bg-[#F6F3EE]">
+    <div className="min-h-[100dvh] bg-canvas">
       {/* Header */}
-      <header className="sticky top-0 z-10 border-b border-black/[0.07] bg-[#F6F3EE]/90
+      <header className="sticky top-0 z-10 border-b border-ink/[0.07] bg-canvas/90
                           backdrop-blur-md px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div
-            className="h-8 w-8 rounded-lg flex items-center justify-center overflow-hidden ring-1 ring-black/10"
+            className="h-8 w-8 rounded-lg flex items-center justify-center overflow-hidden ring-1 ring-ink/10"
             style={{ background: brand.primaryColor + "22" }}
           >
             {brand.logoUrl ? (
@@ -339,7 +339,7 @@ export function BrandScanWizard({
               >
                 ← My wardrobe
               </Link>
-              <span aria-hidden className="h-3 w-px bg-black/10" />
+              <span aria-hidden className="h-3 w-px bg-ink/10" />
               <ClientSignOutLink />
             </>
           )}
@@ -357,7 +357,7 @@ export function BrandScanWizard({
               >
                 Start your own wardrobe →
               </a>
-              <span aria-hidden className="h-3 w-px bg-black/10" />
+              <span aria-hidden className="h-3 w-px bg-ink/10" />
               <span className="text-[10px] uppercase tracking-[0.14em] text-ink-subtle">
                 Powered by Aplomb
               </span>
@@ -461,7 +461,7 @@ export function BrandScanWizard({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setPendingTryOnItemId(null)}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-ink/70 backdrop-blur-sm p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-scrim/70 backdrop-blur-sm p-4"
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.96, y: 8 }}
@@ -469,7 +469,7 @@ export function BrandScanWizard({
               exit={{ opacity: 0, scale: 0.96 }}
               transition={{ duration: 0.3, ease }}
               onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl p-7"
+              className="relative w-full max-w-md overflow-hidden rounded-3xl bg-surface shadow-float p-7"
             >
               <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-ink-subtle">
                 Try-on consent
@@ -486,9 +486,9 @@ export function BrandScanWizard({
                 to your wardrobe.
               </p>
               <ul className="mt-4 space-y-1.5 text-[12px] text-ink leading-[1.5]">
-                <li className="flex gap-2"><span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-[#C9A882]" />What&apos;s sent: your front photo (signed URL, 30-minute lifetime)</li>
-                <li className="flex gap-2"><span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-[#C9A882]" />Legal basis: Article 9 §2.a — your explicit consent</li>
-                <li className="flex gap-2"><span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-[#C9A882]" />Withdraw anytime: <span className="font-medium">Account → Delete</span> erases everything</li>
+                <li className="flex gap-2"><span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-champagne" />What&apos;s sent: your front photo (signed URL, 30-minute lifetime)</li>
+                <li className="flex gap-2"><span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-champagne" />Legal basis: Article 9 §2.a — your explicit consent</li>
+                <li className="flex gap-2"><span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-champagne" />Withdraw anytime: <span className="font-medium">Account → Delete</span> erases everything</li>
               </ul>
               <div className="mt-6 flex items-center justify-end gap-3">
                 <button
@@ -500,8 +500,8 @@ export function BrandScanWizard({
                 </button>
                 <button
                   onClick={confirmTryOnConsent}
-                  className="inline-flex items-center gap-2 rounded-full bg-[#111010] px-5 py-2
-                             text-[13px] font-medium text-white hover:bg-[#2a2622]
+                  className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2
+                             text-[13px] font-medium text-on-ink hover:bg-ink/90
                              transition-colors duration-200"
                 >
                   I consent — render the try-on
@@ -520,14 +520,14 @@ export function BrandScanWizard({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setActiveTryOn(null)}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-ink/70 backdrop-blur-sm p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-scrim/70 backdrop-blur-sm p-4"
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.96 }}
               transition={{ duration: 0.3, ease }}
-              className="relative max-h-[90vh] max-w-[640px] w-full overflow-hidden rounded-2xl bg-white"
+              className="relative max-h-[90vh] max-w-[640px] w-full overflow-hidden rounded-2xl bg-surface"
               onClick={(e) => e.stopPropagation()}
             >
               <Image
@@ -536,9 +536,10 @@ export function BrandScanWizard({
                 width={640}
                 height={800}
                 sizes="(max-width: 640px) 100vw, 640px"
-                className="w-full h-auto max-h-[88vh] object-contain bg-[#F6F3EE]"
+                className="w-full h-auto max-h-[88vh] object-contain bg-stone"
                 priority
               />
+              {/* stays white: sits on the try-on imagery, not on a theme surface */}
               <button
                 onClick={() => setActiveTryOn(null)}
                 aria-label="Close"

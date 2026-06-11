@@ -4,11 +4,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import { Button } from "@/components/ui/Button";
+import { TiltCard } from "@/components/fx/TiltCard";
+import { ease, staggerContainer, depthItem } from "@/lib/motion";
 import type { ClientPlan } from "@/lib/planLimits";
-
-const ease = [0.16, 1, 0.3, 1] as const;
 
 // ─── Types (mirror server payload) ───────────────────────────────────────────
 
@@ -50,6 +50,7 @@ export function WardrobeGrid({
   quota: Quota;
   plan: ClientPlan;
 }) {
+  const reduce = useReducedMotion();
   const itemsFull = quota.itemsUsed >= quota.maxItems;
   const personalFull = quota.personalPhotosUsed >= quota.maxPersonalPhotos;
 
@@ -70,19 +71,26 @@ export function WardrobeGrid({
           </p>
         )}
         {itemsFull && (
-          <p className="text-[12px] text-[#C9653B]">
+          <p className="text-[12px] text-accent">
             Wardrobe full ({quota.maxItems} items) — remove one or
             <Link href="/pricing" className="underline underline-offset-2 ml-1">upgrade</Link>.
           </p>
         )}
       </div>
 
-      {/* Grid */}
-      <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+      {/* Grid — one shared vanishing point (perspective-stage); cards rise
+          from a step back in Z on first paint via depth-staggered entrance.
+          Reduced motion skips the hidden state entirely. */}
+      <motion.ul
+        variants={staggerContainer(0.06)}
+        initial={reduce ? false : "hidden"}
+        animate="show"
+        className="perspective-stage grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"
+      >
         {items.map((item) => (
           <WardrobeCard key={item.id} item={item} />
         ))}
-      </ul>
+      </motion.ul>
 
       {/* Footer hint — only for Essential users who haven't hit the cap yet */}
       {plan === "essential" && !itemsFull && (
@@ -98,13 +106,22 @@ export function WardrobeGrid({
 // ─── Empty state ─────────────────────────────────────────────────────────────
 
 function EmptyState() {
+  const reduce = useReducedMotion();
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={reduce ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease }}
       className="rounded-2xl border border-hairline bg-surface px-6 py-16 text-center"
     >
+      {/* Ghost stack — three offset, slightly rotated planes: a closet
+          awaiting clothes. Decorative only (aria-hidden), no motion. */}
+      <div aria-hidden className="relative mx-auto mb-8 h-32 w-24">
+        <span className="absolute inset-0 -rotate-3 -translate-x-3 rounded-xl bg-stone-deep/70" />
+        <span className="absolute inset-0 rotate-3 translate-x-3 rounded-xl bg-stone-deep/50" />
+        <span className="absolute inset-0 -rotate-1 rounded-xl border border-hairline bg-stone shadow-card" />
+      </div>
+
       <p className="font-serif text-[1.5rem] font-medium text-ink leading-snug">
         Your digital wardrobe is empty.
       </p>
@@ -129,8 +146,8 @@ function AddPersonalButton({ disabled }: { disabled?: boolean }) {
       aria-disabled={disabled}
       className={
         disabled
-          ? "inline-flex items-center gap-2 rounded-full bg-ink/40 px-5 py-2.5 text-[13px] font-medium text-white cursor-not-allowed"
-          : "inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-[13px] font-medium text-white hover:bg-[#2a2622] transition-colors"
+          ? "inline-flex items-center gap-2 rounded-full bg-ink/40 px-5 py-2.5 text-[13px] font-medium text-on-ink cursor-not-allowed"
+          : "inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-[13px] font-medium text-on-ink hover:bg-ink/90 transition-colors"
       }
     >
       Add a clothing item I already own
@@ -186,70 +203,77 @@ function WardrobeCard({ item }: { item: WardrobeGridItem }) {
   }
 
   return (
-    <li
-      className="group relative rounded-2xl border border-hairline bg-surface overflow-hidden
-                 hover:shadow-[0_4px_24px_rgba(0,0,0,0.06)] transition-shadow duration-300"
-    >
-      {/* Visual area */}
-      <div className="relative aspect-[3/4] bg-[#F6F3EE]">
-        {thumbUrl ? (
-          <Image
-            src={thumbUrl}
-            alt={item.nickname || item.category}
-            fill
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 200px"
-            className="object-cover"
-          />
-        ) : (
-          <ProcessingPlaceholder status={item.processingStatus} />
-        )}
-
-        {/* Source pill (top-left) */}
-        <span
-          className={`absolute top-2 left-2 rounded-full px-2 py-0.5 text-[9px] font-semibold
-                      uppercase tracking-[0.1em] ${
-                        item.sourceType === "user_photo"
-                          ? "bg-white/95 text-ink"
-                          : "bg-ink/90 text-white"
-                      }`}
-        >
-          {item.sourceType === "user_photo" ? "Mine" : "Brand"}
-        </span>
-
-        {/* Delete button — appears on hover (focus-visible too for keyboard nav) */}
-        <button
-          onClick={handleDelete}
-          disabled={deleting}
-          aria-label="Remove from wardrobe"
-          className="absolute top-2 right-2 h-7 w-7 rounded-full bg-white/95 flex items-center justify-center
-                     opacity-0 group-hover:opacity-100 focus-visible:opacity-100
-                     transition-opacity duration-200 ring-1 ring-black/10 hover:bg-white
-                     disabled:opacity-50 disabled:cursor-wait"
-        >
-          <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden>
-            <path d="M2.5 2.5l6 6M8.5 2.5l-6 6" stroke="#111010" strokeWidth="1.4" strokeLinecap="round"/>
-          </svg>
-        </button>
-      </div>
-
-      {/* Card body — size sits to the right of the name as a small badge.
-          Surfaces the most important AI-try-on input at a glance. */}
-      <div className="px-3 py-2.5">
-        <div className="flex items-baseline justify-between gap-2">
-          <p className="text-[13px] font-medium text-ink truncate">
-            {item.nickname || titleCase(item.category)}
-          </p>
-          {item.size && (
-            <span className="shrink-0 rounded-full bg-ink/[0.06] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] text-ink">
-              {item.size}
-            </span>
+    // motion.li carries the depth-stagger entrance (variants inherited from
+    // the grid's staggerContainer); TiltCard makes the garment tilt + lift
+    // like a physical object. All logic (delete, thumb, status) unchanged.
+    <motion.li variants={depthItem} className="list-none preserve-3d">
+      <TiltCard
+        maxTilt={5}
+        className="group rounded-2xl border border-hairline bg-surface overflow-hidden"
+      >
+        {/* Visual area */}
+        <div className="relative aspect-[3/4] bg-stone">
+          {thumbUrl ? (
+            <Image
+              src={thumbUrl}
+              alt={item.nickname || item.category}
+              fill
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 200px"
+              className="object-cover"
+            />
+          ) : (
+            <ProcessingPlaceholder status={item.processingStatus} />
           )}
+
+          {/* Source pill (top-left) — stays white: sits on imagery, not on
+              theme surface, so it keeps literal white + near-black text */}
+          <span
+            className={`absolute top-2 left-2 rounded-full px-2 py-0.5 text-[9px] font-semibold
+                        uppercase tracking-[0.1em] ${
+                          item.sourceType === "user_photo"
+                            ? "bg-white/95 text-[#111010]"
+                            : "bg-[#111010]/90 text-white"
+                        }`}
+          >
+            {item.sourceType === "user_photo" ? "Mine" : "Brand"}
+          </span>
+
+          {/* Delete button — appears on hover (focus-visible too for keyboard nav).
+              Stays white: sits on imagery, not on theme surface. */}
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            aria-label="Remove from wardrobe"
+            className="absolute top-2 right-2 h-7 w-7 rounded-full bg-white/95 text-[#111010] flex items-center justify-center
+                       opacity-0 group-hover:opacity-100 focus-visible:opacity-100
+                       transition-opacity duration-200 ring-1 ring-black/10 hover:bg-white
+                       disabled:opacity-50 disabled:cursor-wait"
+          >
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden>
+              <path d="M2.5 2.5l6 6M8.5 2.5l-6 6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+            </svg>
+          </button>
         </div>
-        <p className="text-[11px] text-ink-subtle truncate">
-          {item.brand || (item.sourceType === "user_photo" ? "Personal" : "Brand item")}
-        </p>
-      </div>
-    </li>
+
+        {/* Card body — size sits to the right of the name as a small badge.
+            Surfaces the most important AI-try-on input at a glance. */}
+        <div className="px-3 py-2.5">
+          <div className="flex items-baseline justify-between gap-2">
+            <p className="text-[13px] font-medium text-ink truncate">
+              {item.nickname || titleCase(item.category)}
+            </p>
+            {item.size && (
+              <span className="shrink-0 rounded-full bg-ink/[0.06] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] text-ink">
+                {item.size}
+              </span>
+            )}
+          </div>
+          <p className="text-[11px] text-ink-subtle truncate">
+            {item.brand || (item.sourceType === "user_photo" ? "Personal" : "Brand item")}
+          </p>
+        </div>
+      </TiltCard>
+    </motion.li>
   );
 }
 
@@ -286,7 +310,7 @@ function ProcessingPlaceholder({
       )}
       <p
         className={`text-[10px] font-medium uppercase tracking-[0.12em] ${
-          isError ? "text-[#C9653B]" : "text-ink-subtle"
+          isError ? "text-accent" : "text-ink-subtle"
         }`}
       >
         {labels[status]}

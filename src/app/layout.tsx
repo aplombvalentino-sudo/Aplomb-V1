@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Fraunces } from "next/font/google";
+import { ThemeScript } from "@/components/theme/ThemeScript";
 import "./globals.css";
 
 // Neutral grotesque for UI + body.
@@ -102,8 +103,13 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#F6F3EE",
-  colorScheme: "light",
+  // Browser chrome follows the active scheme. The bootstrap script resolves
+  // the stored preference, so prefers-color-scheme is the right proxy here.
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#F6F3EE" },
+    { media: "(prefers-color-scheme: dark)", color: "#131110" },
+  ],
+  colorScheme: "light dark",
   width: "device-width",
   initialScale: 1,
 };
@@ -156,6 +162,10 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="grain-overlay min-h-full flex flex-col overflow-x-hidden" suppressHydrationWarning>
+        {/* Theme bootstrap — FIRST child of <body> so it stamps
+            data-theme on <html> before any content paints (no dark-mode
+            flash). Server component: reads the CSP nonce from headers. */}
+        <ThemeScript />
         {/* Structured data — inlined as <script> so it lands in the static
             payload without an extra hydration cost. CSP nonce-based policy
             in middleware.ts allows inline JSON-LD via type="application/ld+json"

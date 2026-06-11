@@ -98,7 +98,7 @@ export default async function ProAnalyticsPage() {
 
       {/* ── Scan trend chart ───────────────────────────────────────────────── */}
       <div className="rounded-2xl bg-surface border border-hairline
-                      shadow-[0_2px_16px_rgba(0,0,0,0.04)] px-6 py-5 mb-6">
+                      shadow-card px-6 py-5 mb-6">
         <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-subtle mb-4">
           Shopper scans — last 30 days
         </p>
@@ -196,8 +196,8 @@ export default async function ProAnalyticsPage() {
             </p>
           </div>
           <Link
-            href="/pro/billing"
-            className="rounded-full bg-ink px-5 py-2 text-[12px] font-medium text-white
+            href="/pro/pricing"
+            className="rounded-full bg-ink px-5 py-2 text-[12px] font-medium text-on-ink
                        hover:bg-ink/90 transition-colors duration-200"
           >
             See plans →
@@ -219,7 +219,7 @@ function thirtyDaysAgo() {
 function MetricTile({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="rounded-2xl bg-surface border border-hairline
-                    shadow-[0_2px_8px_rgba(0,0,0,0.03)] px-5 py-4">
+                    shadow-card px-5 py-4">
       <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-ink-subtle">
         {label}
       </p>
@@ -243,7 +243,7 @@ function AdvancedCard({
     <div className={`relative rounded-2xl bg-surface border px-6 py-5
                     ${locked
                       ? "border-hairline overflow-hidden"
-                      : "border-hairline shadow-[0_2px_16px_rgba(0,0,0,0.04)]"
+                      : "border-hairline shadow-card"
                     }`}>
       <div className="flex items-center justify-between mb-3">
         <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-subtle">

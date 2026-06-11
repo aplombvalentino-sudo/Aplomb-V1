@@ -52,7 +52,7 @@ function EmptyWardrobe() {
     >
       {/* Hanger icon */}
       <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full
-                      bg-surface border border-hairline shadow-[0_2px_16px_rgba(17,16,16,0.06)]
+                      bg-surface border border-hairline shadow-card
                       text-champagne-deep">
         <svg width="34" height="34" viewBox="0 0 34 34" fill="none" aria-hidden>
           <path
@@ -77,8 +77,8 @@ function EmptyWardrobe() {
       <a
         href="/app"
         className="group mt-7 inline-flex items-center gap-2 rounded-full bg-ink
-                   pl-5 pr-2 py-2.5 text-[13px] font-medium text-white
-                   hover:bg-[#2a2622] transition-all duration-300"
+                   pl-5 pr-2 py-2.5 text-[13px] font-medium text-on-ink
+                   hover:bg-ink/90 transition-all duration-300"
       >
         Browse brands
         <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent aplomb-glow
@@ -111,7 +111,7 @@ function OutfitCard({
       exit={{ opacity: 0, scale: 0.96 }}
       transition={{ duration: 0.35, ease }}
       className="group relative rounded-2xl border border-hairline bg-surface
-                 p-5 shadow-[0_1px_2px_rgba(17,16,16,0.04)] hover:shadow-[0_14px_34px_-16px_rgba(17,16,16,0.18)]
+                 p-5 shadow-card hover:shadow-float
                  transition-shadow duration-300"
     >
       {/* Brand + date header */}
@@ -133,7 +133,7 @@ function OutfitCard({
             <button
               onClick={() => onRemove(outfit.id)}
               className="rounded-full bg-ink px-2.5 py-1 text-[11px] font-medium
-                         text-white hover:bg-red-700 transition-colors duration-200"
+                         text-on-ink hover:bg-red-700 hover:text-white transition-colors duration-200"
             >
               Remove
             </button>

@@ -94,7 +94,7 @@ export default async function IntegrationPage() {
               with your product&apos;s ID.
             </p>
             <div className="relative">
-              <pre className="overflow-x-auto rounded-lg bg-gray-900 p-4 text-xs text-gray-200">
+              <pre className="overflow-x-auto rounded-lg bg-ink p-4 text-xs text-on-ink/80">
                 {scriptSnippet}
               </pre>
               <CopyButton
@@ -116,7 +116,7 @@ export default async function IntegrationPage() {
               Use an iframe to embed the widget inline on your page.
             </p>
             <div className="relative">
-              <pre className="overflow-x-auto rounded-lg bg-gray-900 p-4 text-xs text-gray-200">
+              <pre className="overflow-x-auto rounded-lg bg-ink p-4 text-xs text-on-ink/80">
                 {iframeSnippet}
               </pre>
               <CopyButton
@@ -144,7 +144,7 @@ export default async function IntegrationPage() {
                   1. Get measurements
                 </p>
                 <div className="relative">
-                  <pre className="overflow-x-auto rounded-lg bg-gray-900 p-4 text-xs text-gray-200">
+                  <pre className="overflow-x-auto rounded-lg bg-ink p-4 text-xs text-on-ink/80">
                     {apiExample}
                   </pre>
                   <CopyButton
@@ -158,7 +158,7 @@ export default async function IntegrationPage() {
                 <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-ink-muted">
                   2. Generate outfits
                 </p>
-                <pre className="overflow-x-auto rounded-lg bg-gray-900 p-4 text-xs text-gray-200">
+                <pre className="overflow-x-auto rounded-lg bg-ink p-4 text-xs text-on-ink/80">
                   {`// POST ${baseUrl}/api/outfits\n{\n  "brandSlug": "${brand.slug}",\n  "recommendationSessionId": "<id from step 1>",\n  "context": { "occasion": "casual", "maxItems": 4 }\n}`}
                 </pre>
               </div>

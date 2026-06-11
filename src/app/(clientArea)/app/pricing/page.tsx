@@ -3,8 +3,7 @@ import { ClientPricingCards } from "@/components/pricing/ClientPricingCards";
 import { isValidClientPlan, CLIENT_PLAN_COOKIE, getClientPlanLimits } from "@/lib/planLimits";
 import Link from "next/link";
 import { Metadata } from "next";
-import { ClientSignOutLink } from "@/components/client/ClientSignOutLink";
-import { Logo } from "@/components/brand/Logo";
+import { ClientNav } from "@/components/client/ClientNav";
 
 export const metadata: Metadata = { title: "Wardrobe plans — Aplomb" };
 
@@ -22,21 +21,7 @@ export default async function ClientPricingPage() {
 
   return (
     <div className="min-h-[100dvh] bg-canvas">
-      {/* Header — same wardrobe-first nav as every other client-area page. */}
-      <header className="border-b border-hairline bg-canvas/90 backdrop-blur-md
-                          sticky top-0 z-10 px-6 py-4 flex items-center justify-between">
-        <Link href="/app/wardrobe" aria-label="Aplomb — wardrobe" className="text-ink hover:opacity-60 transition-opacity duration-200">
-          <Logo className="text-[17px]" />
-        </Link>
-        <nav className="flex items-center gap-4">
-          <Link href="/app/wardrobe" className="text-[12px] text-ink-subtle hover:text-ink transition-colors duration-200">Wardrobe</Link>
-          <Link href="/app/outfits" className="text-[12px] text-ink-subtle hover:text-ink transition-colors duration-200">Outfits</Link>
-          <Link href="/app/discover" className="text-[12px] text-ink-subtle hover:text-ink transition-colors duration-200">Discover</Link>
-          <Link href="/app/account" className="text-[12px] text-ink-subtle hover:text-ink transition-colors duration-200">Profile</Link>
-          <span aria-hidden className="h-3 w-px bg-hairline-strong" />
-          <ClientSignOutLink />
-        </nav>
-      </header>
+      <ClientNav active="none" />
 
       <main className="mx-auto max-w-4xl px-6 py-14">
         {/* Hero text */}
@@ -62,7 +47,7 @@ export default async function ClientPricingPage() {
         <div className="mb-8 flex items-center justify-center gap-3 flex-wrap">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-surface
                            border border-hairline px-4 py-2 text-[13px]
-                           text-ink-muted shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
+                           text-ink-muted shadow-card">
             <span className="text-ink-subtle">Current plan:</span>
             <span className="font-medium text-ink capitalize">{plan}</span>
             <span className="text-ink-subtle">·</span>

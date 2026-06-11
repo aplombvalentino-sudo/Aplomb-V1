@@ -49,7 +49,7 @@ export function OutfitsStep({
       </h2>
 
       {outfits.length === 0 ? (
-        <div className="mt-8 rounded-2xl border border-hairline bg-white py-12 text-center">
+        <div className="mt-8 rounded-2xl border border-hairline bg-surface py-12 text-center">
           <p className="text-ink-muted">Not enough products to build an outfit yet.</p>
         </div>
       ) : (
@@ -57,7 +57,7 @@ export function OutfitsStep({
           {outfits.map((outfit, i) => (
             <article
               key={outfit.id}
-              className="rounded-2xl bg-white border border-hairline shadow-[0_2px_16px_rgba(0,0,0,0.04)] p-5"
+              className="rounded-2xl bg-surface border border-hairline shadow-card p-5"
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="min-w-0">
@@ -71,13 +71,13 @@ export function OutfitsStep({
                 </div>
               </div>
 
-              <ul className="divide-y divide-black/[0.05]">
+              <ul className="divide-y divide-ink/[0.05]">
                 {outfit.items.map((item) => {
                   const t = tryOnByItem[item.id];
                   return (
                     <li key={item.id} className="flex items-center gap-3 py-3 first:pt-0">
                       {/* Product thumbnail */}
-                      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-[#F6F3EE]">
+                      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-stone">
                         {item.product.imageUrl ? (
                           <Image
                             src={item.product.imageUrl}
@@ -101,8 +101,8 @@ export function OutfitsStep({
                       <button
                         onClick={() => onTryOn(item.id)}
                         disabled={t?.loading}
-                        className="shrink-0 rounded-full border border-hairline-strong bg-white px-3.5 py-1.5 text-[12px] font-medium
-                                   text-ink hover:border-black/30 transition-all duration-200
+                        className="shrink-0 rounded-full border border-hairline-strong bg-surface px-3.5 py-1.5 text-[12px] font-medium
+                                   text-ink hover:border-ink/30 transition-all duration-200
                                    disabled:opacity-50 disabled:cursor-wait"
                       >
                         {t?.loading
@@ -117,20 +117,20 @@ export function OutfitsStep({
               </ul>
 
               {outfit.rationale && (
-                <p className="mt-3 text-[12px] text-ink-subtle leading-[1.6] border-t border-black/[0.05] pt-3">
+                <p className="mt-3 text-[12px] text-ink-subtle leading-[1.6] border-t border-ink/[0.05] pt-3">
                   {outfit.rationale}
                 </p>
               )}
 
               <div className="mt-3 flex items-center justify-end">
                 {savedIds.has(outfit.id) ? (
-                  <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-[#346538]">
+                  <span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-emerald-700 dark:text-emerald-300">
                     Saved to wardrobe
                   </span>
                 ) : (
                   <button
                     onClick={() => onSave(outfit)}
-                    className="text-[12px] font-medium text-[#C9A882] hover:text-[#b8956e] transition-colors duration-200"
+                    className="text-[12px] font-medium text-champagne hover:text-champagne-deep transition-colors duration-200"
                   >
                     Save to wardrobe
                   </button>
@@ -144,16 +144,16 @@ export function OutfitsStep({
       <div className="mt-8 flex flex-wrap items-center gap-3">
         <button
           onClick={onStartOver}
-          className="rounded-full border border-hairline-strong bg-white px-5 py-2.5 text-sm font-medium
-                     text-ink-muted hover:bg-white/80 transition-all duration-200"
+          className="rounded-full border border-hairline-strong bg-surface px-5 py-2.5 text-sm font-medium
+                     text-ink-muted hover:bg-surface/80 transition-all duration-200"
         >
           Start over
         </button>
         {!widgetMode && (
           <Link
             href="/app/discover"
-            className="rounded-full border border-hairline-strong bg-white px-5 py-2.5 text-sm font-medium
-                       text-ink-muted hover:bg-white/80 transition-all duration-200"
+            className="rounded-full border border-hairline-strong bg-surface px-5 py-2.5 text-sm font-medium
+                       text-ink-muted hover:bg-surface/80 transition-all duration-200"
           >
             Browse more brands
           </Link>
@@ -161,7 +161,7 @@ export function OutfitsStep({
         {!widgetMode && savedIds.size > 0 && (
           <Link
             href="/app/wardrobe"
-            className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#C9A882] hover:text-[#b8956e] transition-colors duration-200"
+            className="inline-flex items-center gap-1.5 text-[13px] font-medium text-champagne hover:text-champagne-deep transition-colors duration-200"
           >
             View wardrobe ({savedIds.size})
           </Link>

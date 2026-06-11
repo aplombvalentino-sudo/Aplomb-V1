@@ -190,7 +190,7 @@ export default async function ProDashboardPage() {
 
       {/* ── Scan trend ─────────────────────────────────────────────────────── */}
       <div className="rounded-2xl bg-surface border border-hairline
-                      shadow-[0_2px_16px_rgba(0,0,0,0.04)] px-6 py-5 mb-6">
+                      shadow-card px-6 py-5 mb-6">
         <div className="flex items-center justify-between mb-4">
           <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-subtle">
             Shopper scans — last 14 days
@@ -213,9 +213,9 @@ export default async function ProDashboardPage() {
       {completeness.missing.length > 0 && (
         <div className="rounded-2xl bg-[var(--champagne-tint)] border border-champagne/30 px-6 py-5">
           <div className="flex items-start gap-3">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="shrink-0 mt-0.5">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="shrink-0 mt-0.5 text-champagne">
               <path d="M10 2l2.5 6.5H19l-5 4 2 6L10 14l-6 4.5 2-6L1 8.5h6.5L10 2z"
-                    stroke="#C9A882" strokeWidth="1.4" strokeLinejoin="round" />
+                    stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
             </svg>
             <div className="flex-1">
               <p className="text-[13px] font-semibold text-ink">
@@ -227,8 +227,8 @@ export default async function ProDashboardPage() {
               <ul className="mt-3 space-y-1.5">
                 {completeness.missing.slice(0, 4).map((m) => (
                   <li key={m} className="flex items-center gap-2 text-[13px] text-ink">
-                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                      <circle cx="5" cy="5" r="3" stroke="#C9A882" strokeWidth="1.3" />
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="text-champagne">
+                      <circle cx="5" cy="5" r="3" stroke="currentColor" strokeWidth="1.3" />
                     </svg>
                     {m}
                   </li>
@@ -247,7 +247,7 @@ export default async function ProDashboardPage() {
 function Card({ children }: { children: React.ReactNode }) {
   return (
     <div className="rounded-2xl bg-surface border border-hairline
-                    shadow-[0_2px_16px_rgba(0,0,0,0.04)] px-5 py-4.5">
+                    shadow-card px-5 py-4.5">
       {children}
     </div>
   );
@@ -264,7 +264,7 @@ function CardLabel({ children }: { children: React.ReactNode }) {
 function StatTile({ label, value, note }: { label: string; value: number; note?: string }) {
   return (
     <div className="rounded-2xl bg-surface border border-hairline
-                    shadow-[0_2px_8px_rgba(0,0,0,0.03)] px-4 py-3.5">
+                    shadow-card px-4 py-3.5">
       <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-ink-subtle">
         {label}
       </p>
@@ -288,7 +288,7 @@ function PlanBadge({ label }: { label: string }) {
 function VisibilityBadge({ status }: { status: "Featured" | "Standard" | "Dormant" }) {
   const styles =
     status === "Featured"
-      ? "bg-ink text-white border-ink"
+      ? "bg-ink text-on-ink border-ink"
       : status === "Standard"
       ? "bg-canvas text-ink-muted border-hairline"
       : "bg-surface text-ink-subtle border-hairline";

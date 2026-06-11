@@ -48,27 +48,30 @@ export function OverviewChartsImpl({ sessions }: { sessions: Session[] }) {
   return (
     <ResponsiveContainer width="100%" height={240}>
       <BarChart data={data} margin={{ top: 4, right: 4, left: -16, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
         <XAxis
           dataKey="date"
-          tick={{ fontSize: 12, fill: "#6b7280" }}
+          tick={{ fontSize: 12, fill: "var(--ink-subtle)" }}
           axisLine={false}
           tickLine={false}
         />
         <YAxis
           allowDecimals={false}
-          tick={{ fontSize: 12, fill: "#6b7280" }}
+          tick={{ fontSize: 12, fill: "var(--ink-subtle)" }}
           axisLine={false}
           tickLine={false}
         />
         <Tooltip
+          cursor={{ fill: "var(--border)" }}
           contentStyle={{
             fontSize: 12,
             borderRadius: 8,
-            border: "1px solid #e5e7eb",
+            background: "var(--surface)",
+            border: "1px solid var(--border-strong)",
+            color: "var(--ink)",
           }}
         />
-        <Bar dataKey="count" fill="#000" radius={[4, 4, 0, 0]} name="Sessions" />
+        <Bar dataKey="count" fill="var(--ink)" radius={[4, 4, 0, 0]} name="Sessions" />
       </BarChart>
     </ResponsiveContainer>
   );

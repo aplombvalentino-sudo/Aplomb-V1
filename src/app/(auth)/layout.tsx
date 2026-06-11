@@ -5,8 +5,9 @@ import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion } from "motion/react";
 import { Logo } from "@/components/brand/Logo";
-
-const ease = [0.16, 1, 0.3, 1] as const;
+import { TiltCard } from "@/components/fx/TiltCard";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { ease } from "@/lib/motion";
 
 // ─── Brand panel content ────────────────────────────────────────────────────
 
@@ -86,7 +87,7 @@ function AuthLayoutContent({ children }: { children: React.ReactNode }) {
   const panel = audience === "client" ? CLIENT_PANEL : BRAND_PANEL;
 
   return (
-    <div className="flex min-h-[100dvh] bg-[#F6F3EE]">
+    <div className="flex min-h-[100dvh] bg-canvas">
       {/* ── LEFT: editorial panel (desktop only) ── */}
       <div className="relative hidden lg:flex lg:w-[44%] xl:w-[40%] flex-col justify-between
                       border-r border-hairline bg-stone px-12 py-12 overflow-hidden">
@@ -137,35 +138,67 @@ function AuthLayoutContent({ children }: { children: React.ReactNode }) {
           </div>
         </motion.div>
 
-        {/* Testimonials at bottom */}
+        {/* Testimonials at bottom — a layered paper stack. The lead card is
+            the ONE 3D object on the auth screen (TiltCard, subtle, no sheen);
+            offset stone-deep planes behind it give the panel real depth. */}
         <motion.div
           key={`testimonials-${audience ?? "brand"}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.7, delay: 0.4, ease }}
-          className="relative space-y-5"
+          className="perspective-stage relative space-y-5"
         >
-          {panel.testimonials.map((t) => (
-            <div
-              key={t.author}
-              className="rounded-2xl border border-hairline bg-surface/70 p-5"
-            >
-              <p className="font-serif text-[14px] italic leading-[1.6] text-ink/80">
-                &ldquo;{t.quote}&rdquo;
-              </p>
-              <p className="mt-3 text-[11px] text-ink-subtle">
-                {t.author} — <span className="text-ink-subtle/70">{t.brand}</span>
-              </p>
-            </div>
-          ))}
+          {panel.testimonials.map((t, i) =>
+            i === 0 ? (
+              <div key={t.author} className="relative preserve-3d">
+                {/* Offset planes — two quiet steps back into the page */}
+                <div
+                  aria-hidden
+                  className="absolute -left-2.5 top-2.5 h-full w-full rounded-2xl bg-stone-deep/60"
+                />
+                <div
+                  aria-hidden
+                  className="absolute -left-1 top-1 h-full w-full rounded-2xl bg-stone-deep"
+                />
+                <TiltCard
+                  maxTilt={3}
+                  className="rounded-2xl border border-hairline bg-surface p-5 shadow-card"
+                >
+                  <p className="font-serif text-[14px] italic leading-[1.6] text-ink/80">
+                    &ldquo;{t.quote}&rdquo;
+                  </p>
+                  <p className="mt-3 text-[11px] text-ink-subtle">
+                    {t.author} — <span className="text-ink-subtle/70">{t.brand}</span>
+                  </p>
+                </TiltCard>
+              </div>
+            ) : (
+              <div
+                key={t.author}
+                className="rounded-2xl border border-hairline bg-surface/70 p-5"
+              >
+                <p className="font-serif text-[14px] italic leading-[1.6] text-ink/80">
+                  &ldquo;{t.quote}&rdquo;
+                </p>
+                <p className="mt-3 text-[11px] text-ink-subtle">
+                  {t.author} — <span className="text-ink-subtle/70">{t.brand}</span>
+                </p>
+              </div>
+            ),
+          )}
         </motion.div>
       </div>
 
       {/* ── RIGHT: form area ── */}
-      <div className="flex flex-1 flex-col items-center justify-center px-4 py-12 sm:px-8">
+      <div className="relative flex flex-1 flex-col items-center justify-center px-4 py-12 sm:px-8">
+        {/* Theme preference — quiet, top-right of the form column */}
+        <div className="absolute right-4 top-4 sm:right-8 sm:top-8">
+          <ThemeToggle />
+        </div>
+
         {/* Mobile logo */}
         <div className="mb-8 self-start lg:hidden">
-          <Link href="/" aria-label="Aplomb — home" className="text-[18px] text-[#111010]">
+          <Link href="/" aria-label="Aplomb — home" className="text-[18px] text-ink">
             <Logo />
           </Link>
         </div>
@@ -180,8 +213,24 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-[100dvh] items-center justify-center bg-[#F6F3EE]">
-          <p className="text-sm text-[#7A7773]">Loading…</p>
+        // Skeleton mirrors the real layout: stone panel left, form column right.
+        <div className="flex min-h-[100dvh] bg-canvas">
+          <span className="sr-only">Loading…</span>
+          <div
+            aria-hidden
+            className="hidden lg:block lg:w-[44%] xl:w-[40%] border-r border-hairline bg-stone"
+          />
+          <div className="flex flex-1 items-center justify-center px-4 py-12 sm:px-8">
+            <div aria-hidden className="w-full max-w-[400px]">
+              <div className="h-10 w-3/4 animate-pulse rounded-lg bg-stone" />
+              <div className="mt-3 h-4 w-1/2 animate-pulse rounded bg-stone" />
+              <div className="mt-8 space-y-4">
+                <div className="h-12 animate-pulse rounded-xl bg-stone" />
+                <div className="h-12 animate-pulse rounded-xl bg-stone" />
+                <div className="mt-2 h-11 animate-pulse rounded-full bg-stone-deep" />
+              </div>
+            </div>
+          </div>
         </div>
       }
     >

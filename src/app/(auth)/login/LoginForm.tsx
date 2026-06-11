@@ -12,8 +12,7 @@ import {
   type TurnstileFieldHandle,
 } from "@/components/security/TurnstileField";
 import { TURNSTILE_ENABLED } from "@/components/security/TurnstileWidget";
-
-const ease = [0.16, 1, 0.3, 1] as const;
+import { ease } from "@/lib/motion";
 
 /**
  * Credentials login form, split out from the old monolithic
@@ -124,8 +123,8 @@ export function LoginForm({
             animate={{ opacity: 1, y: 0, height: "auto" }}
             exit={{ opacity: 0, y: -8, height: 0 }}
             transition={{ duration: 0.3, ease }}
-            className="mt-5 overflow-hidden rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700
-                       border border-red-100"
+            className="mt-5 overflow-hidden rounded-xl bg-red-500/10 px-4 py-3 text-sm
+                       text-red-700 dark:text-red-300 border border-red-500/20"
           >
             {error}
           </motion.div>

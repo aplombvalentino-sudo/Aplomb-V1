@@ -55,13 +55,13 @@ export function SettingsClient({ brand }: { brand: BrandFields }) {
   }
 
   return (
-    <section className="rounded-2xl bg-white border border-hairline
-                         shadow-[0_2px_16px_rgba(0,0,0,0.04)] p-6">
+    <section className="rounded-2xl bg-surface border border-hairline
+                         shadow-card p-6">
       <h2 className="text-[13px] font-semibold text-ink mb-5">Brand profile</h2>
 
       {error && (
-        <div className="mb-4 rounded-xl bg-red-50 border border-red-100 px-4 py-3
-                        text-sm text-red-700">
+        <div className="mb-4 rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3
+                        text-sm text-red-700 dark:text-red-300">
           {error}
         </div>
       )}
@@ -109,13 +109,13 @@ export function SettingsClient({ brand }: { brand: BrandFields }) {
               type="color"
               value={fields.primaryColor}
               onChange={(e) => set("primaryColor", e.target.value)}
-              className="h-10 w-20 cursor-pointer rounded-lg border border-black/10 p-0.5"
+              className="h-10 w-20 cursor-pointer rounded-lg border border-ink/10 p-0.5"
             />
           </div>
           <div className="flex-1" />
           <div className="flex items-center gap-3">
             {saved && (
-              <span className="text-sm text-[#346538] font-medium">Saved.</span>
+              <span className="text-sm text-emerald-700 dark:text-emerald-300 font-medium">Saved.</span>
             )}
             <Button type="submit" loading={loading}>
               Save changes

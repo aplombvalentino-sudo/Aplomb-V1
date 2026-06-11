@@ -70,7 +70,7 @@ export function ConsentStep({
             type="checkbox"
             checked={consentAccepted}
             onChange={(e) => setConsentAccepted(e.target.checked)}
-            className="mt-1 h-4 w-4 accent-[#111010]"
+            className="mt-1 h-4 w-4 accent-ink"
           />
           <span className="text-[13px] text-ink leading-[1.5]">
             I agree to the body-scan privacy terms above.
@@ -81,7 +81,7 @@ export function ConsentStep({
             type="checkbox"
             checked={ageConfirmed}
             onChange={(e) => setAgeConfirmed(e.target.checked)}
-            className="mt-1 h-4 w-4 accent-[#111010]"
+            className="mt-1 h-4 w-4 accent-ink"
           />
           <span className="text-[13px] text-ink leading-[1.5]">
             I confirm I am 15 years old or older.
@@ -93,9 +93,9 @@ export function ConsentStep({
         <button
           onClick={onNext}
           disabled={!consentAccepted || !ageConfirmed || totalProducts === 0}
-          className="inline-flex items-center gap-2.5 rounded-full bg-[#111010]
-                     pl-6 pr-2.5 py-3 text-sm font-medium text-white
-                     hover:bg-[#2a2622] transition-all duration-300
+          className="inline-flex items-center gap-2.5 rounded-full bg-ink
+                     pl-6 pr-2.5 py-3 text-sm font-medium text-on-ink
+                     hover:bg-ink/90 transition-all duration-300
                      disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Start

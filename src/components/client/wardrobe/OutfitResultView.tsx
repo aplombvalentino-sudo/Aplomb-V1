@@ -4,10 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { Button } from "@/components/ui/Button";
-
-const ease = [0.16, 1, 0.3, 1] as const;
+import { TiltCard } from "@/components/fx/TiltCard";
+import { dollyDetail } from "@/lib/motion";
 
 type Status = "none" | "pending" | "generating" | "ready" | "failed";
 
@@ -89,22 +89,32 @@ function Header({ outfit }: { outfit: ResultOutfit }) {
 // ─── Generated hero ────────────────────────────────────────────────────────
 
 function ReadyHero({ imageUrl, title }: { imageUrl: string; title: string }) {
+  const reduce = useReducedMotion();
   return (
+    // Cinematic reveal: the rendered look dollies forward into focus, then
+    // sits in a perspective stage so it tilts like a print you can hold.
+    // This is the one sheen group on the page.
     <motion.div
-      initial={{ opacity: 0, y: 14 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease }}
-      className="relative w-full overflow-hidden rounded-2xl bg-[#F6F3EE] ring-1 ring-black/[0.08]"
-      style={{ aspectRatio: "3 / 4" }}
+      variants={dollyDetail}
+      initial={reduce ? false : "hidden"}
+      animate="show"
+      className="perspective-stage"
     >
-      <Image
-        src={imageUrl}
-        alt={`You wearing ${title}`}
-        fill
-        sizes="(max-width: 768px) 100vw, 768px"
-        className="object-cover"
-        priority
-      />
+      <TiltCard
+        maxTilt={2.5}
+        liftScale={1.01}
+        sheen
+        className="relative w-full aspect-[3/4] overflow-hidden rounded-2xl bg-stone ring-1 ring-ink/[0.08] shadow-card"
+      >
+        <Image
+          src={imageUrl}
+          alt={`You wearing ${title}`}
+          fill
+          sizes="(max-width: 768px) 100vw, 768px"
+          className="object-cover"
+          priority
+        />
+      </TiltCard>
     </motion.div>
   );
 }
@@ -151,7 +161,7 @@ function FailedPanel({
   outfitId: string;
 }) {
   return (
-    <div className="rounded-2xl border border-red-100 bg-red-50/40 px-6 py-8 text-center">
+    <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-6 py-8 text-center">
       <p className="font-serif text-[1.4rem] font-medium text-ink">
         The try-on didn&apos;t work this time.
       </p>
@@ -237,7 +247,7 @@ function RegenerateForm({
         type="button"
         onClick={() => inputRef.current?.click()}
         disabled={submitting}
-        className="rounded-full border border-hairline-strong bg-white px-5 py-2.5 text-sm
+        className="rounded-full border border-hairline-strong bg-surface px-5 py-2.5 text-sm
                    font-medium text-ink hover:bg-surface-raised transition-colors duration-200
                    disabled:opacity-50"
       >
@@ -248,7 +258,7 @@ function RegenerateForm({
           {label}
         </Button>
       )}
-      {error && <p className="text-[12px] text-red-700">{error}</p>}
+      {error && <p className="text-[12px] text-red-700 dark:text-red-300">{error}</p>}
     </div>
   );
 }
@@ -258,7 +268,8 @@ function RegenerateForm({
 function ItemsStrip({ outfit }: { outfit: ResultOutfit }) {
   if (outfit.items.length === 0) return null;
   return (
-    <div className="rounded-2xl border border-hairline bg-surface p-5">
+    // A half-step behind the hero in Z — supporting cast, not the star.
+    <div className="rounded-2xl border border-hairline bg-surface p-5 scale-[0.985] opacity-95 origin-top">
       <div className="mb-4 flex items-baseline justify-between gap-3">
         <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-subtle">
           Pieces in this outfit
@@ -272,7 +283,7 @@ function ItemsStrip({ outfit }: { outfit: ResultOutfit }) {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {outfit.items.map((it) => (
           <div key={it.id} className="space-y-1.5">
-            <div className="relative aspect-[3/4] rounded-lg overflow-hidden bg-[#F6F3EE] ring-1 ring-black/[0.06]">
+            <div className="relative aspect-[3/4] rounded-lg overflow-hidden bg-stone ring-1 ring-ink/[0.06]">
               {it.thumbUrl ? (
                 <Image
                   src={it.thumbUrl}
@@ -286,12 +297,14 @@ function ItemsStrip({ outfit }: { outfit: ResultOutfit }) {
                   {it.category}
                 </div>
               )}
+              {/* Chip stays literal (white / near-black): it sits on imagery,
+                  not on a theme surface. */}
               <span
                 className={`absolute top-1.5 left-1.5 rounded-full px-1.5 py-0.5 text-[8px] font-semibold
                             uppercase tracking-[0.08em] ${
                               it.sourceType === "user_photo"
-                                ? "bg-white/95 text-ink"
-                                : "bg-ink/90 text-white"
+                                ? "bg-white/95 text-[#111010]"
+                                : "bg-[#111010]/90 text-white"
                             }`}
               >
                 {it.sourceType === "user_photo" ? "Mine" : "Brand"}
@@ -356,7 +369,7 @@ function Actions({ outfit }: { outfit: ResultOutfit }) {
         type="button"
         onClick={handleDelete}
         disabled={deleting}
-        className="text-[12px] text-ink-subtle hover:text-red-700 underline underline-offset-2 disabled:opacity-50"
+        className="text-[12px] text-ink-subtle hover:text-red-700 dark:hover:text-red-300 underline underline-offset-2 disabled:opacity-50"
       >
         {deleting ? "Deleting…" : "Delete this outfit"}
       </button>
@@ -372,7 +385,7 @@ function RegenerateInline({ outfitId }: { outfitId: string }) {
     <button
       type="button"
       onClick={() => setOpen(true)}
-      className="rounded-full border border-hairline-strong bg-white px-4 py-2 text-[12px]
+      className="rounded-full border border-hairline-strong bg-surface px-4 py-2 text-[12px]
                  font-medium text-ink hover:bg-surface-raised transition-colors"
     >
       Try a different selfie

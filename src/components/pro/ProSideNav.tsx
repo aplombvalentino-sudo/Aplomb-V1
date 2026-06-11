@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { Logo } from "@/components/brand/Logo";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 const navItems = [
   { href: "/pro/dashboard",   label: "Overview",    icon: LayoutDashboard, exact: true },
@@ -47,7 +48,7 @@ export function ProSideNav({
       initial={{ opacity: 0, x: -16 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.5, ease }}
-      className="flex h-full w-[220px] flex-col border-r border-hairline bg-[#FBFAF7] shrink-0"
+      className="flex h-full w-[220px] flex-col border-r border-hairline bg-surface-raised shrink-0"
     >
       {/* Wordmark */}
       <div className="flex h-14 items-center border-b border-hairline px-5">
@@ -71,8 +72,8 @@ export function ProSideNav({
       >
         {/* Logo or initial */}
         <div
-          className="h-8 w-8 rounded-lg bg-[#111010] flex items-center justify-center shrink-0
-                     overflow-hidden ring-1 ring-black/10"
+          className="h-8 w-8 rounded-lg bg-ink flex items-center justify-center shrink-0
+                     overflow-hidden ring-1 ring-ink/10"
         >
           {brandLogoUrl ? (
             <Image
@@ -83,7 +84,7 @@ export function ProSideNav({
               className="h-full w-full object-cover"
             />
           ) : (
-            <span className="text-[11px] font-semibold text-white">
+            <span className="text-[11px] font-semibold text-on-ink">
               {brandName.slice(0, 2).toUpperCase()}
             </span>
           )}
@@ -119,14 +120,14 @@ export function ProSideNav({
                   className={cn(
                     "relative flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[13px] font-medium transition-colors duration-200",
                     active
-                      ? "text-white"
+                      ? "text-on-ink"
                       : "text-ink-muted hover:text-ink hover:bg-ink/5"
                   )}
                 >
                   {active && (
                     <motion.span
                       layoutId="pro-nav-pill"
-                      className="absolute inset-0 rounded-xl bg-[#111010]"
+                      className="absolute inset-0 rounded-xl bg-ink"
                       transition={{ type: "spring", stiffness: 420, damping: 40 }}
                     />
                   )}
@@ -141,6 +142,10 @@ export function ProSideNav({
 
       {/* Footer */}
       <div className="border-t border-hairline px-3 py-3 space-y-0.5">
+        {/* Theme preference — mounted once for the whole pro shell. */}
+        <div className="px-3 pb-1.5">
+          <ThemeToggle />
+        </div>
         <Link
           href="/app"
           className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-[12px]

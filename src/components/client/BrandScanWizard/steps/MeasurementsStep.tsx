@@ -103,8 +103,8 @@ export function MeasurementsStep({
               onClick={() => setGender(gender === g ? "" : g)}
               className={`rounded-full px-4 py-2 text-[13px] font-medium capitalize border transition-all duration-200 ${
                 gender === g
-                  ? "bg-[#111010] text-white border-[#111010]"
-                  : "bg-white text-ink-muted border-black/[0.1] hover:border-black/20"
+                  ? "bg-ink text-on-ink border-ink"
+                  : "bg-surface text-ink-muted border-ink/[0.1] hover:border-ink/20"
               }`}
             >
               {g}
@@ -153,8 +153,8 @@ export function MeasurementsStep({
                 onClick={() => setStylePreference(stylePreference === s ? "" : s)}
                 className={`rounded-full px-4 py-2 text-[13px] font-medium capitalize border transition-all duration-200 ${
                   stylePreference === s
-                    ? "bg-[#111010] text-white border-[#111010]"
-                    : "bg-white text-ink-muted border-black/[0.1] hover:border-black/20"
+                    ? "bg-ink text-on-ink border-ink"
+                    : "bg-surface text-ink-muted border-ink/[0.1] hover:border-ink/20"
                 }`}
               >
                 {s}
@@ -175,8 +175,8 @@ export function MeasurementsStep({
                 onClick={() => setOccasion(occasion === o ? "" : o)}
                 className={`rounded-full px-3 py-1.5 text-[12px] font-medium border transition-all duration-200 ${
                   occasion === o
-                    ? "bg-[#111010] text-white border-[#111010]"
-                    : "bg-white text-ink-muted border-black/[0.1] hover:border-black/20"
+                    ? "bg-ink text-on-ink border-ink"
+                    : "bg-surface text-ink-muted border-ink/[0.1] hover:border-ink/20"
                 }`}
               >
                 {o}
@@ -189,9 +189,9 @@ export function MeasurementsStep({
               value={occasion}
               onChange={(e) => setOccasion(e.target.value)}
               placeholder="Or type a custom occasion…"
-              className="w-full rounded-xl border border-black/[0.1] bg-white px-4 py-3 text-sm
+              className="w-full rounded-xl border border-ink/[0.1] bg-surface px-4 py-3 text-sm
                          text-ink placeholder:text-ink-subtle
-                         focus:outline-none focus:ring-2 focus:ring-[#111010]/10"
+                         focus:outline-none focus:ring-2 focus:ring-ink/10"
             />
           )}
         </div>
@@ -199,7 +199,7 @@ export function MeasurementsStep({
 
       {/* Quota counter */}
       {planLimits.maxScansPerMonth !== Infinity && (
-        <div className="mt-6 rounded-xl bg-white border border-hairline px-4 py-3
+        <div className="mt-6 rounded-xl bg-surface border border-hairline px-4 py-3
                          flex items-center justify-between">
           <span className="text-[12px] text-ink-muted">Scans used this month</span>
           <span className="text-[13px] font-semibold text-ink tabular-nums">
@@ -218,7 +218,7 @@ export function MeasurementsStep({
       )}
 
       {error && (
-        <div className="mt-4 rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">
+        <div className="mt-4 rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-700 dark:text-red-300">
           {error}
         </div>
       )}
@@ -226,16 +226,16 @@ export function MeasurementsStep({
       <div className="mt-8 flex items-center gap-3">
         <button
           onClick={onBack}
-          className="rounded-full border border-hairline-strong bg-white px-5 py-2.5 text-sm
-                     font-medium text-ink-muted hover:bg-white/80 transition-all duration-200"
+          className="rounded-full border border-hairline-strong bg-surface px-5 py-2.5 text-sm
+                     font-medium text-ink-muted hover:bg-surface/80 transition-all duration-200"
         >
           Back
         </button>
         <button
           onClick={onSubmit}
           disabled={loading || scanLimitReached}
-          className="inline-flex items-center gap-2.5 rounded-full bg-[#111010] pl-6 pr-2.5 py-3
-                     text-sm font-medium text-white hover:bg-[#2a2622] transition-all duration-300
+          className="inline-flex items-center gap-2.5 rounded-full bg-ink pl-6 pr-2.5 py-3
+                     text-sm font-medium text-on-ink hover:bg-ink/90 transition-all duration-300
                      disabled:opacity-50 disabled:cursor-wait"
         >
           {loading ? "Sending…" : scanLimitReached ? "Limit reached" : "Get my fit"}

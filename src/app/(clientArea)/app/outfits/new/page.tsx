@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 import { listWardrobeItems } from "@/lib/wardrobe/items";
 import { getMonthlyUsage } from "@/lib/wardrobe/usage";
 import { isValidClientPlan } from "@/lib/planLimits";
-import { Logo } from "@/components/brand/Logo";
+import { ClientNav } from "@/components/client/ClientNav";
 import { OutfitBuilder } from "@/components/client/wardrobe/OutfitBuilder";
 
 export const metadata: Metadata = {
@@ -53,24 +53,22 @@ export default async function NewOutfitPage() {
 
   return (
     <div className="min-h-[100dvh] bg-canvas">
-      <header className="border-b border-hairline bg-canvas/90 backdrop-blur-md
-                          sticky top-0 z-10 px-6 py-4 flex items-center justify-between">
-        {/* Logo + immediate back link. Logo always routes to wardrobe so the
-            shopper has a one-click escape to their closet no matter how
-            deep they are in a flow. The contextual "Back to outfits" sits
-            next to it for the more granular nav step. */}
-        <div className="flex items-center gap-3">
-          <Link href="/app/wardrobe" aria-label="Aplomb — wardrobe" className="text-ink hover:opacity-60 transition-opacity duration-200">
-            <Logo className="text-[17px]" />
-          </Link>
-          <Link href="/app/outfits" className="text-[12px] text-ink-subtle hover:text-ink transition-colors">
-            ← Back to outfits
-          </Link>
-        </div>
-        <span className="text-[11px] text-ink-subtle">
-          {usable.length} item{usable.length === 1 ? "" : "s"} ready in wardrobe
-        </span>
-      </header>
+      {/* Shared nav; the contextual "Back to outfits" + ready-item count
+          slot in next to the logo via `leading`. */}
+      <ClientNav
+        active="outfits"
+        leading={
+          <>
+            <Link href="/app/outfits" className="text-[12px] text-ink-subtle hover:text-ink transition-colors">
+              ← Back to outfits
+            </Link>
+            <span aria-hidden className="h-3 w-px bg-hairline-strong" />
+            <span className="text-[11px] text-ink-subtle">
+              {usable.length} item{usable.length === 1 ? "" : "s"} ready in wardrobe
+            </span>
+          </>
+        }
+      />
 
       <main className="mx-auto max-w-3xl px-6 py-12">
         <OutfitBuilder

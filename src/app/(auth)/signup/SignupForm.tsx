@@ -10,8 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { TurnstileField, type TurnstileFieldHandle } from "@/components/security/TurnstileField";
 import { TURNSTILE_ENABLED } from "@/components/security/TurnstileWidget";
 import { buildDestination } from "./buildDestination";
-
-const ease = [0.16, 1, 0.3, 1] as const;
+import { ease } from "@/lib/motion";
 
 /**
  * The signup form itself — handles both brand and shopper signup paths.
@@ -167,7 +166,8 @@ export function SignupForm({
             animate={{ opacity: 1, y: 0, height: "auto" }}
             exit={{ opacity: 0, y: -8, height: 0 }}
             transition={{ duration: 0.3, ease }}
-            className="mt-5 overflow-hidden rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700 border border-red-100"
+            className="mt-5 overflow-hidden rounded-xl bg-red-500/10 px-4 py-3 text-sm
+                       text-red-700 dark:text-red-300 border border-red-500/20"
           >
             {error}
           </motion.div>
@@ -235,7 +235,7 @@ export function SignupForm({
               required
               checked={acceptTerms}
               onChange={(e) => setAcceptTerms(e.target.checked)}
-              className="mt-0.5 h-4 w-4 shrink-0 rounded accent-[#C9653B]"
+              className="mt-0.5 h-4 w-4 shrink-0 rounded accent-accent"
             />
             <span>
               I accept the{" "}
@@ -256,7 +256,7 @@ export function SignupForm({
               required
               checked={acceptPrivacy}
               onChange={(e) => setAcceptPrivacy(e.target.checked)}
-              className="mt-0.5 h-4 w-4 shrink-0 rounded accent-[#C9653B]"
+              className="mt-0.5 h-4 w-4 shrink-0 rounded accent-accent"
             />
             <span>
               I acknowledge the{" "}
@@ -278,7 +278,7 @@ export function SignupForm({
               required
               checked={confirmAge}
               onChange={(e) => setConfirmAge(e.target.checked)}
-              className="mt-0.5 h-4 w-4 shrink-0 rounded accent-[#C9653B]"
+              className="mt-0.5 h-4 w-4 shrink-0 rounded accent-accent"
             />
             <span>I confirm I am 15 years old or older.</span>
           </label>

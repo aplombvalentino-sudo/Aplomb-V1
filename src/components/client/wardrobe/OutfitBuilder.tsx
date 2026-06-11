@@ -7,11 +7,11 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { TiltCard } from "@/components/fx/TiltCard";
+import { duration, ease } from "@/lib/motion";
 import { useObjectUrl } from "./shared/useObjectUrl";
 import { BulletLi } from "./shared/BulletLi";
 import { ACCEPTED_PHOTO_MIME, validatePhotoFile } from "./shared/validators";
-
-const ease = [0.16, 1, 0.3, 1] as const;
 
 /**
  * Multistep flow:
@@ -260,7 +260,7 @@ export function OutfitBuilder({
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.35, ease }}
+            transition={{ duration: duration.slow, ease }}
             className="space-y-10"
           >
             {/* Heading */}
@@ -318,7 +318,7 @@ export function OutfitBuilder({
             </div>
 
             {error && (
-              <div className="rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">
+              <div className="rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-700 dark:text-red-300">
                 {error}
               </div>
             )}
@@ -327,7 +327,7 @@ export function OutfitBuilder({
                 cap; the button is also disabled. Otherwise just a quiet
                 "X / Y this month" badge. */}
             {!tryOnUsage.canTryOn ? (
-              <div className="rounded-2xl border border-red-100 bg-red-50/40 px-4 py-4">
+              <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-4">
                 <p className="font-serif text-[1.05rem] font-medium text-ink">
                   You&apos;ve reached your monthly try-on limit.
                 </p>
@@ -339,7 +339,7 @@ export function OutfitBuilder({
                 <Link
                   href="/app/pricing"
                   className="mt-3 inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2
-                             text-[12px] font-medium text-white hover:bg-[#2a2622] transition-colors"
+                             text-[12px] font-medium text-on-ink hover:bg-ink/90 transition-colors"
                 >
                   See upgrade options
                 </Link>
@@ -421,7 +421,7 @@ function SlotRow({
           {picked ? (
             <SlotPickedThumb item={picked} />
           ) : (
-            <div className="h-12 w-12 rounded-lg border border-dashed border-black/20 flex items-center justify-center">
+            <div className="h-12 w-12 rounded-lg border border-dashed border-ink/20 flex items-center justify-center">
               <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-ink-subtle">
                 {SLOT_LABELS[slot].slice(0, 2)}
               </span>
@@ -461,10 +461,10 @@ function SlotRow({
             height="12"
             viewBox="0 0 12 12"
             fill="none"
-            className={`transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+            className={`text-ink-muted transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
             aria-hidden
           >
-            <path d="M3 4.5L6 7.5L9 4.5" stroke="#6B6965" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </div>
       </button>
@@ -476,7 +476,7 @@ function SlotRow({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease }}
+            transition={{ duration: duration.base, ease }}
             className="border-t border-hairline bg-canvas"
           >
             <div className="px-5 py-5">
@@ -485,7 +485,8 @@ function SlotRow({
                   No {SLOT_LABELS[slot].toLowerCase()} items in your wardrobe yet.
                 </p>
               ) : (
-                <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                // perspective-stage: pickable tiles tilt in one shared space.
+                <div className="perspective-stage grid grid-cols-3 sm:grid-cols-4 gap-3">
                   {availableItems.map((it) => (
                     <PickableItem key={it.id} item={it} onPick={() => onPick(it)} />
                   ))}
@@ -504,7 +505,7 @@ function SlotRow({
 function SlotPickedThumb({ item }: { item: BuilderItem }) {
   const url = item.thumbUrl;
   return (
-    <div className="relative h-12 w-12 rounded-lg overflow-hidden ring-1 ring-black/[0.06] bg-[#F6F3EE]">
+    <div className="relative h-12 w-12 rounded-lg overflow-hidden ring-1 ring-ink/[0.06] bg-stone">
       {url && (
         <Image
           src={url}
@@ -529,46 +530,50 @@ function PickableItem({
 }) {
   const url = item.thumbUrl;
   return (
-    <button
-      type="button"
-      onClick={onPick}
-      className="group flex flex-col items-stretch rounded-xl border border-hairline bg-surface
-                 hover:border-ink/30 hover:shadow-[0_4px_18px_rgba(0,0,0,0.04)] transition-all duration-200 overflow-hidden text-left"
-    >
-      <div className="relative aspect-[3/4] bg-[#F6F3EE]">
-        {url ? (
-          <Image
-            src={url}
-            alt={item.nickname || item.category}
-            fill
-            sizes="(max-width: 640px) 33vw, 160px"
-            className="object-cover"
-          />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-[10px] uppercase tracking-[0.12em] text-ink-subtle">
-            {item.category}
-          </div>
-        )}
-        <span
-          className={`absolute top-1.5 left-1.5 rounded-full px-1.5 py-0.5 text-[8px] font-semibold
-                      uppercase tracking-[0.08em] ${
-                        item.sourceType === "user_photo"
-                          ? "bg-white/95 text-ink"
-                          : "bg-ink/90 text-white"
-                      }`}
-        >
-          {item.sourceType === "user_photo" ? "Mine" : "Brand"}
-        </span>
-      </div>
-      <div className="px-2 py-1.5">
-        <p className="text-[11px] font-medium text-ink truncate">
-          {item.nickname || titleCase(item.category)}
-        </p>
-        <p className="text-[10px] text-ink-subtle truncate">
-          {item.brand || (item.sourceType === "user_photo" ? "Personal" : "Brand")}
-        </p>
-      </div>
-    </button>
+    <TiltCard maxTilt={4} className="rounded-xl">
+      <button
+        type="button"
+        onClick={onPick}
+        className="group flex w-full flex-col items-stretch rounded-xl border border-hairline bg-surface
+                   hover:border-ink/30 transition-colors duration-200 overflow-hidden text-left"
+      >
+        <div className="relative aspect-[3/4] bg-stone">
+          {url ? (
+            <Image
+              src={url}
+              alt={item.nickname || item.category}
+              fill
+              sizes="(max-width: 640px) 33vw, 160px"
+              className="object-cover"
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center text-[10px] uppercase tracking-[0.12em] text-ink-subtle">
+              {item.category}
+            </div>
+          )}
+          {/* Chip stays literal (white / near-black): it sits on imagery,
+              not on a theme surface. */}
+          <span
+            className={`absolute top-1.5 left-1.5 rounded-full px-1.5 py-0.5 text-[8px] font-semibold
+                        uppercase tracking-[0.08em] ${
+                          item.sourceType === "user_photo"
+                            ? "bg-white/95 text-[#111010]"
+                            : "bg-[#111010]/90 text-white"
+                        }`}
+          >
+            {item.sourceType === "user_photo" ? "Mine" : "Brand"}
+          </span>
+        </div>
+        <div className="px-2 py-1.5">
+          <p className="text-[11px] font-medium text-ink truncate">
+            {item.nickname || titleCase(item.category)}
+          </p>
+          <p className="text-[10px] text-ink-subtle truncate">
+            {item.brand || (item.sourceType === "user_photo" ? "Personal" : "Brand")}
+          </p>
+        </div>
+      </button>
+    </TiltCard>
   );
 }
 
@@ -627,7 +632,7 @@ function SelfieStep({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
-      transition={{ duration: 0.35, ease }}
+      transition={{ duration: duration.slow, ease }}
       className="space-y-8"
     >
       <div>
@@ -656,8 +661,8 @@ function SelfieStep({
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className={`relative w-full overflow-hidden rounded-xl border bg-white transition-all duration-200 ${
-            selfieFile ? "border-ink" : "border-dashed border-black/20 hover:border-black/40"
+          className={`relative w-full overflow-hidden rounded-xl border bg-surface transition-all duration-200 ${
+            selfieFile ? "border-ink" : "border-dashed border-ink/20 hover:border-ink/40"
           }`}
           style={{ aspectRatio: "3 / 4" }}
         >
@@ -666,10 +671,10 @@ function SelfieStep({
             <img src={url} alt="Selfie preview" className="absolute inset-0 h-full w-full object-cover" />
           ) : (
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden>
-                <rect x="3" y="6" width="18" height="14" rx="2" stroke="#6B6965" strokeWidth="1.5" />
-                <circle cx="12" cy="13" r="3.5" stroke="#6B6965" strokeWidth="1.5" />
-                <path d="M7 6l1.5-2h7L17 6" stroke="#6B6965" strokeWidth="1.5" strokeLinejoin="round" />
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" className="text-ink-muted" aria-hidden>
+                <rect x="3" y="6" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.5" />
+                <circle cx="12" cy="13" r="3.5" stroke="currentColor" strokeWidth="1.5" />
+                <path d="M7 6l1.5-2h7L17 6" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
               </svg>
               <p className="mt-3 text-[13px] font-medium text-ink">Add selfie</p>
               <p className="mt-0.5 text-[11px] text-ink-subtle">JPEG / PNG / WebP, up to 8 MB</p>
@@ -688,7 +693,7 @@ function SelfieStep({
             Replace selfie
           </button>
         )}
-        {reject && <p className="mt-2 text-[11px] text-[#C9653B]">{reject}</p>}
+        {reject && <p className="mt-2 text-[11px] text-accent">{reject}</p>}
         <input
           ref={inputRef}
           type="file"
@@ -712,7 +717,7 @@ function SelfieStep({
             value={heightCm}
             onChange={(e) => onHeight(e.target.value)}
             placeholder="e.g. 175"
-            className="w-32 rounded-xl border border-hairline-strong bg-white px-3 py-2 text-[14px] text-ink
+            className="w-32 rounded-xl border border-hairline-strong bg-surface px-3 py-2 text-[14px] text-ink
                        placeholder:text-ink-subtle focus:border-ink focus:outline-none focus:ring-1 focus:ring-ink
                        transition-colors duration-200"
           />
@@ -733,9 +738,11 @@ function SelfieStep({
         <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-subtle mb-3">
           You&apos;ll be wearing
         </p>
-        <div className="grid grid-cols-4 gap-2">
-          {picked.map((p) => (
-            <PickedThumb key={p.slot} item={p.item} />
+        {/* perspective-stage-near + alternating static tilts: the picked
+            pieces read as garments laid out on a table. */}
+        <div className="perspective-stage-near grid grid-cols-4 gap-2">
+          {picked.map((p, i) => (
+            <PickedThumb key={p.slot} item={p.item} index={i} />
           ))}
         </div>
         <ul className="mt-4 space-y-1 text-[12px] text-ink-muted">
@@ -753,7 +760,7 @@ function SelfieStep({
       </div>
 
       {error && (
-        <div className="rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">
+        <div className="rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-700 dark:text-red-300">
           {error}
         </div>
       )}
@@ -763,8 +770,8 @@ function SelfieStep({
           type="button"
           onClick={onBack}
           disabled={submitting}
-          className="rounded-full border border-hairline-strong bg-white px-5 py-2.5 text-sm
-                     font-medium text-ink-muted hover:bg-white/80 transition-all duration-200
+          className="rounded-full border border-hairline-strong bg-surface px-5 py-2.5 text-sm
+                     font-medium text-ink-muted hover:bg-surface-raised transition-all duration-200
                      disabled:opacity-50"
         >
           Back
@@ -777,10 +784,16 @@ function SelfieStep({
   );
 }
 
-function PickedThumb({ item }: { item: BuilderItem }) {
+/** Static-tilted layered frame — alternating rotations make the picked
+ *  pieces read like garments laid out on a table, not a grid of avatars. */
+function PickedThumb({ item, index = 0 }: { item: BuilderItem; index?: number }) {
   const url = item.thumbUrl;
   return (
-    <div className="relative aspect-[3/4] rounded-lg overflow-hidden bg-[#F6F3EE] ring-1 ring-black/[0.06]">
+    <div
+      className={`relative aspect-[3/4] rounded-lg overflow-hidden bg-stone ring-1 ring-ink/[0.06] shadow-card ${
+        index % 2 === 0 ? "rotate-[-2deg]" : "rotate-[1.5deg]"
+      }`}
+    >
       {url ? (
         <Image
           src={url}
@@ -808,7 +821,7 @@ function GeneratingStep({ picked }: { picked: Array<{ slot: Slot; item: BuilderI
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
-      transition={{ duration: 0.35, ease }}
+      transition={{ duration: duration.slow, ease }}
       className="space-y-8"
     >
       <div>
@@ -835,13 +848,15 @@ function GeneratingStep({ picked }: { picked: Array<{ slot: Slot; item: BuilderI
         />
       </div>
 
-      <div className="rounded-2xl border border-hairline bg-surface p-4">
+      {/* Items strip sits a step back in Z (scale + opacity) — the camera
+          is focused on the progress bar, the garments wait behind it. */}
+      <div className="rounded-2xl border border-hairline bg-surface p-4 scale-[0.97] opacity-80 origin-top">
         <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-ink-subtle mb-3">
           We&apos;re dressing you in
         </p>
-        <div className="grid grid-cols-4 gap-2">
-          {picked.map((p) => (
-            <PickedThumb key={p.slot} item={p.item} />
+        <div className="perspective-stage-near grid grid-cols-4 gap-2">
+          {picked.map((p, i) => (
+            <PickedThumb key={p.slot} item={p.item} index={i} />
           ))}
         </div>
       </div>

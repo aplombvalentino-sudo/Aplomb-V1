@@ -12,7 +12,7 @@ import type { ReactNode } from "react";
 export function BulletLi({ children }: { children: ReactNode }) {
   return (
     <li className="flex items-start gap-2.5 leading-relaxed">
-      <span aria-hidden className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-[#C9A882]" />
+      <span aria-hidden className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-champagne" />
       <span>{children}</span>
     </li>
   );

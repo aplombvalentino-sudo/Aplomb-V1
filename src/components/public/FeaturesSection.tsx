@@ -1,8 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-
-const ease = [0.16, 1, 0.3, 1] as const;
+import { ease } from "@/lib/motion";
 
 // Six wardrobe-first features for shoppers. The dark "focal" card leads
 // with the digital-wardrobe promise; the rest map to the wardrobe → outfit
@@ -143,7 +142,7 @@ export function FeaturesSection() {
                 <div
                   className={`h-full rounded-[1.5rem] p-1.5 ring-1
                               transition-shadow duration-300
-                              group-hover:shadow-[0_10px_34px_-12px_rgba(17,16,16,0.16)]
+                              group-hover:shadow-card
                               ${f.dark
                                 ? "bg-stone-deep ring-hairline-strong"
                                 : "bg-ink/[0.02] ring-hairline"}`}
@@ -177,7 +176,7 @@ export function FeaturesSection() {
                             initial={{ width: "0%" }}
                             whileInView={{ width: "94%" }}
                             viewport={{ once: true }}
-                            transition={{ duration: 1.6, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                            transition={{ duration: 1.6, delay: 0.6, ease }}
                             className="absolute inset-y-0 left-0 rounded-full bg-accent"
                           />
                         </div>

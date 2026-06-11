@@ -9,7 +9,7 @@ export default function NotFound() {
         aria-hidden
         className="pointer-events-none absolute select-none font-serif font-semibold
                    text-[clamp(14rem,30vw,22rem)] leading-none tracking-[-0.06em]
-                   text-black/[0.035]"
+                   text-ink/[0.04]"
       >
         404
       </span>
@@ -36,17 +36,17 @@ export default function NotFound() {
           <Link
             href="/"
             className="group inline-flex items-center gap-2.5 rounded-full bg-ink
-                       pl-6 pr-2.5 py-3 text-sm font-medium text-white
+                       pl-6 pr-2.5 py-3 text-sm font-medium text-on-ink
                        transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
                        hover:bg-ink/90"
           >
             Back to home
             <span className="flex h-7 w-7 items-center justify-center rounded-full
-                             bg-white/[0.12] transition-all duration-500
+                             bg-on-ink/[0.12] transition-all duration-500
                              group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-              <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" className="text-on-ink">
                 <path d="M2.5 8.5L8.5 2.5M8.5 2.5H3.5M8.5 2.5V7.5"
-                      stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </span>
           </Link>
@@ -64,7 +64,7 @@ export default function NotFound() {
 
       {/* Footer note */}
       <p className="absolute bottom-8 text-[12px] text-ink-subtle">
-        Aplomb — AI Fitting Room for Fashion Brands
+        Aplomb — your digital wardrobe
       </p>
     </div>
   );

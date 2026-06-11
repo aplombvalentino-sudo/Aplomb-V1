@@ -5,12 +5,11 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { ease } from "@/lib/motion";
 import type { ClientPlan } from "@/lib/planLimits";
 import { useObjectUrl } from "./shared/useObjectUrl";
 import { BulletLi } from "./shared/BulletLi";
 import { ACCEPTED_PHOTO_MIME, validatePhotoFile } from "./shared/validators";
-
-const ease = [0.16, 1, 0.3, 1] as const;
 
 type Step = "intro" | "front" | "back" | "review" | "confirm";
 
@@ -326,7 +325,7 @@ function CaptureStep({
       </div>
 
       {error && (
-        <div className="mt-4 rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">
+        <div className="mt-4 rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-700 dark:text-red-300">
           {error}
         </div>
       )}
@@ -334,8 +333,8 @@ function CaptureStep({
       <div className="mt-8 flex items-center gap-3">
         <button
           onClick={onBack}
-          className="rounded-full border border-hairline-strong bg-white px-5 py-2.5 text-sm
-                     font-medium text-ink-muted hover:bg-white/80 transition-all duration-200"
+          className="rounded-full border border-hairline-strong bg-surface px-5 py-2.5 text-sm
+                     font-medium text-ink-muted hover:bg-surface-raised transition-all duration-200"
         >
           Back
         </button>
@@ -381,16 +380,18 @@ function ReviewStep({
         Retake either side, or continue to add a few details.
       </p>
 
-      <div className="mt-7 grid grid-cols-2 gap-3">
-        <ReviewSlot label="Front" file={frontFile} onRetake={onRetakeFront} />
-        <ReviewSlot label="Back" file={backFile} onRetake={onRetakeBack} />
+      {/* Two photos as polaroids on a table — static counter-tilts + soft
+          shadow, no JS motion needed */}
+      <div className="mt-7 grid grid-cols-2 gap-4">
+        <ReviewSlot label="Front" file={frontFile} onRetake={onRetakeFront} lean="left" />
+        <ReviewSlot label="Back" file={backFile} onRetake={onRetakeBack} lean="right" />
       </div>
 
       <div className="mt-8 flex items-center gap-3">
         <button
           onClick={onBack}
-          className="rounded-full border border-hairline-strong bg-white px-5 py-2.5 text-sm
-                     font-medium text-ink-muted hover:bg-white/80 transition-all duration-200"
+          className="rounded-full border border-hairline-strong bg-surface px-5 py-2.5 text-sm
+                     font-medium text-ink-muted hover:bg-surface-raised transition-all duration-200"
         >
           Back
         </button>
@@ -406,17 +407,22 @@ function ReviewSlot({
   label,
   file,
   onRetake,
+  lean,
 }: {
   label: string;
   file: File | null;
   onRetake: () => void;
+  /** Static polaroid lean — front tips left, back tips right. */
+  lean: "left" | "right";
 }) {
   const url = useObjectUrl(file);
   return (
     <div>
       <label className="block text-[11px] font-medium text-ink-muted mb-1.5">{label}</label>
       <div
-        className="relative w-full overflow-hidden rounded-xl border border-[#111010] bg-white"
+        className={`relative w-full overflow-hidden rounded-xl border border-ink bg-surface shadow-card ${
+          lean === "left" ? "rotate-[-1.5deg]" : "rotate-[1.5deg]"
+        }`}
         style={{ aspectRatio: "3 / 4" }}
       >
         {url && (
@@ -498,7 +504,7 @@ function PillRowWithOther({
     <div>
       <label className="block text-[11px] font-medium text-ink-muted mb-2">
         {label}
-        {required && <span className="text-[#C9653B]"> *</span>}
+        {required && <span className="text-accent"> *</span>}
       </label>
       <div className="flex flex-wrap gap-2">
         {presets.map((p) => (
@@ -508,8 +514,8 @@ function PillRowWithOther({
             onClick={() => onChange(value === p ? "" : p)}
             className={`rounded-full px-3 py-1.5 text-[12px] font-medium border transition-all duration-200 ${
               value === p
-                ? "bg-ink text-white border-ink"
-                : "bg-white text-ink-muted border-black/[0.1] hover:border-black/20"
+                ? "bg-ink text-on-ink border-ink"
+                : "bg-surface text-ink-muted border-ink/[0.1] hover:border-ink/20"
             }`}
           >
             {p}
@@ -520,8 +526,8 @@ function PillRowWithOther({
           onClick={() => onChange(isOtherActive ? "" : OTHER)}
           className={`rounded-full px-3 py-1.5 text-[12px] font-medium border transition-all duration-200 ${
             isOtherActive
-              ? "bg-ink text-white border-ink"
-              : "bg-white text-ink-muted border-black/[0.1] hover:border-black/20"
+              ? "bg-ink text-on-ink border-ink"
+              : "bg-surface text-ink-muted border-ink/[0.1] hover:border-ink/20"
           }`}
         >
           Other
@@ -609,8 +615,8 @@ function ConfirmStep({
                 onClick={() => setCategory(opt.value)}
                 className={`rounded-full px-4 py-2 text-[13px] font-medium border transition-all duration-200 ${
                   category === opt.value
-                    ? "bg-ink text-white border-ink"
-                    : "bg-white text-ink-muted border-black/[0.1] hover:border-black/20"
+                    ? "bg-ink text-on-ink border-ink"
+                    : "bg-surface text-ink-muted border-ink/[0.1] hover:border-ink/20"
                 }`}
               >
                 {opt.label}
@@ -622,7 +628,7 @@ function ConfirmStep({
         {/* Size — required. Common pills + free-text for anything else. */}
         <div>
           <label className="block text-[11px] font-medium text-ink-muted mb-2">
-            Size <span className="text-[#C9653B]">*</span>
+            Size <span className="text-accent">*</span>
           </label>
           <div className="flex flex-wrap gap-2">
             {SIZE_PILLS.map((s) => (
@@ -632,8 +638,8 @@ function ConfirmStep({
                 onClick={() => setSize(size === s ? "" : s)}
                 className={`rounded-full px-3 py-1.5 text-[12px] font-medium border transition-all duration-200 ${
                   size === s
-                    ? "bg-ink text-white border-ink"
-                    : "bg-white text-ink-muted border-black/[0.1] hover:border-black/20"
+                    ? "bg-ink text-on-ink border-ink"
+                    : "bg-surface text-ink-muted border-ink/[0.1] hover:border-ink/20"
                 }`}
               >
                 {s}
@@ -690,7 +696,7 @@ function ConfirmStep({
             placeholder="Fit, pattern, styling notes — e.g. oversized fit, ribbed knit, cropped, white tee with small blue graphic. Helps the AI Outfit Assistant give more precise suggestions."
             maxLength={2000}
             rows={3}
-            className="w-full rounded-xl border border-hairline-strong bg-white px-3.5 py-2.5
+            className="w-full rounded-xl border border-hairline-strong bg-surface px-3.5 py-2.5
                        text-[14px] text-ink placeholder:text-ink-subtle resize-none
                        focus:border-ink focus:outline-none focus:ring-1 focus:ring-ink transition-colors duration-200"
           />
@@ -718,7 +724,7 @@ function ConfirmStep({
       </div>
 
       {error && (
-        <div className="mt-5 rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">
+        <div className="mt-5 rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-700 dark:text-red-300">
           {error}
         </div>
       )}
@@ -727,8 +733,8 @@ function ConfirmStep({
         <button
           onClick={onBack}
           disabled={submitting}
-          className="rounded-full border border-hairline-strong bg-white px-5 py-2.5 text-sm
-                     font-medium text-ink-muted hover:bg-white/80 transition-all duration-200
+          className="rounded-full border border-hairline-strong bg-surface px-5 py-2.5 text-sm
+                     font-medium text-ink-muted hover:bg-surface-raised transition-all duration-200
                      disabled:opacity-50"
         >
           Back
@@ -782,8 +788,8 @@ function PhotoSlot({
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
-        className={`relative w-full overflow-hidden rounded-xl border bg-white transition-all duration-200 ${
-          file ? "border-ink" : "border-dashed border-black/20 hover:border-black/40"
+        className={`relative w-full overflow-hidden rounded-xl border bg-surface transition-all duration-200 ${
+          file ? "border-ink" : "border-dashed border-ink/20 hover:border-ink/40"
         }`}
         style={{ aspectRatio: aspect }}
       >
@@ -792,10 +798,10 @@ function PhotoSlot({
           <img src={url} alt="" className="absolute inset-0 h-full w-full object-cover" />
         ) : (
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden>
-              <rect x="3" y="6" width="18" height="14" rx="2" stroke="#6B6965" strokeWidth="1.5" />
-              <circle cx="12" cy="13" r="3.5" stroke="#6B6965" strokeWidth="1.5" />
-              <path d="M7 6l1.5-2h7L17 6" stroke="#6B6965" strokeWidth="1.5" strokeLinejoin="round" />
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden className="text-ink-muted">
+              <rect x="3" y="6" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.5" />
+              <circle cx="12" cy="13" r="3.5" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M7 6l1.5-2h7L17 6" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
             </svg>
             <p className="mt-3 text-[13px] font-medium text-ink">Add photo</p>
             <p className="mt-0.5 text-[11px] text-ink-subtle">JPEG / PNG / WebP, up to 8 MB</p>
@@ -815,7 +821,7 @@ function PhotoSlot({
         </button>
       )}
       {reject && (
-        <p className="mt-2 text-[11px] text-[#C9653B]">{reject}</p>
+        <p className="mt-2 text-[11px] text-accent">{reject}</p>
       )}
       <input
         ref={inputRef}

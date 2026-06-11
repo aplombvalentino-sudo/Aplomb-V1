@@ -1,8 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Metadata } from "next";
-import { ClientSignOutLink } from "@/components/client/ClientSignOutLink";
-import { Logo } from "@/components/brand/Logo";
+import { ClientNav } from "@/components/client/ClientNav";
+import { TiltCard } from "@/components/fx/TiltCard";
 import { listActiveBrands } from "@/lib/brands";
 
 export const metadata: Metadata = {
@@ -22,41 +22,7 @@ export default async function DiscoverPage() {
 
   return (
     <div className="min-h-[100dvh] bg-canvas">
-      {/* Header — same wardrobe-first nav as /app/wardrobe */}
-      <header className="border-b border-hairline bg-canvas/90 backdrop-blur-md
-                          sticky top-0 z-10 px-6 py-4 flex items-center justify-between">
-        <Link href="/app/wardrobe" aria-label="Aplomb — wardrobe" className="text-ink hover:opacity-60 transition-opacity duration-200">
-          <Logo className="text-[17px]" />
-        </Link>
-        <nav className="flex items-center gap-4">
-          <Link
-            href="/app/wardrobe"
-            className="text-[12px] text-ink-subtle hover:text-ink transition-colors duration-200"
-          >
-            Wardrobe
-          </Link>
-          <Link
-            href="/app/outfits"
-            className="text-[12px] text-ink-subtle hover:text-ink transition-colors duration-200"
-          >
-            Outfits
-          </Link>
-          <Link
-            href="/app/discover"
-            className="text-[12px] font-medium text-ink transition-colors"
-          >
-            Discover
-          </Link>
-          <Link
-            href="/app/account"
-            className="text-[12px] text-ink-subtle hover:text-ink transition-colors duration-200"
-          >
-            Profile
-          </Link>
-          <span aria-hidden className="h-3 w-px bg-hairline-strong" />
-          <ClientSignOutLink />
-        </nav>
-      </header>
+      <ClientNav active="discover" />
 
       <main className="mx-auto max-w-5xl px-6 py-14">
         <div className="mb-10">
@@ -74,27 +40,38 @@ export default async function DiscoverPage() {
         </div>
 
         {brands.length === 0 ? (
-          <div className="rounded-2xl border border-hairline bg-surface py-20 text-center">
-            <p className="text-ink-muted font-medium">No brands onboard yet.</p>
-            <p className="mt-2 text-sm text-ink-subtle">
+          <div className="rounded-2xl border border-hairline bg-surface px-6 py-20 text-center shadow-card">
+            {/* Quiet monogram mark — token-driven so it reads in both themes */}
+            <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-stone">
+              <span aria-hidden className="font-serif italic text-[1.2rem] leading-none text-ink-muted">
+                a
+              </span>
+            </div>
+            <p className="font-serif text-[1.3rem] font-medium text-ink">
+              No brands onboard <em className="italic">yet</em>.
+            </p>
+            <p className="mt-2 text-sm text-ink-subtle max-w-[44ch] mx-auto">
               Check back soon — or{" "}
-              <Link href="/app/wardrobe/add" className="text-ink underline underline-offset-2">
+              <Link
+                href="/app/wardrobe/add"
+                className="text-ink underline underline-offset-2 transition-colors duration-200 hover:text-ink-muted"
+              >
                 add a clothing item you already own
               </Link>{" "}
               to start your wardrobe.
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="perspective-stage grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {brands.map((brand) => (
-              <Link
+              <TiltCard
                 key={brand.id}
+                maxTilt={4}
+                className="overflow-hidden rounded-2xl border border-hairline bg-surface shadow-card"
+              >
+              <Link
                 href={`/app/${brand.slug}`}
-                className="group relative overflow-hidden rounded-2xl bg-surface
-                           border border-hairline p-6
-                           shadow-[0_2px_16px_rgba(0,0,0,0.04)]
-                           hover:shadow-[0_4px_32px_rgba(0,0,0,0.09)]
-                           transition-all duration-300"
+                className="group relative block h-full p-6"
               >
                 {/* Colour accent */}
                 <div
@@ -144,6 +121,7 @@ export default async function DiscoverPage() {
                   </svg>
                 </div>
               </Link>
+              </TiltCard>
             ))}
           </div>
         )}

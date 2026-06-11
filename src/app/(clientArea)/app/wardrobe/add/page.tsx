@@ -5,7 +5,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getWardrobeQuota } from "@/lib/wardrobe/items";
 import { isValidClientPlan } from "@/lib/planLimits";
-import { Logo } from "@/components/brand/Logo";
+import { ClientNav } from "@/components/client/ClientNav";
 import { CaptureFlow } from "@/components/client/wardrobe/CaptureFlow";
 
 export const metadata: Metadata = {
@@ -41,20 +41,24 @@ export default async function AddWardrobeItemPage() {
 
   return (
     <div className="min-h-[100dvh] bg-canvas">
-      <header className="border-b border-hairline bg-canvas/90 backdrop-blur-md
-                          sticky top-0 z-10 px-6 py-4 flex items-center justify-between">
-        <Link href="/app/wardrobe" aria-label="Aplomb — wardrobe" className="flex items-center gap-3 text-ink">
-          <Logo className="text-[17px]" />
-          <span className="text-[12px] text-ink-subtle hover:text-ink transition-colors">
+      {/* Shared shopper-area nav; back affordance preserved in the leading slot */}
+      <ClientNav
+        active="wardrobe"
+        leading={
+          <Link
+            href="/app/wardrobe"
+            className="text-[12px] text-ink-subtle hover:text-ink transition-colors"
+          >
             ← Back to wardrobe
-          </span>
-        </Link>
-        <span className="text-[11px] text-ink-subtle tabular-nums">
-          {quota.personalPhotosUsed} / {quota.maxPersonalPhotos === Infinity ? "∞" : quota.maxPersonalPhotos} pieces from your closet
-        </span>
-      </header>
+          </Link>
+        }
+      />
 
       <main className="mx-auto max-w-2xl px-6 py-12">
+        {/* Quota counter — moved out of the (now shared) header, kept verbatim */}
+        <p className="mb-6 text-right text-[11px] text-ink-subtle tabular-nums">
+          {quota.personalPhotosUsed} / {quota.maxPersonalPhotos === Infinity ? "∞" : quota.maxPersonalPhotos} pieces from your closet
+        </p>
         <CaptureFlow plan={plan} remaining={quota.maxPersonalPhotos - quota.personalPhotosUsed} />
       </main>
     </div>

@@ -1,13 +1,13 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/cn";
+import { ease, staggerContainer, depthItem } from "@/lib/motion";
+import { TiltCard } from "@/components/fx/TiltCard";
 import { Input } from "@/components/ui/Input";
 import { TurnstileField, type TurnstileFieldHandle } from "@/components/security/TurnstileField";
 import { TURNSTILE_ENABLED } from "@/components/security/TurnstileWidget";
-
-const ease = [0.16, 1, 0.3, 1] as const;
 
 // ─── Check icon ───────────────────────────────────────────────────────────────
 
@@ -83,7 +83,7 @@ function EnterpriseModal({ onClose }: { onClose: () => void }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40
+      className="fixed inset-0 z-50 flex items-center justify-center bg-scrim/55
                  backdrop-blur-sm px-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
@@ -92,15 +92,15 @@ function EnterpriseModal({ onClose }: { onClose: () => void }) {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96, y: 8 }}
         transition={{ duration: 0.35, ease }}
-        className="w-full max-w-md rounded-2xl bg-white border border-hairline
-                   shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] p-8"
+        className="w-full max-w-md rounded-2xl bg-surface border border-hairline
+                   shadow-float p-8"
       >
         {sent ? (
           <div className="text-center py-4">
-            <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-[#F6F3EE]
-                             flex items-center justify-center">
+            <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-stone
+                             flex items-center justify-center text-ink">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M4 10l4 4 8-8" stroke="#111010" strokeWidth="1.5"
+                <path d="M4 10l4 4 8-8" stroke="currentColor" strokeWidth="1.5"
                       strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
@@ -111,8 +111,8 @@ function EnterpriseModal({ onClose }: { onClose: () => void }) {
               Our team will reach out within 24 hours.
             </p>
             <button onClick={onClose}
-              className="mt-6 rounded-full bg-[#111010] px-6 py-2.5 text-sm
-                         font-medium text-white hover:bg-[#2a2622] transition-colors">
+              className="mt-6 rounded-full bg-ink px-6 py-2.5 text-sm
+                         font-medium text-on-ink hover:bg-ink/90 transition-colors">
               Close
             </button>
           </div>
@@ -140,14 +140,14 @@ function EnterpriseModal({ onClose }: { onClose: () => void }) {
                   value={fields.message}
                   onChange={(e) => setFields(f => ({ ...f, message: e.target.value }))}
                   placeholder="Tell us about your catalogue size, expected scan volume..."
-                  className="rounded-xl border border-hairline-strong bg-white px-3.5 py-2.5
+                  className="rounded-xl border border-hairline-strong bg-surface px-3.5 py-2.5
                              text-[14px] text-ink placeholder:text-ink-subtle resize-none
-                             focus:border-[#111010] focus:outline-none focus:ring-1
-                             focus:ring-[#111010] transition-colors duration-200"
+                             focus:border-ink focus:outline-none focus:ring-1
+                             focus:ring-ink transition-colors duration-200"
                 />
               </div>
               {error && (
-                <div className="rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">
+                <div className="rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-700 dark:text-red-300">
                   {error}
                 </div>
               )}
@@ -158,14 +158,14 @@ function EnterpriseModal({ onClose }: { onClose: () => void }) {
               <TurnstileField ref={turnstileRef} onChange={setTurnstileToken} />
               <div className="flex items-center gap-3 pt-1">
                 <button type="button" onClick={onClose}
-                  className="rounded-full border border-hairline-strong bg-white px-5 py-2.5
-                             text-sm font-medium text-ink-muted hover:bg-[#F6F3EE]
+                  className="rounded-full border border-hairline-strong bg-surface px-5 py-2.5
+                             text-sm font-medium text-ink-muted hover:bg-stone
                              transition-colors">
                   Cancel
                 </button>
                 <button type="submit" disabled={loading || (TURNSTILE_ENABLED && !turnstileToken)}
-                  className="flex-1 rounded-full bg-[#111010] py-2.5 text-sm font-medium
-                             text-white hover:bg-[#2a2622] transition-colors
+                  className="flex-1 rounded-full bg-ink py-2.5 text-sm font-medium
+                             text-on-ink hover:bg-ink/90 transition-colors
                              disabled:opacity-50 disabled:cursor-wait">
                   {loading ? "Sending…" : "Send message"}
                 </button>
@@ -250,6 +250,7 @@ export function ProPricingCards({
 }: {
   currentPlan?: "free" | "pro" | "enterprise";
 }) {
+  const reduce = useReducedMotion();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [enterpriseOpen, setEnterpriseOpen] = useState(false);
   const [activePlan, setActivePlan] = useState(currentPlan);
@@ -265,96 +266,110 @@ export function ProPricingCards({
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {TIERS.map((tier, i) => {
+      {/* perspective-stage: tier cards are objects — they share one vanishing
+          point so the tilt reads as a coherent space. */}
+      <motion.div
+        variants={staggerContainer(0.07)}
+        initial={reduce ? false : "hidden"}
+        animate="show"
+        className="perspective-stage grid grid-cols-1 md:grid-cols-3 gap-5"
+      >
+        {TIERS.map((tier) => {
           const isActive = activePlan === tier.id;
           return (
             <motion.div
               key={tier.id}
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: i * 0.07, ease }}
-              className={cn(
-                "relative flex flex-col rounded-2xl p-6 bg-surface transition-shadow duration-300",
-                tier.recommended
-                  ? "ring-2 ring-accent/30 shadow-[0_18px_56px_-20px_rgba(17,16,16,0.18)]"
-                  : "border border-hairline shadow-[0_1px_2px_rgba(17,16,16,0.04)]"
-              )}
+              variants={depthItem}
+              className="h-full preserve-3d"
             >
-              {/* Recommended badge */}
-              {tier.recommended && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-1
-                                 text-[10px] font-semibold uppercase tracking-[0.16em] bg-accent text-white">
-                  Recommended
-                </span>
-              )}
-
-              {/* Active indicator */}
-              {isActive && (
-                <span className="absolute top-4 right-4 rounded-full px-2.5 py-0.5 text-[10px] font-medium
-                                 bg-surface-raised text-ink-subtle">
-                  Current plan
-                </span>
-              )}
-
-              <div>
-                <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink-subtle">
-                  {tier.name}
-                </p>
-
-                <div className="mt-2 flex items-baseline gap-0.5">
-                  {tier.price ? (
-                    <>
-                      <span className="text-[0.9rem] font-medium text-ink-subtle">€</span>
-                      <span className="font-serif text-[2.8rem] font-medium leading-none tracking-tight nums text-ink">
-                        {tier.price}
-                      </span>
-                      <span className="ml-1 self-end text-sm text-ink-subtle">
-                        {tier.period}
-                      </span>
-                    </>
-                  ) : (
-                    <span className="font-serif text-[2rem] font-medium leading-none tracking-tight text-ink">
-                      Custom
-                    </span>
-                  )}
-                </div>
-
-                <p className="mt-3 text-[13px] leading-relaxed text-ink-muted">
-                  {tier.tagline}
-                </p>
-              </div>
-
-              <ul className="mt-6 mb-8 space-y-2.5 flex-1">
-                {tier.features.map((f) => (
-                  <li key={f} className="flex items-start gap-2 text-[13px] text-ink-muted">
-                    <Check />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-
-              <button
-                onClick={() => choosePlan(tier.id)}
-                disabled={loadingPlan === tier.id || (isActive && tier.id !== "enterprise")}
+              {/* Recommended tier sits deeper in the scene: floatier shadow +
+                  the view's single sheen group. */}
+              <TiltCard
+                sheen={tier.recommended}
                 className={cn(
-                  "w-full rounded-full py-3 text-sm font-medium text-white transition-all duration-200",
-                  "disabled:opacity-50 disabled:cursor-not-allowed",
+                  "relative flex h-full flex-col rounded-2xl p-6 bg-surface",
                   tier.recommended
-                    ? "bg-accent hover:bg-accent-bright"
-                    : "bg-ink hover:bg-[#2a2622]"
+                    ? "ring-2 ring-accent/30 shadow-float"
+                    : "border border-hairline shadow-card"
                 )}
               >
-                {loadingPlan === tier.id
-                  ? "Updating…"
-                  : isActive && tier.id !== "enterprise"
-                  ? "Active"
-                  : tier.cta}
-              </button>
+                {/* Recommended badge */}
+                {tier.recommended && (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-1
+                                   text-[10px] font-semibold uppercase tracking-[0.16em] bg-accent text-white">
+                    Recommended
+                  </span>
+                )}
+
+                {/* Active indicator */}
+                {isActive && (
+                  <span className="absolute top-4 right-4 rounded-full px-2.5 py-0.5 text-[10px] font-medium
+                                   bg-surface-raised text-ink-subtle">
+                    Current plan
+                  </span>
+                )}
+
+                <div>
+                  <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink-subtle">
+                    {tier.name}
+                  </p>
+
+                  {/* min-h keeps the €-price and "Custom" rows the same height
+                      so feature lists start at the same Y across columns. */}
+                  <div className="mt-2 flex min-h-[2.8rem] items-end gap-0.5">
+                    {tier.price ? (
+                      <>
+                        <span className="text-[0.9rem] font-medium text-ink-subtle">€</span>
+                        <span className="font-serif text-[2.8rem] font-medium leading-none tracking-tight nums text-ink">
+                          {tier.price}
+                        </span>
+                        <span className="ml-1 self-end text-sm text-ink-subtle">
+                          {tier.period}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="font-serif text-[2rem] font-medium leading-none tracking-tight text-ink">
+                        Custom
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="mt-3 min-h-[2.6rem] text-[13px] leading-relaxed text-ink-muted">
+                    {tier.tagline}
+                  </p>
+                </div>
+
+                <ul className="mt-6 mb-8 space-y-2.5 flex-1">
+                  {tier.features.map((f) => (
+                    <li key={f} className="flex items-start gap-2 text-[13px] text-ink-muted">
+                      <Check />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+
+                <button
+                  onClick={() => choosePlan(tier.id)}
+                  disabled={loadingPlan === tier.id || (isActive && tier.id !== "enterprise")}
+                  className={cn(
+                    "w-full rounded-full py-3 text-sm font-medium transition-all duration-200",
+                    "disabled:opacity-50 disabled:cursor-not-allowed",
+                    tier.recommended
+                      ? "bg-accent text-white hover:bg-accent-bright"
+                      : "bg-ink text-on-ink hover:bg-ink/90"
+                  )}
+                >
+                  {loadingPlan === tier.id
+                    ? "Updating…"
+                    : isActive && tier.id !== "enterprise"
+                    ? "Active"
+                    : tier.cta}
+                </button>
+              </TiltCard>
             </motion.div>
           );
         })}
-      </div>
+      </motion.div>
 
       <AnimatePresence>
         {enterpriseOpen && <EnterpriseModal onClose={() => setEnterpriseOpen(false)} />}

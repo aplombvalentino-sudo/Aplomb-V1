@@ -1,12 +1,10 @@
-import Link from "next/link";
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { listWardrobeItems, getWardrobeQuota } from "@/lib/wardrobe/items";
 import { isValidClientPlan } from "@/lib/planLimits";
-import { Logo } from "@/components/brand/Logo";
-import { ClientSignOutLink } from "@/components/client/ClientSignOutLink";
+import { ClientNav } from "@/components/client/ClientNav";
 import { WardrobeGrid } from "@/components/client/wardrobe/WardrobeGrid";
 
 export const metadata: Metadata = {
@@ -48,47 +46,8 @@ export default async function WardrobePage() {
 
   return (
     <div className="min-h-[100dvh] bg-canvas">
-      {/* Header — wardrobe-first nav */}
-      <header className="border-b border-hairline bg-canvas/90 backdrop-blur-md
-                          sticky top-0 z-10 px-6 py-4 flex items-center justify-between">
-        <Link href="/app/wardrobe" aria-label="Aplomb — wardrobe" className="text-ink hover:opacity-60 transition-opacity duration-200">
-          <Logo className="text-[17px]" />
-        </Link>
-        <nav className="flex items-center gap-4">
-          <Link
-            href="/app/wardrobe"
-            className="text-[12px] font-medium text-ink transition-colors"
-          >
-            Wardrobe
-          </Link>
-          <Link
-            href="/app/outfits"
-            className="text-[12px] text-ink-subtle hover:text-ink transition-colors duration-200"
-          >
-            Outfits
-          </Link>
-          <Link
-            href="/app/chat"
-            className="text-[12px] text-ink-subtle hover:text-ink transition-colors duration-200"
-          >
-            Assistant
-          </Link>
-          <Link
-            href="/app/discover"
-            className="text-[12px] text-ink-subtle hover:text-ink transition-colors duration-200"
-          >
-            Discover
-          </Link>
-          <Link
-            href="/app/account"
-            className="text-[12px] text-ink-subtle hover:text-ink transition-colors duration-200"
-          >
-            Profile
-          </Link>
-          <span aria-hidden className="h-3 w-px bg-hairline-strong" />
-          <ClientSignOutLink />
-        </nav>
-      </header>
+      {/* Header — shared shopper-area nav (theme toggle + sign-out included) */}
+      <ClientNav active="wardrobe" />
 
       <main className="mx-auto max-w-5xl px-6 py-12">
         {/* Page intro */}

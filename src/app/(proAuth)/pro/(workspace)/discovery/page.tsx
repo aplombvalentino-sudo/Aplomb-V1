@@ -186,7 +186,7 @@ export default async function ProDiscoveryPage() {
 
       {/* ── Signal breakdown ───────────────────────────────────────────────── */}
       <div className="mb-8 rounded-2xl bg-surface border border-hairline
-                      shadow-[0_2px_16px_rgba(0,0,0,0.04)]">
+                      shadow-card">
         <div className="px-6 py-5 border-b border-hairline">
           <p className="text-[13px] font-semibold text-ink">What drives your ranking</p>
           <p className="mt-0.5 text-[12px] text-ink-subtle">
@@ -197,7 +197,7 @@ export default async function ProDiscoveryPage() {
           {signals.map((s) => (
             <li key={s.label} className="flex items-center gap-4 px-6 py-4">
               <span className={`h-2 w-2 rounded-full shrink-0 ${
-                s.good ? "bg-[#6B9F6B]" : "bg-champagne"
+                s.good ? "bg-emerald-600 dark:bg-emerald-400" : "bg-champagne"
               }`} />
               <div className="flex-1 min-w-0">
                 <p className="text-[13px] font-medium text-ink">{s.label}</p>
@@ -227,8 +227,8 @@ export default async function ProDiscoveryPage() {
               <li key={m}
                   className="flex items-start gap-2 rounded-xl bg-surface px-3 py-2.5
                              border border-hairline text-[13px] text-ink">
-                <svg width="11" height="11" viewBox="0 0 11 11" fill="none" className="mt-1 shrink-0">
-                  <path d="M2.5 5.5L4.5 7.5 8.5 3.5" stroke="#C9A882" strokeWidth="1.5"
+                <svg width="11" height="11" viewBox="0 0 11 11" fill="none" className="mt-1 shrink-0 text-champagne">
+                  <path d="M2.5 5.5L4.5 7.5 8.5 3.5" stroke="currentColor" strokeWidth="1.5"
                         strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
                 {m}
@@ -238,9 +238,9 @@ export default async function ProDiscoveryPage() {
         )}
         {!plan.featuredEligibility && (
           <Link
-            href="/pro/billing"
+            href="/pro/pricing"
             className="mt-5 inline-flex items-center gap-2 rounded-full bg-ink pl-5 pr-2 py-2
-                       text-[12px] font-medium text-white hover:bg-ink/90 transition-colors"
+                       text-[12px] font-medium text-on-ink hover:bg-ink/90 transition-colors"
           >
             Upgrade to Featured for top placement
             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent aplomb-glow">
@@ -259,7 +259,7 @@ export default async function ProDiscoveryPage() {
 function Card({ children }: { children: React.ReactNode }) {
   return (
     <div className="rounded-2xl bg-surface border border-hairline
-                    shadow-[0_2px_16px_rgba(0,0,0,0.04)] px-5 py-5">
+                    shadow-card px-5 py-5">
       {children}
     </div>
   );

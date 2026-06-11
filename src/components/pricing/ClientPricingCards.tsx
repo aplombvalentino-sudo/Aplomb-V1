@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/cn";
+import { TiltCard } from "@/components/fx/TiltCard";
+import { staggerContainer, depthItem } from "@/lib/motion";
 import type { ClientPlan } from "@/lib/planLimits";
-
-const ease = [0.16, 1, 0.3, 1] as const;
 
 function Check({ accent }: { accent?: boolean }) {
   return (
@@ -99,6 +99,7 @@ export function ClientPricingCards({
   currentPlan?: ClientPlan;
   redirectAfter?: string;
 }) {
+  const reduce = useReducedMotion();
   const [loadingPlan, setLoadingPlan] = useState<ClientPlan | null>(null);
   const activePlan = currentPlan;
   void redirectAfter; // legacy prop; payment now handled by checkout route
@@ -122,22 +123,25 @@ export function ClientPricingCards({
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-      {TIERS.map((tier, i) => {
+    <motion.div
+      variants={staggerContainer(0.07)}
+      initial={reduce ? false : "hidden"}
+      animate="show"
+      className="perspective-stage grid grid-cols-1 md:grid-cols-3 gap-5"
+    >
+      {TIERS.map((tier) => {
         const isActive = activePlan === tier.id;
         return (
-          <motion.div
-            key={tier.id}
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: i * 0.07, ease }}
-            className={cn(
-              "relative flex flex-col rounded-2xl p-6 bg-surface transition-shadow duration-300",
-              tier.recommended
-                ? "ring-2 ring-accent/30 shadow-[0_18px_56px_-20px_rgba(17,16,16,0.18)]"
-                : "border border-hairline shadow-[0_1px_2px_rgba(17,16,16,0.04)]"
-            )}
-          >
+          <motion.div key={tier.id} variants={depthItem} className="flex preserve-3d">
+            <TiltCard
+              liftScale={tier.recommended ? 1.025 : undefined}
+              className={cn(
+                "flex w-full flex-col rounded-2xl p-6 bg-surface",
+                tier.recommended
+                  ? "ring-2 ring-accent/30 shadow-float"
+                  : "border border-hairline shadow-card"
+              )}
+            >
             {tier.recommended && (
               <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-1
                                text-[10px] font-semibold uppercase tracking-[0.16em] whitespace-nowrap
@@ -153,7 +157,9 @@ export function ClientPricingCards({
               </span>
             )}
 
-            <div>
+            {/* Fixed-height header on md+ so feature lists start at the same Y
+                across all three columns regardless of price-row/tagline shape. */}
+            <div className="md:min-h-[140px]">
               <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink-subtle">
                 {tier.name}
               </p>
@@ -168,8 +174,8 @@ export function ClientPricingCards({
                         €{tier.originalPrice}
                       </span>
                     )}
-                    {/* Promo "FREE" badge */}
-                    <span className="font-serif text-[2.6rem] font-medium leading-none tracking-tight text-[#346538]">
+                    {/* Promo "FREE" badge — keeps its green, lifted for dark */}
+                    <span className="font-serif text-[2.6rem] font-medium leading-none tracking-tight text-[#346538] dark:text-emerald-300">
                       {tier.priceBadge}
                     </span>
                   </>
@@ -204,18 +210,19 @@ export function ClientPricingCards({
               onClick={() => choosePlan(tier.id)}
               disabled={loadingPlan === tier.id || isActive}
               className={cn(
-                "w-full rounded-full py-3 text-sm font-medium text-white transition-all duration-200",
+                "mt-auto w-full rounded-full py-3 text-sm font-medium transition-all duration-200",
                 "disabled:opacity-50 disabled:cursor-not-allowed",
                 tier.recommended
-                  ? "bg-accent hover:bg-accent-bright"
-                  : "bg-ink hover:bg-[#2a2622]"
+                  ? "bg-accent text-white hover:bg-accent-bright"
+                  : "bg-ink text-on-ink hover:bg-ink/90"
               )}
             >
               {loadingPlan === tier.id ? "Updating…" : isActive ? "Your plan" : tier.cta}
             </button>
+            </TiltCard>
           </motion.div>
         );
       })}
-    </div>
+    </motion.div>
   );
 }

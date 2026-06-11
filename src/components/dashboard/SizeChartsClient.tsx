@@ -160,7 +160,7 @@ export function SizeChartsClient({ brandId }: { brandId: string }) {
                     </button>
                     <button
                       onClick={() => handleDelete(c.id)}
-                      className="rounded p-1 text-ink-subtle hover:bg-red-50 hover:text-red-600"
+                      className="rounded p-1 text-ink-subtle hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-300"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -177,7 +177,7 @@ export function SizeChartsClient({ brandId }: { brandId: string }) {
 
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4">
-          <div className="w-full max-w-2xl rounded-xl bg-white p-6 shadow-xl">
+          <div className="w-full max-w-2xl rounded-xl bg-surface p-6 shadow-float">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">
                 {editing ? "Edit size chart" : "Add size chart"}
@@ -191,7 +191,7 @@ export function SizeChartsClient({ brandId }: { brandId: string }) {
             </div>
 
             {error && (
-              <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+              <p className="mt-3 rounded-lg bg-red-500/10 border border-red-500/20 px-3 py-2 text-sm text-red-700 dark:text-red-300">
                 {error}
               </p>
             )}
@@ -221,9 +221,9 @@ export function SizeChartsClient({ brandId }: { brandId: string }) {
                     validateJson(e.target.value);
                   }}
                   rows={12}
-                  className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 nums text-xs shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black"
+                  className="mt-1 w-full rounded-lg border border-hairline bg-surface px-3 py-2 nums text-xs text-ink focus:border-ink focus:outline-none focus:ring-1 focus:ring-ink"
                 />
-                {jsonError && <p className="mt-1 text-xs text-red-600">{jsonError}</p>}
+                {jsonError && <p className="mt-1 text-xs text-red-600 dark:text-red-300">{jsonError}</p>}
               </div>
             </div>
 

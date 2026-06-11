@@ -61,7 +61,7 @@ export default async function ProSettingsPage() {
 
         {/* Read-only info */}
         <section className="rounded-2xl bg-surface border border-hairline
-                             shadow-[0_2px_16px_rgba(0,0,0,0.04)] p-6">
+                             shadow-card p-6">
           <h2 className="text-[13px] font-semibold text-ink mb-4">Plan</h2>
           <div className="flex items-center gap-3">
             <span className="inline-flex items-center rounded-full border border-hairline
@@ -81,15 +81,15 @@ export default async function ProSettingsPage() {
 
         {/* Widget embed */}
         <section className="rounded-2xl bg-surface border border-hairline
-                             shadow-[0_2px_16px_rgba(0,0,0,0.04)] p-6">
+                             shadow-card p-6">
           <h2 className="text-[13px] font-semibold text-ink mb-1">Widget embed</h2>
           <p className="text-sm text-ink-muted mb-4">
             Paste this into your product page HTML just before{" "}
             <code className="rounded bg-canvas px-1 text-[12px]">&lt;/body&gt;</code>.
           </p>
           <div className="relative">
-            <pre className="overflow-x-auto rounded-xl bg-[#111010] p-4 text-[12px]
-                            text-[#C9C5C0] leading-relaxed">
+            <pre className="overflow-x-auto rounded-xl bg-ink p-4 text-[12px]
+                            text-on-ink/80 leading-relaxed">
               {embedSnippet}
             </pre>
             <CopyButton text={embedSnippet} className="absolute right-3 top-3" dark />
@@ -98,7 +98,7 @@ export default async function ProSettingsPage() {
 
         {/* Client link */}
         <section className="rounded-2xl bg-surface border border-hairline
-                             shadow-[0_2px_16px_rgba(0,0,0,0.04)] p-6">
+                             shadow-card p-6">
           <h2 className="text-[13px] font-semibold text-ink mb-1">Client fit link</h2>
           <p className="text-sm text-ink-muted mb-4">
             Share this URL directly with your customers for a standalone fit experience.

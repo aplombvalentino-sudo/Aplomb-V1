@@ -4,9 +4,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "motion/react";
-
-const ease = [0.16, 1, 0.3, 1] as const;
+import { motion, useReducedMotion } from "motion/react";
+import { TiltCard } from "@/components/fx/TiltCard";
+import { fadeUp, staggerContainer, depthItem } from "@/lib/motion";
 
 export type OutfitListItem = {
   id: string;
@@ -42,57 +42,78 @@ export function OutfitsList({
   outfits: OutfitListItem[];
   wardrobeItemCount: number;
 }) {
+  const reduce = useReducedMotion();
+
   if (outfits.length === 0) {
     return <EmptyState wardrobeItemCount={wardrobeItemCount} />;
   }
 
   return (
-    <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+    // perspective-stage: one shared vanishing point for every tilted card.
+    <motion.ul
+      variants={staggerContainer(0.06)}
+      initial={reduce ? false : "hidden"}
+      animate="show"
+      className="perspective-stage grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
+    >
       {outfits.map((o) => (
         <OutfitCard key={o.id} outfit={o} />
       ))}
-    </ul>
+    </motion.ul>
   );
 }
 
 // ─── Empty state ─────────────────────────────────────────────────────────────
 
 function EmptyState({ wardrobeItemCount }: { wardrobeItemCount: number }) {
+  const reduce = useReducedMotion();
   const hasItems = wardrobeItemCount > 0;
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease }}
-      className="rounded-2xl border border-hairline bg-surface px-6 py-16 text-center"
+      variants={fadeUp}
+      initial={reduce ? false : "hidden"}
+      animate="show"
+      className="relative"
     >
-      <p className="font-serif text-[1.5rem] font-medium text-ink leading-snug">
-        {hasItems ? "No outfits yet." : "Your wardrobe is waiting."}
-      </p>
-      <p className="mt-3 max-w-[46ch] mx-auto text-[14px] text-ink-muted leading-relaxed">
-        {hasItems
-          ? "Pick a top, a bottom, shoes and any layer you want — name the outfit and save it for later."
-          : "Add a few clothing items to your wardrobe first, then start building outfits."}
-      </p>
+      {/* Layered ghost cards — soft offset stone planes behind the copy,
+          suggesting the stack of outfits that doesn't exist yet. */}
+      <div
+        aria-hidden
+        className="absolute inset-x-6 -top-2 bottom-2 rounded-2xl bg-stone-deep/50 rotate-[-0.6deg]"
+      />
+      <div
+        aria-hidden
+        className="absolute inset-x-3 -top-1 bottom-1 rounded-2xl bg-stone/70 rotate-[0.4deg]"
+      />
+      <div className="relative rounded-2xl border border-hairline bg-surface px-6 py-16 text-center shadow-card">
+        <p className="font-serif text-[1.5rem] font-medium text-ink leading-snug">
+          {hasItems ? "No outfits yet." : "Your wardrobe is waiting."}
+        </p>
+        <p className="mt-3 max-w-[46ch] mx-auto text-[14px] text-ink-muted leading-relaxed">
+          {hasItems
+            ? "Pick a top, a bottom, shoes and any layer you want — name the outfit and save it for later."
+            : "Add a few clothing items to your wardrobe first, then start building outfits."}
+        </p>
 
-      <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-        {hasItems ? (
-          <Link
-            href="/app/outfits/new"
-            className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5
-                       text-[13px] font-medium text-white hover:bg-[#2a2622] transition-colors"
-          >
-            Build my first outfit
-          </Link>
-        ) : (
-          <Link
-            href="/app/wardrobe"
-            className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5
-                       text-[13px] font-medium text-white hover:bg-[#2a2622] transition-colors"
-          >
-            Go to my wardrobe
-          </Link>
-        )}
+        <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+          {hasItems ? (
+            <Link
+              href="/app/outfits/new"
+              className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5
+                         text-[13px] font-medium text-on-ink hover:bg-ink/90 transition-colors"
+            >
+              Build my first outfit
+            </Link>
+          ) : (
+            <Link
+              href="/app/wardrobe"
+              className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5
+                         text-[13px] font-medium text-on-ink hover:bg-ink/90 transition-colors"
+            >
+              Go to my wardrobe
+            </Link>
+          )}
+        </div>
       </div>
     </motion.div>
   );
@@ -121,85 +142,94 @@ function OutfitCard({ outfit }: { outfit: OutfitListItem }) {
   const hasHero = outfit.generationStatus === "ready" && outfit.generatedImageUrl;
 
   return (
-    <li className="group rounded-2xl border border-hairline bg-surface overflow-hidden
-                   hover:shadow-[0_4px_24px_rgba(0,0,0,0.06)] transition-shadow duration-300">
-      {/* Hero — the AI-generated try-on image takes the whole top of the
-          card when available. Falls back to the composed item-tile strip
-          for outfits without a generated image (legacy / failed / still
-          generating). */}
-      <Link href={`/app/outfits/${outfit.id}`} className="block">
-        {hasHero ? (
-          <div className="relative aspect-[3/4] bg-[#F6F3EE] overflow-hidden">
-            <Image
-              src={outfit.generatedImageUrl!}
-              alt={`You wearing ${outfit.title}`}
-              fill
-              sizes="(max-width: 640px) 100vw, 33vw"
-              className="object-cover"
-            />
-            {/* Delete button — top-right on hover */}
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                handleDelete();
-              }}
-              disabled={deleting}
-              aria-label="Delete outfit"
-              className="absolute top-2 right-2 h-7 w-7 rounded-full bg-white/95 flex items-center justify-center
-                         opacity-0 group-hover:opacity-100 focus-visible:opacity-100
-                         transition-opacity duration-200 ring-1 ring-black/10 hover:bg-white
-                         disabled:opacity-50 disabled:cursor-wait"
-            >
-              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden>
-                <path d="M2.5 2.5l6 6M8.5 2.5l-6 6" stroke="#111010" strokeWidth="1.4" strokeLinecap="round"/>
-              </svg>
-            </button>
-          </div>
-        ) : (
-          <div className="relative h-44 bg-[#F6F3EE] overflow-hidden flex items-end justify-center pb-4 px-4 gap-2">
-            {outfit.items.slice(0, 4).map((it) => (
-              <OutfitItemThumb key={it.id} item={it} />
-            ))}
-
-            {/* Generating overlay when the AI is still working */}
-            {(outfit.generationStatus === "generating" || outfit.generationStatus === "pending") && (
-              <div className="absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-[2px]">
-                <span className="text-[10px] font-medium uppercase tracking-[0.14em] text-ink">
-                  Generating…
-                </span>
-              </div>
-            )}
-
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                handleDelete();
-              }}
-              disabled={deleting}
-              aria-label="Delete outfit"
-              className="absolute top-2 right-2 h-7 w-7 rounded-full bg-white/95 flex items-center justify-center
-                         opacity-0 group-hover:opacity-100 focus-visible:opacity-100
-                         transition-opacity duration-200 ring-1 ring-black/10 hover:bg-white
-                         disabled:opacity-50 disabled:cursor-wait"
-            >
-              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden>
-                <path d="M2.5 2.5l6 6M8.5 2.5l-6 6" stroke="#111010" strokeWidth="1.4" strokeLinecap="round"/>
-              </svg>
-            </button>
-          </div>
-        )}
-      </Link>
-
-      {/* Card body */}
-      <div className="px-4 py-3">
+    <motion.li variants={depthItem} className="group preserve-3d">
+      {/* Cards with a generated try-on hero are the stars — they get the
+          slightly stronger lift; fallback strips stay quieter. */}
+      <TiltCard
+        liftScale={hasHero ? 1.03 : 1.02}
+        className="rounded-2xl border border-hairline bg-surface overflow-hidden shadow-card"
+      >
+        {/* Hero — the AI-generated try-on image takes the whole top of the
+            card when available. Falls back to the composed item-tile strip
+            for outfits without a generated image (legacy / failed / still
+            generating). */}
         <Link href={`/app/outfits/${outfit.id}`} className="block">
-          <p className="text-[14px] font-medium text-ink truncate">{outfit.title}</p>
-          <p className="mt-0.5 text-[11px] text-ink-subtle truncate">
-            {outfit.occasion ?? `${outfit.items.length} item${outfit.items.length === 1 ? "" : "s"}`}
-          </p>
+          {hasHero ? (
+            <div className="relative aspect-[3/4] bg-stone overflow-hidden">
+              <Image
+                src={outfit.generatedImageUrl!}
+                alt={`You wearing ${outfit.title}`}
+                fill
+                sizes="(max-width: 640px) 100vw, 33vw"
+                className="object-cover"
+              />
+              {/* Delete button — top-right on hover.
+                  Stays white + dark glyph: sits on imagery, not on a theme surface. */}
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleDelete();
+                }}
+                disabled={deleting}
+                aria-label="Delete outfit"
+                className="absolute top-2 right-2 h-7 w-7 rounded-full bg-white/95 text-[#111010] flex items-center justify-center
+                           opacity-0 group-hover:opacity-100 focus-visible:opacity-100
+                           transition-opacity duration-200 ring-1 ring-black/10 hover:bg-white
+                           disabled:opacity-50 disabled:cursor-wait"
+              >
+                <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden>
+                  <path d="M2.5 2.5l6 6M8.5 2.5l-6 6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                </svg>
+              </button>
+            </div>
+          ) : (
+            <div className="relative h-44 bg-stone overflow-hidden flex items-end justify-center pb-4 px-4 gap-2">
+              {outfit.items.slice(0, 4).map((it) => (
+                <OutfitItemThumb key={it.id} item={it} />
+              ))}
+
+              {/* Generating overlay when the AI is still working */}
+              {(outfit.generationStatus === "generating" || outfit.generationStatus === "pending") && (
+                <div className="absolute inset-0 flex items-center justify-center bg-surface/60 backdrop-blur-[2px]">
+                  <span className="text-[10px] font-medium uppercase tracking-[0.14em] text-ink">
+                    Generating…
+                  </span>
+                </div>
+              )}
+
+              {/* Delete button on the themed strip — tokenized so it flips
+                  with the theme (unlike its on-imagery sibling above). */}
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleDelete();
+                }}
+                disabled={deleting}
+                aria-label="Delete outfit"
+                className="absolute top-2 right-2 h-7 w-7 rounded-full bg-surface/95 text-ink flex items-center justify-center
+                           opacity-0 group-hover:opacity-100 focus-visible:opacity-100
+                           transition-opacity duration-200 ring-1 ring-ink/10 hover:bg-surface
+                           disabled:opacity-50 disabled:cursor-wait"
+              >
+                <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden>
+                  <path d="M2.5 2.5l6 6M8.5 2.5l-6 6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                </svg>
+              </button>
+            </div>
+          )}
         </Link>
-      </div>
-    </li>
+
+        {/* Card body */}
+        <div className="px-4 py-3">
+          <Link href={`/app/outfits/${outfit.id}`} className="block">
+            <p className="text-[14px] font-medium text-ink truncate">{outfit.title}</p>
+            <p className="mt-0.5 text-[11px] text-ink-subtle truncate">
+              {outfit.occasion ?? `${outfit.items.length} item${outfit.items.length === 1 ? "" : "s"}`}
+            </p>
+          </Link>
+        </div>
+      </TiltCard>
+    </motion.li>
   );
 }
 
@@ -209,7 +239,7 @@ function OutfitItemThumb({ item }: { item: OutfitListItem["items"][number] }) {
   const url = item.thumbUrl;
 
   return (
-    <div className="relative h-24 w-20 rounded-lg overflow-hidden bg-white shadow-sm ring-1 ring-black/[0.04]">
+    <div className="relative h-24 w-20 rounded-lg overflow-hidden bg-surface shadow-sm ring-1 ring-ink/[0.04]">
       {url ? (
         <Image
           src={url}

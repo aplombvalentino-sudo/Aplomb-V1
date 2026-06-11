@@ -57,15 +57,15 @@ export function ModeStep({
       <div className="mt-8 flex items-center gap-3">
         <button
           onClick={onBack}
-          className="rounded-full border border-hairline-strong bg-white px-5 py-2.5
-                     text-sm font-medium text-ink-muted hover:bg-white/80 transition-all duration-200"
+          className="rounded-full border border-hairline-strong bg-surface px-5 py-2.5
+                     text-sm font-medium text-ink-muted hover:bg-surface/80 transition-all duration-200"
         >
           Back
         </button>
         <button
           onClick={onNext}
-          className="inline-flex items-center gap-2.5 rounded-full bg-[#111010] pl-6 pr-2.5 py-3
-                     text-sm font-medium text-white hover:bg-[#2a2622] transition-all duration-300"
+          className="inline-flex items-center gap-2.5 rounded-full bg-ink pl-6 pr-2.5 py-3
+                     text-sm font-medium text-on-ink hover:bg-ink/90 transition-all duration-300"
         >
           Continue with {mode === "easy" ? "Easy" : "Advanced"}
           <Arrow />

@@ -4,8 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { PlanCard } from "./PlanCard";
 import { brandPlans, clientPlans } from "./plans";
-
-const cardEase = [0.16, 1, 0.3, 1] as const;
+import { ease, duration } from "@/lib/motion";
 
 /**
  * Public marketing pricing block. Renders an audience pill toggle
@@ -37,7 +36,7 @@ export function PricingCards() {
                 transition={{ type: "spring", stiffness: 420, damping: 40 }}
               />
             )}
-            <span className={`relative z-10 ${audience === opt ? "text-white" : "text-ink-muted"}`}>
+            <span className={`relative z-10 ${audience === opt ? "text-on-ink" : "text-ink-muted"}`}>
               {opt === "brand" ? "For brands" : "For shoppers"}
             </span>
           </button>
@@ -51,8 +50,8 @@ export function PricingCards() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.35, ease: cardEase }}
-          className="grid gap-4 lg:grid-cols-3"
+          transition={{ duration: duration.slow, ease }}
+          className="perspective-stage grid gap-4 lg:grid-cols-3"
         >
           {plans.map((plan, i) => (
             <PlanCard key={plan.name} plan={plan} i={i} />

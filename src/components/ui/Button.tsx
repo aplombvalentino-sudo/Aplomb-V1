@@ -16,13 +16,14 @@ type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const variantClasses: Record<ButtonVariant, string> = {
   // Ink ground with a terracotta bar that grows from centre on hover.
-  primary: "bg-ink text-white hover:bg-[#2a2622]",
+  // text-on-ink flips with the theme so the fill stays readable in dark mode.
+  primary: "bg-ink text-on-ink hover:bg-ink/90",
   // Full terracotta — reserved for the single most important action on a view.
   accent: "bg-accent text-white hover:bg-accent-bright",
   secondary:
     "bg-surface text-ink border border-hairline-strong hover:bg-surface-raised hover:border-ink/30",
   ghost: "bg-transparent text-ink-muted hover:text-ink hover:bg-ink/5",
-  danger: "bg-red-600 text-white hover:bg-red-700",
+  danger: "bg-red-600 text-white hover:bg-red-700 dark:bg-red-500/90 dark:hover:bg-red-500",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {

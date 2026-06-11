@@ -4,8 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-
-const ease = [0.16, 1, 0.3, 1] as const;
+import { transition } from "@/lib/motion";
 
 // ─── Types (mirror server) ─────────────────────────────────────────────────
 
@@ -213,7 +212,7 @@ export function WardrobeChat({
       />
 
       {error && (
-        <p className="text-[12px] text-red-700 rounded-xl bg-red-50 border border-red-100 px-4 py-3">
+        <p className="text-[12px] rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-red-700 dark:text-red-300">
           {error}
         </p>
       )}
@@ -221,7 +220,7 @@ export function WardrobeChat({
       {/* Monthly usage badge — Model (no cap) shows "Unlimited"; Fashion
           shows "X / Y this month" so the user always knows where they stand
           before hitting the gate. */}
-      <p className="text-[11px] text-ink-subtle text-right">
+      <p className="text-[11px] text-ink-subtle text-right nums">
         {usage.recsLimit === null
           ? "Unlimited recommendations this month"
           : `${usage.recsUsed} / ${usage.recsLimit} AI recommendations this month`}
@@ -255,14 +254,14 @@ function Bubble({
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, ease }}
+      transition={transition.slow}
       className={`flex ${isUser ? "justify-end" : "justify-start"}`}
     >
       <div
         className={`max-w-[80%] rounded-2xl px-4 py-3 text-[14px] leading-relaxed ${
           isUser
-            ? "bg-ink text-white"
-            : "bg-white text-ink border border-hairline"
+            ? "bg-ink text-on-ink"
+            : "bg-surface text-ink border border-hairline"
         }`}
       >
         <p className="whitespace-pre-wrap">{message.content}</p>
@@ -345,9 +344,9 @@ function WardrobeChip({ item: it }: { item: WardrobePiece }) {
     <Link
       href="/app/wardrobe"
       className="group flex items-center gap-2 rounded-xl border border-hairline bg-surface px-2 py-1.5
-                 hover:border-ink/30 transition-colors"
+                 hover:border-ink/30 hover:-translate-y-0.5 hover:shadow-card transition-all duration-200"
     >
-      <div className="relative h-10 w-10 rounded-md overflow-hidden bg-[#F6F3EE] ring-1 ring-black/[0.06] shrink-0">
+      <div className="relative h-10 w-10 rounded-md overflow-hidden bg-stone ring-1 ring-ink/[0.06] shrink-0">
         {it.thumbUrl ? (
           <Image
             src={it.thumbUrl}
@@ -390,7 +389,7 @@ function BrandChip({ productId }: { productId: string }) {
     <Link
       href="/app/discover"
       className="group flex items-center gap-2 rounded-xl border border-accent/30 bg-accent/[0.06]
-                 px-2.5 py-1.5 hover:border-accent transition-colors"
+                 px-2.5 py-1.5 hover:border-accent hover:-translate-y-0.5 hover:shadow-card transition-all duration-200"
     >
       <span
         className="rounded-full bg-accent/15 px-1.5 py-0.5 text-[8px] font-bold uppercase
@@ -408,7 +407,7 @@ function BrandChip({ productId }: { productId: string }) {
 function ThinkingBubble() {
   return (
     <div className="flex justify-start">
-      <div className="rounded-2xl bg-white border border-hairline px-4 py-3 flex items-center gap-2">
+      <div className="rounded-2xl bg-surface border border-hairline px-4 py-3 flex items-center gap-2">
         {[0, 1, 2].map((i) => (
           <motion.span
             key={i}
@@ -454,15 +453,15 @@ function Composer({
         }
         disabled={submitting || disabled}
         maxLength={2000}
-        className="flex-1 rounded-full border border-hairline-strong bg-white px-4 py-3 text-[14px] text-ink
+        className="flex-1 rounded-full border border-hairline-strong bg-surface px-4 py-3 text-[14px] text-ink
                    placeholder:text-ink-subtle focus:border-ink focus:outline-none focus:ring-1 focus:ring-ink
                    transition-colors duration-200 disabled:opacity-50"
       />
       <button
         type="submit"
         disabled={submitting || disabled || !value.trim()}
-        className="rounded-full bg-ink px-5 py-3 text-[13px] font-medium text-white
-                   hover:bg-[#2a2622] transition-colors disabled:opacity-50"
+        className="rounded-full bg-ink px-5 py-3 text-[13px] font-medium text-on-ink
+                   hover:bg-ink/90 transition-colors disabled:opacity-50"
       >
         {submitting ? "Asking…" : "Ask"}
       </button>
@@ -488,7 +487,7 @@ function EmptyState({
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease }}
+        transition={transition.slow}
         className="text-center py-6"
       >
         <p className="font-serif text-[1.3rem] font-medium text-ink">
@@ -506,8 +505,9 @@ function EmptyState({
                 key={s}
                 type="button"
                 onClick={() => onSuggest(s)}
-                className="rounded-full border border-hairline bg-white px-3.5 py-1.5 text-[12px] text-ink-muted
-                           hover:border-ink/30 hover:text-ink transition-colors"
+                className="rounded-full border border-hairline bg-surface px-3.5 py-1.5 text-[12px] text-ink-muted
+                           hover:border-ink/30 hover:text-ink hover:bg-surface-raised hover:-translate-y-0.5
+                           transition-all duration-200"
               >
                 {s}
               </button>

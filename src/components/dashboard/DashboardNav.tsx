@@ -33,7 +33,7 @@ export function DashboardNav({ brandName }: { brandName: string }) {
       initial={{ opacity: 0, x: -16 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.5, ease }}
-      className="flex h-full w-60 flex-col border-r border-hairline bg-[#FBFAF7]"
+      className="flex h-full w-60 flex-col border-r border-hairline bg-surface-raised"
     >
       {/* Logo */}
       <div className="flex h-16 items-center border-b border-hairline px-6">
@@ -80,14 +80,14 @@ export function DashboardNav({ brandName }: { brandName: string }) {
                   className={cn(
                     "relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium transition-colors duration-200",
                     active
-                      ? "text-white"
+                      ? "text-on-ink"
                       : "text-ink-muted hover:text-ink hover:bg-ink/5"
                   )}
                 >
                   {active && (
                     <motion.span
                       layoutId="nav-active-pill"
-                      className="absolute inset-0 rounded-xl bg-[#111010]"
+                      className="absolute inset-0 rounded-xl bg-ink"
                       transition={{ type: "spring", stiffness: 400, damping: 38 }}
                     />
                   )}
@@ -107,9 +107,9 @@ export function DashboardNav({ brandName }: { brandName: string }) {
       <div className="border-t border-hairline px-3 py-4">
         <motion.button
           onClick={() => signOut({ callbackUrl: "/" })}
-          whileHover={{ backgroundColor: "rgba(0,0,0,0.04)" }}
           className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px]
-                     font-medium text-ink-subtle hover:text-ink transition-colors duration-200"
+                     font-medium text-ink-subtle hover:text-ink hover:bg-ink/5
+                     transition-colors duration-200"
         >
           <LogOut strokeWidth={1.5} className="h-4 w-4 shrink-0" />
           Sign out

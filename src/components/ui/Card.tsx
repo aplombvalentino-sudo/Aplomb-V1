@@ -9,9 +9,11 @@ export function Card({ className, interactive, children, ...props }: CardProps) 
   return (
     <div
       className={cn(
-        "rounded-2xl border border-hairline bg-surface p-6 shadow-[0_1px_2px_rgba(17,16,16,0.04)]",
+        // shadow-card / shadow-float come from the themed elevation tokens in
+        // globals.css — they flip with dark mode (deeper, rim-lit) for free.
+        "rounded-2xl border border-hairline bg-surface p-6 shadow-card",
         interactive &&
-          "transition-[transform,box-shadow,border-color] duration-300 ease-out hover:-translate-y-0.5 hover:border-hairline-strong hover:shadow-[0_14px_34px_-16px_rgba(17,16,16,0.20)]",
+          "transition-[transform,box-shadow,border-color] duration-300 ease-out hover:-translate-y-0.5 hover:border-hairline-strong hover:shadow-float",
         className,
       )}
       {...props}

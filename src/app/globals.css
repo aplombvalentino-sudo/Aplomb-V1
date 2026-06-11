@@ -9,6 +9,8 @@
  *  editorial serif) + Geist (neutral UI sans).
  * ─────────────────────────────────────────────────────────────────────────── */
 :root {
+  color-scheme: light;
+
   /* Surfaces (the ~80%) */
   --canvas: #F6F3EE;          /* primary surface — warm paper */
   --surface: #FFFFFF;         /* cards, panels */
@@ -20,6 +22,9 @@
   --ink: #111010;             /* near-black, never pure black */
   --ink-muted: #6B6965;       /* secondary text (AA) */
   --ink-subtle: #6E6C67;      /* tertiary text — darkened to keep ≥4.5:1 on canvas */
+  /* Text/icon colour ON TOP of an ink-filled element (buttons, dark chips).
+     Flips with the theme so `bg-ink text-on-ink` works in both modes. */
+  --on-ink: #FFFFFF;
   --border: rgba(17, 16, 16, 0.08); /* hairline */
   --border-strong: rgba(17, 16, 16, 0.14);
 
@@ -33,7 +38,64 @@
   --champagne: #C9A882;
   --champagne-deep: #B6926A;
   --champagne-tint: rgba(201, 168, 130, 0.14);
+
+  /* Scrim — modal/lightbox dimming layer. Deliberately NOT --ink: a scrim
+     must darken the page in BOTH themes (an ink-based scrim would invert
+     into a bright veil in dark mode). Use with opacity: bg-scrim/60. */
+  --scrim: #14110E;
+
+  /* Elevation — warm-tinted shadows, one light source (top). Never pure black. */
+  --elev-card: 0 1px 2px rgba(31, 26, 20, 0.05), 0 10px 28px -14px rgba(31, 26, 20, 0.12);
+  --elev-float: 0 2px 6px rgba(31, 26, 20, 0.06), 0 22px 56px -22px rgba(31, 26, 20, 0.20);
+  /* Soft halo under 3D-tilted cards — reads as distance from the canvas. */
+  --elev-tilt: 0 18px 44px -18px rgba(31, 26, 20, 0.22);
 }
+
+/* ───────────────────────────────────────────────────────────────────────────
+ * Dark theme — same monastic restraint, inverted. Warm near-black (never
+ * #000), warm off-white ink, terracotta nudged one step brighter so it holds
+ * its 5% presence on dark ground. Shadows go deeper + gain a 1px light top
+ * edge (simulated rim light) so layering still reads.
+ * Applied via data-theme="dark" on <html> — see components/theme/ThemeScript.
+ * ─────────────────────────────────────────────────────────────────────────── */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --canvas: #131110;
+  --surface: #1B1916;
+  --surface-raised: #211E1A;
+  --stone: #272320;
+  --stone-deep: #2E2925;
+
+  --ink: #ECE8E1;
+  --ink-muted: #A6A199;
+  --ink-subtle: #9B968E;
+  --on-ink: #131110;
+  --border: rgba(236, 232, 225, 0.09);
+  --border-strong: rgba(236, 232, 225, 0.17);
+
+  --accent: #D2774E;
+  --accent-bright: #DD8A64;
+  --accent-deep: #C9653B;
+  --accent-tint: rgba(210, 119, 78, 0.14);
+
+  --champagne: #C9A882;
+  --champagne-deep: #D4B894;
+  --champagne-tint: rgba(201, 168, 130, 0.10);
+
+  /* Slightly deeper scrim on dark — the page is already dark, so the veil
+     needs more weight to read as "background receded". */
+  --scrim: #000000;
+
+  --elev-card: inset 0 1px 0 rgba(236, 232, 225, 0.04), 0 12px 32px -14px rgba(0, 0, 0, 0.55);
+  --elev-float: inset 0 1px 0 rgba(236, 232, 225, 0.05), 0 26px 64px -24px rgba(0, 0, 0, 0.70);
+  --elev-tilt: 0 20px 48px -16px rgba(0, 0, 0, 0.65);
+}
+
+/* Make Tailwind's `dark:` variant follow our data-theme attribute instead of
+ * prefers-color-scheme — the bootstrap script resolves "system" to an explicit
+ * attribute so CSS only ever has one source of truth. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 /* Map tokens to Tailwind utilities (bg-canvas, text-ink, text-accent, …) */
 @theme inline {
@@ -49,6 +111,7 @@
   --color-ink: var(--ink);
   --color-ink-muted: var(--ink-muted);
   --color-ink-subtle: var(--ink-subtle);
+  --color-on-ink: var(--on-ink);
 
   --color-accent: var(--accent);
   --color-accent-bright: var(--accent-bright);
@@ -57,11 +120,18 @@
   --color-champagne: var(--champagne);
   --color-champagne-deep: var(--champagne-deep);
 
+  --color-scrim: var(--scrim);
+
   --color-hairline: var(--border);
   --color-hairline-strong: var(--border-strong);
 
   --font-sans: var(--font-geist-sans), system-ui, sans-serif;
   --font-serif: var(--font-fraunces), Georgia, "Times New Roman", serif;
+
+  /* Elevation utilities: shadow-card / shadow-float / shadow-tilt */
+  --shadow-card: var(--elev-card);
+  --shadow-float: var(--elev-float);
+  --shadow-tilt: var(--elev-tilt);
 }
 
 html {
@@ -169,6 +239,34 @@ p {
 
 .animate-marquee:hover {
   animation-play-state: paused;
+}
+
+/* ─── 3D / perspective vocabulary ────────────────────────────────────────────
+ * Used by the TiltCard primitive and any surface that hosts 3D children.
+ * `perspective-stage` goes on the PARENT of tilted elements — one shared
+ * vanishing point per group reads as a coherent space; per-card perspective
+ * reads as a gimmick.
+ */
+.perspective-stage {
+  perspective: 1200px;
+}
+.perspective-stage-near {
+  perspective: 800px;
+}
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+/* Theme cross-fade — ThemeToggle adds `.theme-switching` to <html> for the
+ * 320ms around a flip, then removes it. Scoping the transition to that window
+ * (instead of permanently on every element) keeps normal interactions free of
+ * a blanket transition and avoids fighting motion/react color animations.
+ * Suppressed under reduced motion by the catch-all above. */
+html.theme-switching body,
+html.theme-switching body * {
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+  transition-duration: 280ms;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Subtle grain overlay — fixed, never on scroll containers */

@@ -1,10 +1,8 @@
-import Link from "next/link";
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { Logo } from "@/components/brand/Logo";
-import { ClientSignOutLink } from "@/components/client/ClientSignOutLink";
+import { ClientNav } from "@/components/client/ClientNav";
 import {
   isValidClientPlan,
   getClientPlanLimits,
@@ -50,20 +48,7 @@ export default async function ChatPage() {
 
   const shell = (children: React.ReactNode) => (
     <div className="min-h-[100dvh] bg-canvas">
-      <header className="border-b border-hairline bg-canvas/90 backdrop-blur-md
-                          sticky top-0 z-10 px-6 py-4 flex items-center justify-between">
-        <Link href="/app/wardrobe" aria-label="Aplomb — wardrobe" className="text-ink hover:opacity-60 transition-opacity duration-200">
-          <Logo className="text-[17px]" />
-        </Link>
-        <nav className="flex items-center gap-4">
-          <Link href="/app/wardrobe" className="text-[12px] text-ink-subtle hover:text-ink transition-colors duration-200">Wardrobe</Link>
-          <Link href="/app/outfits" className="text-[12px] text-ink-subtle hover:text-ink transition-colors duration-200">Outfits</Link>
-          <Link href="/app/chat" className="text-[12px] font-medium text-ink transition-colors">Assistant</Link>
-          <Link href="/app/account" className="text-[12px] text-ink-subtle hover:text-ink transition-colors duration-200">Profile</Link>
-          <span aria-hidden className="h-3 w-px bg-hairline-strong" />
-          <ClientSignOutLink />
-        </nav>
-      </header>
+      <ClientNav active="assistant" />
       <main className="mx-auto max-w-3xl px-6 py-8">{children}</main>
     </div>
   );

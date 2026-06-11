@@ -2,8 +2,7 @@
 
 import { motion } from "motion/react";
 import { PricingCards } from "@/components/public/PricingCards";
-
-const ease = [0.16, 1, 0.3, 1] as const;
+import { ease } from "@/lib/motion";
 
 export function PricingPageContent() {
   return (
