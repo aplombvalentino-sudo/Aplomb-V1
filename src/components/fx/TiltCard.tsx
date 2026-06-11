@@ -90,6 +90,25 @@ export function TiltCard({
   // structural invariant in the header comment).
   const scale = useSpring(1, tilt.spring);
 
+  // Hover Z-lift. Load-bearing for CLICKS, not just looks: in a preserve-3d
+  // context the browser hit-tests in 3D depth order, and the tilt is a
+  // "press down" — the region under the cursor rotates BEHIND the static
+  // wrapper's z=0 plane, so the transparent wrapper would swallow every
+  // click on the card's content. Lifting the card further forward than its
+  // worst-case tilt excursion (set per-card in handleEnter) keeps all of it
+  // in front of the listener plane, so buttons/links inside stay clickable.
+  const z = useSpring(0, tilt.spring);
+
+  const zLiftFor = useCallback(
+    (rect: DOMRect) =>
+      Math.max(
+        tilt.hoverZ,
+        // Max corner excursion: both axes at maxTilt, corner at (w/2, h/2).
+        Math.sin((maxTilt * Math.PI) / 180) * ((rect.width + rect.height) / 2) + 6,
+      ),
+    [maxTilt],
+  );
+
   // Sheen position tracks the raw (unsprung) pointer for immediacy.
   const sheenX = useTransform(px, [-0.5, 0.5], ["20%", "80%"]);
   const sheenY = useTransform(py, [-0.5, 0.5], ["20%", "80%"]);
@@ -99,10 +118,12 @@ export function TiltCard({
   const handleEnter = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
       if (e.pointerType !== "mouse") return; // coarse pointers: skip tilt
-      rectRef.current = wrapRef.current?.getBoundingClientRect() ?? null;
+      const rect = wrapRef.current?.getBoundingClientRect() ?? null;
+      rectRef.current = rect;
+      if (rect) z.set(zLiftFor(rect));
       if (liftScale !== 1) scale.set(liftScale);
     },
-    [liftScale, scale],
+    [liftScale, scale, z, zLiftFor],
   );
 
   const clamp = (v: number) => Math.max(-0.5, Math.min(0.5, v));
@@ -114,13 +135,14 @@ export function TiltCard({
       if (!rectRef.current) {
         rectRef.current = wrapRef.current?.getBoundingClientRect() ?? null;
         if (!rectRef.current) return;
+        z.set(zLiftFor(rectRef.current)); // keep clicks alive on this path too
       }
       const rect = rectRef.current;
       px.set(clamp((e.clientX - rect.left) / rect.width - 0.5));
       py.set(clamp((e.clientY - rect.top) / rect.height - 0.5));
       sheenOpacity.set(1);
     },
-    [px, py, sheenOpacity],
+    [px, py, sheenOpacity, z, zLiftFor],
   );
 
   const handleLeave = useCallback(() => {
@@ -128,8 +150,9 @@ export function TiltCard({
     px.set(0);
     py.set(0);
     scale.set(1);
+    z.set(0);
     sheenOpacity.set(0);
-  }, [px, py, scale, sheenOpacity]);
+  }, [px, py, scale, z, sheenOpacity]);
 
   if (reduce || disabled) {
     // Keep positioning parity with the animated path: callers rely on the
@@ -149,7 +172,7 @@ export function TiltCard({
       className="group/tilt preserve-3d relative h-full"
     >
       <motion.div
-        style={{ rotateX, rotateY, scale }}
+        style={{ rotateX, rotateY, scale, z }}
         className={cn(
           "preserve-3d relative h-full will-change-transform",
           "transition-shadow duration-300 group-hover/tilt:shadow-tilt",

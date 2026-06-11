@@ -139,7 +139,11 @@ export const tilt = {
   max: 5,
   /** Hover scale paired with the tilt — the "lift toward the eye". */
   hoverScale: 1.02,
-  /** Z-translate (px) on hover — needs a `perspective-stage` parent to read. */
+  /** MINIMUM hover Z-translate (px). TiltCard raises it per-card to clear the
+   *  worst-case tilt excursion — required so the tilted card stays in front of
+   *  its static listener plane and content remains clickable (3D hit-testing
+   *  is depth-sorted in preserve-3d contexts). Needs a `perspective-stage`
+   *  parent to read visually. */
   hoverZ: 24,
   /** Spring for pointer-tracked rotation. Slightly softer than `spring.gentle`
    *  so the card trails the cursor like a physical object with mass. */
