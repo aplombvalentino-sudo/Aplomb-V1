@@ -60,6 +60,18 @@ export function TiltCard({
   const reduce = useReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
 
+  // The card's rect, measured ONCE on pointer-enter while the element is
+  // still untransformed, then reused for every move in that hover session.
+  //
+  // Why caching is load-bearing and not an optimisation: measuring
+  // getBoundingClientRect() per-move on the SAME element that is rotating
+  // and scaling creates a feedback loop — the tilt changes the rect, which
+  // changes the computed tilt target, which changes the rect… The springs
+  // end up chasing a moving goalpost and the card visibly vibrates instead
+  // of settling into a held tilt. A pristine enter-time rect gives every
+  // move a stable frame of reference, so the spring converges and holds.
+  const rectRef = useRef<DOMRect | null>(null);
+
   // Normalised pointer position over the card: -0.5 … 0.5 on both axes.
   const px = useMotionValue(0);
   const py = useMotionValue(0);
@@ -75,20 +87,31 @@ export function TiltCard({
   const sheenY = useTransform(py, [-0.5, 0.5], ["20%", "80%"]);
   const sheenOpacity = useMotionValue(0);
 
+  const handleEnter = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType !== "mouse") return; // coarse pointers: skip tilt
+    rectRef.current = ref.current?.getBoundingClientRect() ?? null;
+  }, []);
+
+  const clamp = (v: number) => Math.max(-0.5, Math.min(0.5, v));
+
   const handleMove = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
-      if (e.pointerType !== "mouse") return; // coarse pointers: skip tilt
-      const el = ref.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      px.set((e.clientX - rect.left) / rect.width - 0.5);
-      py.set((e.clientY - rect.top) / rect.height - 0.5);
+      if (e.pointerType !== "mouse") return;
+      // Late-cache for the edge case where enter fired before hydration.
+      if (!rectRef.current) {
+        rectRef.current = ref.current?.getBoundingClientRect() ?? null;
+        if (!rectRef.current) return;
+      }
+      const rect = rectRef.current;
+      px.set(clamp((e.clientX - rect.left) / rect.width - 0.5));
+      py.set(clamp((e.clientY - rect.top) / rect.height - 0.5));
       sheenOpacity.set(1);
     },
     [px, py, sheenOpacity],
   );
 
   const handleLeave = useCallback(() => {
+    rectRef.current = null; // re-measure next session (layout may shift)
     px.set(0);
     py.set(0);
     sheenOpacity.set(0);
@@ -103,6 +126,7 @@ export function TiltCard({
   return (
     <motion.div
       ref={ref}
+      onPointerEnter={handleEnter}
       onPointerMove={handleMove}
       onPointerLeave={handleLeave}
       style={{ rotateX, rotateY }}
