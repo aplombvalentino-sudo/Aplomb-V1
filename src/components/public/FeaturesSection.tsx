@@ -135,14 +135,17 @@ export function FeaturesSection() {
                 whileInView={{ opacity: 1, x: 0, y: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.7, delay: i * 0.07, ease }}
-                whileHover={{ y: -3, transition: { duration: 0.28, ease: "easeOut" } }}
                 className={`${f.span} group cursor-default`}
               >
-                {/* Outer shell */}
+                {/* Outer shell. The hover lift lives HERE (CSS, keyed off the
+                    static parent's `group` hover) and not in a whileHover on
+                    the parent: lifting the element that owns the hover state
+                    moves its hit area off a cursor parked near the bottom
+                    edge → enter/leave flap → visible vibration. */}
                 <div
                   className={`h-full rounded-[1.5rem] p-1.5 ring-1
-                              transition-shadow duration-300
-                              group-hover:shadow-card
+                              transition-[box-shadow,transform] duration-300
+                              group-hover:shadow-card group-hover:-translate-y-[3px]
                               ${f.dark
                                 ? "bg-stone-deep ring-hairline-strong"
                                 : "bg-ink/[0.02] ring-hairline"}`}

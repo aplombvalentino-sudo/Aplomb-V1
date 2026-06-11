@@ -8,7 +8,7 @@ import {
   useTransform,
   useReducedMotion,
 } from "motion/react";
-import { tilt, ease, duration } from "@/lib/motion";
+import { tilt } from "@/lib/motion";
 import { cn } from "@/lib/cn";
 
 /**
@@ -30,6 +30,17 @@ import { cn } from "@/lib/cn";
  * reads as a coherent space instead of per-card gimmicks. When no
  * `perspective-stage` ancestor exists the rotation still renders (flat-ish);
  * add the stage class for full depth.
+ *
+ * Structural invariant — LISTENER ≠ TRANSFORMER:
+ *   The outer wrapper owns every pointer event and NEVER transforms; the
+ *   inner element does all the visuals (tilt, lift scale, shadow, sheen).
+ *   If one element does both, its hit geometry shifts as it tilts/scales
+ *   and the browser fires pointerleave under a stationary cursor →
+ *   leave resets the card → cursor is back inside → pointerenter → the
+ *   card vibrates forever near edges and never holds a tilt. For the same
+ *   reason, never reintroduce `whileHover` here — it listens on the
+ *   transforming element. The lift scale is driven from the wrapper's
+ *   enter/leave instead.
  *
  * Accessibility / perf:
  *   - `useReducedMotion()` disables ALL tilt + sheen (renders a plain div).
@@ -58,18 +69,10 @@ export function TiltCard({
   disabled?: boolean;
 }) {
   const reduce = useReducedMotion();
-  const ref = useRef<HTMLDivElement>(null);
-
-  // The card's rect, measured ONCE on pointer-enter while the element is
-  // still untransformed, then reused for every move in that hover session.
-  //
-  // Why caching is load-bearing and not an optimisation: measuring
-  // getBoundingClientRect() per-move on the SAME element that is rotating
-  // and scaling creates a feedback loop — the tilt changes the rect, which
-  // changes the computed tilt target, which changes the rect… The springs
-  // end up chasing a moving goalpost and the card visibly vibrates instead
-  // of settling into a held tilt. A pristine enter-time rect gives every
-  // move a stable frame of reference, so the spring converges and holds.
+  // The static listening surface. Its hit geometry never changes, so the
+  // rect below stays valid for a whole hover session — caching it is a
+  // perf nicety here (one layout query per hover), not a correctness fix.
+  const wrapRef = useRef<HTMLDivElement>(null);
   const rectRef = useRef<DOMRect | null>(null);
 
   // Normalised pointer position over the card: -0.5 … 0.5 on both axes.
@@ -82,15 +85,25 @@ export function TiltCard({
   const rotateY = useTransform(sx, [-0.5, 0.5], [-maxTilt, maxTilt]);
   const rotateX = useTransform(sy, [-0.5, 0.5], [maxTilt, -maxTilt]);
 
+  // Hover lift, spring-driven from the wrapper's enter/leave — replaces
+  // `whileHover`, which would listen on the transforming element (see the
+  // structural invariant in the header comment).
+  const scale = useSpring(1, tilt.spring);
+
   // Sheen position tracks the raw (unsprung) pointer for immediacy.
   const sheenX = useTransform(px, [-0.5, 0.5], ["20%", "80%"]);
   const sheenY = useTransform(py, [-0.5, 0.5], ["20%", "80%"]);
   const sheenOpacity = useMotionValue(0);
+  const smoothSheenOpacity = useSpring(sheenOpacity, { stiffness: 320, damping: 34 });
 
-  const handleEnter = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    if (e.pointerType !== "mouse") return; // coarse pointers: skip tilt
-    rectRef.current = ref.current?.getBoundingClientRect() ?? null;
-  }, []);
+  const handleEnter = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (e.pointerType !== "mouse") return; // coarse pointers: skip tilt
+      rectRef.current = wrapRef.current?.getBoundingClientRect() ?? null;
+      if (liftScale !== 1) scale.set(liftScale);
+    },
+    [liftScale, scale],
+  );
 
   const clamp = (v: number) => Math.max(-0.5, Math.min(0.5, v));
 
@@ -99,7 +112,7 @@ export function TiltCard({
       if (e.pointerType !== "mouse") return;
       // Late-cache for the edge case where enter fired before hydration.
       if (!rectRef.current) {
-        rectRef.current = ref.current?.getBoundingClientRect() ?? null;
+        rectRef.current = wrapRef.current?.getBoundingClientRect() ?? null;
         if (!rectRef.current) return;
       }
       const rect = rectRef.current;
@@ -114,8 +127,9 @@ export function TiltCard({
     rectRef.current = null; // re-measure next session (layout may shift)
     px.set(0);
     py.set(0);
+    scale.set(1);
     sheenOpacity.set(0);
-  }, [px, py, sheenOpacity]);
+  }, [px, py, scale, sheenOpacity]);
 
   if (reduce || disabled) {
     // Keep positioning parity with the animated path: callers rely on the
@@ -124,36 +138,40 @@ export function TiltCard({
   }
 
   return (
-    <motion.div
-      ref={ref}
+    <div
+      ref={wrapRef}
       onPointerEnter={handleEnter}
       onPointerMove={handleMove}
       onPointerLeave={handleLeave}
-      style={{ rotateX, rotateY }}
-      whileHover={liftScale !== 1 ? { scale: liftScale } : undefined}
-      transition={{ scale: { duration: duration.base, ease } }}
-      className={cn(
-        "preserve-3d relative will-change-transform",
-        "hover:shadow-tilt transition-shadow duration-300",
-        className,
-      )}
+      // preserve-3d: keep the ancestor stage's perspective flowing through
+      // this extra layer to the transforming child. h-full: stretch in
+      // equal-height columns (resolves to auto elsewhere — harmless).
+      className="group/tilt preserve-3d relative h-full"
     >
-      {children}
-      {sheen && (
-        <motion.span
-          aria-hidden
-          className="pointer-events-none absolute inset-0 rounded-[inherit]"
-          style={{
-            opacity: sheenOpacity,
-            background: `radial-gradient(280px circle at ${"var(--sx)"} ${"var(--sy)"}, rgba(255,255,255,0.10), transparent 65%)`,
-            // motion templates aren't string-interpolable into background
-            // shorthand cleanly — drive via CSS vars instead:
-            ["--sx" as string]: sheenX,
-            ["--sy" as string]: sheenY,
-            transition: `opacity ${duration.base * 1000}ms cubic-bezier(${ease.join(",")})`,
-          }}
-        />
-      )}
-    </motion.div>
+      <motion.div
+        style={{ rotateX, rotateY, scale }}
+        className={cn(
+          "preserve-3d relative h-full will-change-transform",
+          "transition-shadow duration-300 group-hover/tilt:shadow-tilt",
+          className,
+        )}
+      >
+        {children}
+        {sheen && (
+          <motion.span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 rounded-[inherit]"
+            style={{
+              opacity: smoothSheenOpacity,
+              background: `radial-gradient(280px circle at ${"var(--sx)"} ${"var(--sy)"}, rgba(255,255,255,0.10), transparent 65%)`,
+              // motion templates aren't string-interpolable into background
+              // shorthand cleanly — drive via CSS vars instead:
+              ["--sx" as string]: sheenX,
+              ["--sy" as string]: sheenY,
+            }}
+          />
+        )}
+      </motion.div>
+    </div>
   );
 }

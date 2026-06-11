@@ -113,7 +113,11 @@ function ChooserButton({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, delay, ease }}
-      whileHover={reduce ? undefined : { y: -2, rotateY: 2, scale: 1.01 }}
+      // Scale-up ONLY: whileHover listens on this same element, so any hover
+      // motion that can move the hit area out from under a stationary cursor
+      // (translate, rotate) makes enter/leave flap and the button vibrates.
+      // Growth keeps the cursor inside — structurally flap-free.
+      whileHover={reduce ? undefined : { scale: 1.015 }}
       className={`group relative overflow-hidden rounded-2xl border p-5 text-left transition-all duration-300
                   ${
                     accent === "gold"
