@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { motion } from "motion/react";
+import { motion, MotionConfig } from "motion/react";
 import { Logo } from "@/components/brand/Logo";
 import { TiltCard } from "@/components/fx/TiltCard";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
@@ -211,7 +211,12 @@ function AuthLayoutContent({ children }: { children: React.ReactNode }) {
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <Suspense
+    // `reducedMotion="user"` makes every motion/react animation in the login
+    // and signup flows honour prefers-reduced-motion without per-component
+    // useReducedMotion() guards. The CSS catch-all in globals.css can't reach
+    // JS-driven motion, so this is the one place that does for this subtree.
+    <MotionConfig reducedMotion="user">
+      <Suspense
       fallback={
         // Skeleton mirrors the real layout: stone panel left, form column right.
         <div className="flex min-h-[100dvh] bg-canvas">
@@ -234,7 +239,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </div>
       }
     >
-      <AuthLayoutContent>{children}</AuthLayoutContent>
-    </Suspense>
+        <AuthLayoutContent>{children}</AuthLayoutContent>
+      </Suspense>
+    </MotionConfig>
   );
 }

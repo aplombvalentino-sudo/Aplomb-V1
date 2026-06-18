@@ -37,6 +37,25 @@ import { ease } from "@/lib/motion";
  * which sent every successful login — including shoppers — to the
  * brand workspace. That was the bug this refactor fixes.
  */
+
+/**
+ * Only allow same-origin RELATIVE paths as a post-login destination.
+ * `?callbackUrl=` is attacker-controlled, and the credentials path
+ * (`router.push`) does NOT go through next-auth's same-origin redirect
+ * callback the way the Google flow does — so without this, an absolute
+ * URL would send a freshly-authenticated user to an external phishing
+ * page. Reject anything that isn't a clean leading-slash path:
+ *   - "https://evil.com"  → not "/"          → "/"
+ *   - "//evil.com"        → protocol-relative → "/"
+ *   - "/\\evil.com"       → some browsers read as protocol-relative → "/"
+ *   - "/app/wardrobe"     → safe              → kept
+ */
+function sanitizeCallbackUrl(raw: string | null): string {
+  if (!raw || !raw.startsWith("/")) return "/";
+  if (raw.startsWith("//") || raw.startsWith("/\\")) return "/";
+  return raw;
+}
+
 export function LoginForm({
   kind,
   onBack,
@@ -48,7 +67,7 @@ export function LoginForm({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") ?? "/";
+  const callbackUrl = sanitizeCallbackUrl(searchParams.get("callbackUrl"));
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

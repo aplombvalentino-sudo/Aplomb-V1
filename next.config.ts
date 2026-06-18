@@ -72,6 +72,25 @@ const nextConfig: NextConfig = {
     minimumCacheTTL: 60 * 60 * 24,
   },
 
+  // ─── Legacy /dashboard/* → /pro/* redirects ───────────────────────────────
+  // The old brand workspace lived under /dashboard/*; it now lives under /pro/*
+  // (a (workspace) route group, so the URLs are /pro/<section>, NOT
+  // /pro/dashboard/<section>). The duplicate /dashboard route group has been
+  // removed. These 308s keep any old bookmarks / external links working and
+  // map each legacy path to its actual successor. Handled by Next's router so
+  // they fire reliably regardless of middleware matching. Specific paths first;
+  // the catch-all sends anything else to the workspace home rather than 404.
+  async redirects() {
+    return [
+      { source: "/dashboard", destination: "/pro/dashboard", permanent: true },
+      { source: "/dashboard/sessions", destination: "/pro/sessions", permanent: true },
+      { source: "/dashboard/products", destination: "/pro/catalogue", permanent: true },
+      { source: "/dashboard/size-charts", destination: "/pro/size-charts", permanent: true },
+      { source: "/dashboard/integration", destination: "/pro/settings", permanent: true },
+      { source: "/dashboard/:path*", destination: "/pro/dashboard", permanent: true },
+    ];
+  },
+
   async headers() {
     return [
       // Static headers on every route. CSP + X-Frame-Options live in

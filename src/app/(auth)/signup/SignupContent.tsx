@@ -15,10 +15,11 @@ import { SignupForm } from "./SignupForm";
  */
 export function SignupContent() {
   const searchParams = useSearchParams();
-  const initialAudience = searchParams.get("audience") as
-    | "brand"
-    | "client"
-    | null;
+  // Validate, don't blind-cast: `?audience=junk` must fall through to the
+  // chooser, not skip it and render a mislabeled form.
+  const rawAudience = searchParams.get("audience");
+  const initialAudience =
+    rawAudience === "brand" || rawAudience === "client" ? rawAudience : null;
   const plan = searchParams.get("plan");
 
   const [audience, setAudience] = useState<null | "brand" | "client">(initialAudience);

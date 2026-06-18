@@ -81,15 +81,11 @@ export default auth((req) => {
     }
   }
 
-  // Legacy /dashboard/* redirect to new /pro/* URLs
-  if (pathname.startsWith("/dashboard")) {
-    const newPath = pathname.replace("/dashboard", "/pro/dashboard");
-    return withSecurityHeaders(
-      NextResponse.redirect(new URL(newPath, req.url)),
-      nonce,
-      pathname,
-    );
-  }
+  // Legacy /dashboard/* → /pro/* redirects now live in next.config.ts
+  // `redirects()`. The previous branch here mapped /dashboard/<x> to
+  // /pro/dashboard/<x>, but the real routes are /pro/<x> (a (workspace)
+  // group), so it pointed sub-pages at non-existent targets. The config
+  // redirects map each legacy path to its actual successor.
 
   // Propagate the nonce into the *request* so Next.js's framework code
   // picks it up and applies it to its own injected <script> tags.
