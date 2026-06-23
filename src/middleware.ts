@@ -26,6 +26,26 @@ function makeNonce(): string {
 //     forcing it through nonces would break the design system.
 //   - `frame-ancestors` is permissive for /widget (must embed cross-origin),
 //     locked for every other route.
+// Hosts allowed to serve images directly to the browser. Kept in sync with
+// the Next image-optimizer allow-list in next.config.ts (remotePatterns) —
+// optimized images load same-origin via /_next/image ('self'), but signed
+// Supabase URLs, fal try-on outputs, and any unoptimized brand <img> load
+// straight from these CDNs. Previously this was a bare `https:` (every HTTPS
+// host on the internet); narrowing it removes that wildcard. CSP `*.` matches
+// any subdomain depth, so one entry per registrable domain suffices.
+const IMG_HOSTS = [
+  "https://*.supabase.co",
+  "https://*.supabase.in",
+  "https://*.fal.media",
+  "https://*.fal.ai",
+  "https://fal.media",
+  "https://cdn.shopify.com",
+  "https://res.cloudinary.com",
+  "https://*.imgix.net",
+  "https://*.amazonaws.com", // S3 (region-less + per-region) — AWS-bounded
+  "https://*.cloudfront.net",
+].join(" ");
+
 function buildCsp(nonce: string, pathname: string): string {
   const frameAncestors = pathname === "/widget" ? "*" : "'none'";
   return [
@@ -40,7 +60,7 @@ function buildCsp(nonce: string, pathname: string): string {
     // Styles: Tailwind needs unsafe-inline. Documented trade-off; revisit
     // if/when we have time to ship a build-time style-extraction pass.
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob: https:",
+    `img-src 'self' data: blob: ${IMG_HOSTS}`,
     "font-src 'self' data:",
     "connect-src 'self' https://*.supabase.co https://challenges.cloudflare.com",
     "frame-src 'self' https://challenges.cloudflare.com",

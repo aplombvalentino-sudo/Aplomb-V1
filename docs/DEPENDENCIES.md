@@ -17,6 +17,14 @@ each before sending Aplomb past internal/beta usage.
 |---|---|---|---|---|
 | **`next-auth`** | `5.0.0-beta.31` | Pre-release beta. APIs can shift; bugs may not be patched on this exact beta number. We rely on it for the entire auth surface (session, callbacks, JWT strategy, providers). A breaking change between this beta and 5.0.0 stable could require a coordinated migration. | `5.0.0` stable (or the lowest stable 5.x at the time of upgrade) | Move BEFORE: (a) the first paying user signs up, or (b) we exceed 1k DAU, whichever comes first. Track release notes at https://github.com/nextauthjs/next-auth/releases. |
 
+> **Status (checked 2026-06-23):** No 5.0.0 stable exists yet. The `beta`
+> dist-tag still resolves to `5.0.0-beta.31` (exactly our pin — we are on the
+> newest beta), and `latest` is the v4 line (`4.24.x`), a different major with
+> an incompatible API. There is therefore nothing to upgrade *to* right now;
+> "downgrading" to v4 would be a regression. Mitigation in place: the pin is
+> **exact** (no `^`/`~`), so installs are reproducible and can't drift onto an
+> untested beta. Re-check the releases page at the trigger conditions above.
+
 ### Upgrade procedure for `next-auth`
 
 1. Watch the [next-auth releases](https://github.com/nextauthjs/next-auth/releases) for a `5.0.0` (or stable 5.x) tag.
