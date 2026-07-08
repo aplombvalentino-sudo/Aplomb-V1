@@ -115,13 +115,23 @@ export function PlanCard({ plan, i }: { plan: Plan; i: number }) {
             </ul>
 
             {/* CTA — pinned to the card bottom so the three tiers' buttons
-                share one baseline regardless of feature-list length. */}
-            <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }} className="mt-auto pt-8">
+                share one baseline regardless of feature-list length.
+
+                NO hover/tap SCALE here: this button lives inside a TiltCard,
+                which continuously repositions it under the cursor as the card
+                tilts. A hover-scale on the button (the element that also
+                listens for the hover) would toggle on/off as the tilt slides
+                its edge past a stationary cursor — the button vibrates and
+                eats clicks. The card's tilt+lift is the hover feedback; the
+                button keeps its colour-shift + arrow-slide. Press feedback is
+                a CSS `active:` scale, which can't flap (the pointer is held
+                down while it applies). */}
+            <div className="mt-auto pt-8">
               <Link
                 href={plan.href}
                 className={`group/btn inline-flex w-full items-center justify-between
                             rounded-full px-5 py-3 text-sm font-medium
-                            transition-all duration-300
+                            transition-all duration-300 active:scale-[0.98]
                             ${plan.highlight
                               ? "bg-accent text-white hover:bg-accent-bright"
                               : "bg-ink text-on-ink hover:bg-ink/90"
@@ -145,7 +155,7 @@ export function PlanCard({ plan, i }: { plan: Plan; i: number }) {
                   </svg>
                 </span>
               </Link>
-            </motion.div>
+            </div>
           </div>
         </div>
       </TiltCard>
