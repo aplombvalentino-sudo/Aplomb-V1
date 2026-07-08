@@ -123,15 +123,15 @@ export function PlanCard({ plan, i }: { plan: Plan; i: number }) {
                 listens for the hover) would toggle on/off as the tilt slides
                 its edge past a stationary cursor — the button vibrates and
                 eats clicks. The card's tilt+lift is the hover feedback; the
-                button keeps its colour-shift + arrow-slide. Press feedback is
-                a CSS `active:` scale, which can't flap (the pointer is held
-                down while it applies). */}
+                button keeps its colour-shift + arrow-slide. The TiltCard now
+                also freezes on pointerdown so the target holds still through
+                the press — no button transform needed or wanted. */}
             <div className="mt-auto pt-8">
               <Link
                 href={plan.href}
                 className={`group/btn inline-flex w-full items-center justify-between
                             rounded-full px-5 py-3 text-sm font-medium
-                            transition-all duration-300 active:scale-[0.98]
+                            transition-colors duration-300
                             ${plan.highlight
                               ? "bg-accent text-white hover:bg-accent-bright"
                               : "bg-ink text-on-ink hover:bg-ink/90"

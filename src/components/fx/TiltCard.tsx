@@ -115,6 +115,10 @@ export function TiltCard({
   const sheenOpacity = useMotionValue(0);
   const smoothSheenOpacity = useSpring(sheenOpacity, { stiffness: 320, damping: 34 });
 
+  // True between pointerdown and pointerup. While pressed we FREEZE the tilt
+  // so the click target can't move — see handlePress.
+  const pressedRef = useRef(false);
+
   const handleEnter = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
       if (e.pointerType !== "mouse") return; // coarse pointers: skip tilt
@@ -126,11 +130,33 @@ export function TiltCard({
     [liftScale, scale, z, zLiftFor],
   );
 
+  // On press, settle every spring to its CURRENT on-screen value and stop
+  // tracking the pointer until release. Why this is load-bearing for clicks:
+  // a browser only fires a `click` if pointerdown and pointerup land on the
+  // same element. While the card is springing toward the cursor, the button
+  // under the finger keeps moving, so a real (mid-animation) left-click lands
+  // its down and up on different elements → NO click fires and the button
+  // silently does nothing, even though right-click → "open link" works (that
+  // reads the <a href> directly). Freezing the transform for the ~100ms of a
+  // press holds the target still so the click registers.
+  const handlePress = useCallback(() => {
+    pressedRef.current = true;
+    px.set(sx.get());
+    py.set(sy.get());
+    scale.set(scale.get());
+    z.set(z.get());
+  }, [px, py, sx, sy, scale, z]);
+
+  const endPress = useCallback(() => {
+    pressedRef.current = false;
+  }, []);
+
   const clamp = (v: number) => Math.max(-0.5, Math.min(0.5, v));
 
   const handleMove = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
       if (e.pointerType !== "mouse") return;
+      if (pressedRef.current) return; // frozen during a press so clicks land
       // Late-cache for the edge case where enter fired before hydration.
       if (!rectRef.current) {
         rectRef.current = wrapRef.current?.getBoundingClientRect() ?? null;
@@ -147,6 +173,7 @@ export function TiltCard({
 
   const handleLeave = useCallback(() => {
     rectRef.current = null; // re-measure next session (layout may shift)
+    pressedRef.current = false;
     px.set(0);
     py.set(0);
     scale.set(1);
@@ -166,6 +193,9 @@ export function TiltCard({
       onPointerEnter={handleEnter}
       onPointerMove={handleMove}
       onPointerLeave={handleLeave}
+      onPointerDown={handlePress}
+      onPointerUp={endPress}
+      onPointerCancel={endPress}
       // preserve-3d: keep the ancestor stage's perspective flowing through
       // this extra layer to the transforming child. h-full: stretch in
       // equal-height columns (resolves to auto elsewhere — harmless).
